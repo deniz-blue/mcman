@@ -61,7 +61,7 @@ impl ServerType {
         let items = [
             (0, "Quilt (fabric compatible)"),
             (1, "Fabric"),
-            (2, "NeoForge (forge compatible)"),
+            (2, "NeoForge"),
             (3, "Forge"),
         ];
 
