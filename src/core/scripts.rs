@@ -1,6 +1,7 @@
 use std::{fs::OpenOptions, io::Write};
 
 use anyhow::Result;
+use semver::Version;
 use tokio::fs;
 
 use crate::model::{ServerType, StartupMethod};
@@ -12,15 +13,27 @@ impl<'a> BuildContext<'a> {
         let mcver = self.app.mc_version();
         Ok(match &self.app.server.jar {
             ServerType::NeoForge { loader } => {
-                let l = self.app.neoforge().resolve_version(loader).await?;
+                use crate::sources::neoforge::NEOFORGE_BREAKOFF_VERSION;
+                let loader_ver = self.app.neoforge().resolve_version(loader).await?;
 
-                StartupMethod::Custom {
-                    windows: vec![format!(
-                        "@libraries/net/neoforged/forge/{mcver}-{l}/win_args.txt"
-                    )],
-                    linux: vec![format!(
-                        "@libraries/net/neoforged/forge/{mcver}-{l}/unix_args.txt"
-                    )],
+                if Version::parse(mcver)? <= NEOFORGE_BREAKOFF_VERSION {
+                    StartupMethod::Custom {
+                        windows: vec![format!(
+                            "@libraries/net/neoforged/forge/{mcver}-{loader_ver}/win_args.txt"
+                        )],
+                        linux: vec![format!(
+                            "@libraries/net/neoforged/forge/{mcver}-{loader_ver}/unix_args.txt"
+                        )],
+                    }
+                } else {
+                    StartupMethod::Custom {
+                        windows: vec![format!(
+                            "@libraries/net/neoforged/neoforge/{loader_ver}/win_args.txt"
+                        )],
+                        linux: vec![format!(
+                            "@libraries/net/neoforged/neoforge/{loader_ver}/unix_args.txt"
+                        )],
+                    }
                 }
             }
             ServerType::Forge { loader } => {
