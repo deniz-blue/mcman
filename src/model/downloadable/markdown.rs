@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 
 use crate::{model::Downloadable, sources::jenkins::JenkinsAPI};
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Display};
 
 impl Downloadable {
     pub fn get_md_link(&self) -> String {
@@ -135,8 +135,8 @@ impl Downloadable {
     }
 }
 
-impl ToString for Downloadable {
-    fn to_string(&self) -> String {
-        self.to_short_string()
+impl Display for Downloadable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_short_string())
     }
 }
