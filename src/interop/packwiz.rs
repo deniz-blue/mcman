@@ -154,7 +154,7 @@ impl PackwizInterop<'_> {
     pub async fn dl_from_mod(&self, m: &Mod) -> Result<Downloadable> {
         if let Some(dl) = self.dl_from_hash(&m.download).await? {
             Ok(dl)
-        } else if let Some(dl) = self.dl_from_mod_update(&m.update) {
+        } else if let Some(dl) = self.dl_from_mod_update(m.update.as_ref()) {
             Ok(dl)
         } else {
             self.0
@@ -192,7 +192,7 @@ impl PackwizInterop<'_> {
         }
     }
 
-    pub fn dl_from_mod_update(&self, mod_update: &Option<ModUpdate>) -> Option<Downloadable> {
+    pub fn dl_from_mod_update(&self, mod_update: Option<&ModUpdate>) -> Option<Downloadable> {
         if let Some(upd) = mod_update {
             if let Some(mr) = &upd.modrinth {
                 Some(Downloadable::Modrinth {
