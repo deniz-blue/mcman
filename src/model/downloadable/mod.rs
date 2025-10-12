@@ -96,7 +96,7 @@ impl Resolvable for Downloadable {
                     filename.clone()
                 } else {
                     let url_clean = url.split('?').next().unwrap_or(url);
-                    url_clean.split('/').last().unwrap().to_string()
+                    url_clean.split('/').next_back().unwrap().to_string()
                 },
                 cache: CacheStrategy::None,
                 size: None,

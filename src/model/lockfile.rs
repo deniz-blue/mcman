@@ -49,7 +49,7 @@ impl Lockfile {
     pub fn load_from(path: &PathBuf) -> Result<Self> {
         let data = read_to_string(path)?;
         let mut nw: Self = serde_json::from_str(&data)?;
-        nw.path = path.to_owned();
+        nw.path.clone_from(path);
         Ok(nw)
     }
 

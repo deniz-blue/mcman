@@ -10,7 +10,7 @@ pub struct PurpurAPI<'a>(pub &'a App);
 pub const API_URL: &str = "https://api.purpurmc.org/v2/purpur";
 pub const CACHE_DIR: &str = "purpur";
 
-impl<'a> PurpurAPI<'a> {
+impl PurpurAPI<'_> {
     pub async fn fetch_api<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
         let response: T = self
             .0

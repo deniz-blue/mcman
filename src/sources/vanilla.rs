@@ -6,7 +6,7 @@ pub struct VanillaAPI<'a>(pub &'a App);
 
 pub const CACHE_DIR: &str = "vanilla";
 
-impl<'a> VanillaAPI<'a> {
+impl VanillaAPI<'_> {
     pub async fn fetch_latest_mcver(&self) -> Result<String> {
         Ok(mcapi::vanilla::fetch_version_manifest(&self.0.http_client)
             .await?

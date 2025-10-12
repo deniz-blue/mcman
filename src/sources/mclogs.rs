@@ -9,7 +9,7 @@ const API_V1: &str = "https://api.mclo.gs/1";
 
 pub struct MCLogsAPI<'a>(pub &'a App);
 
-impl<'a> MCLogsAPI<'a> {
+impl MCLogsAPI<'_> {
     pub async fn paste_log(&self, content: &str) -> Result<LogFileMetadata> {
         let params = HashMap::from([("content", content)]);
 

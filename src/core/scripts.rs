@@ -8,7 +8,7 @@ use crate::model::{ServerType, StartupMethod};
 
 use super::BuildContext;
 
-impl<'a> BuildContext<'a> {
+impl BuildContext<'_> {
     pub async fn get_startup_method(&self, serverjar_name: &str) -> Result<StartupMethod> {
         let mcver = self.app.mc_version();
         Ok(match &self.app.server.jar {

@@ -95,7 +95,7 @@ pub enum TestResult {
 
 pub const LINE_CRASHED: &str = "]: Crashed! The full crash report has been saved to";
 
-impl<'a> DevSession<'a> {
+impl DevSession<'_> {
     pub async fn spawn_child(&mut self) -> Result<Child> {
         let platform = if env::consts::FAMILY == "windows" {
             "windows"
@@ -240,7 +240,7 @@ impl<'a> DevSession<'a> {
                                     self.builder.app.error(e);
                                     return Ok(());
                                 }
-                            };
+                            }
 
                             match self.builder.app.reload_network() {
                                 Ok(()) => {},
@@ -249,7 +249,7 @@ impl<'a> DevSession<'a> {
                                     self.builder.app.error(e);
                                     return Ok(());
                                 }
-                            };
+                            }
 
                             match self.builder.build_all().await {
                                 Ok(jar_name) => {

@@ -35,7 +35,7 @@ pub struct JenkinsFingerprint {
 
 pub struct JenkinsAPI<'a>(pub &'a App);
 
-impl<'a> JenkinsAPI<'a> {
+impl JenkinsAPI<'_> {
     pub fn get_url(url: &str, job: &str) -> String {
         job.split('/')
             .fold(url.strip_suffix('/').unwrap_or(url).to_owned(), |acc, j| {

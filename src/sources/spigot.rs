@@ -16,7 +16,7 @@ pub struct SpigotAPI<'a>(pub &'a App);
 pub const API_URL: &str = "https://api.spiget.org/v2";
 pub const CACHE_DIR: &str = "spiget";
 
-impl<'a> SpigotAPI<'a> {
+impl SpigotAPI<'_> {
     pub async fn fetch_api<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
         let response: T = self
             .0

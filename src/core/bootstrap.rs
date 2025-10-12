@@ -13,7 +13,7 @@ use crate::model::BootstrappedFile;
 
 use super::BuildContext;
 
-impl<'a> BuildContext<'a> {
+impl BuildContext<'_> {
     pub async fn bootstrap_files(&mut self) -> Result<()> {
         self.app.print_job("Bootstrapping...");
 

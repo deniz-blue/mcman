@@ -47,7 +47,7 @@ pub static CURSERINTH_API: &str = "https://curserinth-api.kuylar.dev/v2";
 
 pub struct CurserinthAPI<'a>(pub &'a App);
 
-impl<'a> CurserinthAPI<'a> {
+impl CurserinthAPI<'_> {
     pub async fn fetch_api<T: DeserializeOwned>(&self, url: String) -> Result<T> {
         let json: T = self
             .0

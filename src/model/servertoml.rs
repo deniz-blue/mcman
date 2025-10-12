@@ -149,7 +149,7 @@ impl Server {
 
     pub fn fill_from_map(&mut self, map: &HashMap<String, String>) {
         if let Some(v) = map.get("minecraft") {
-            self.mc_version = v.clone();
+            self.mc_version.clone_from(v);
         }
 
         if let Some(v) = map.get("forge") {

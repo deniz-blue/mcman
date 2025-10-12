@@ -29,7 +29,7 @@ pub struct BuildContext<'a> {
     pub server_process: Option<Child>,
 }
 
-impl<'a> BuildContext<'a> {
+impl BuildContext<'_> {
     pub async fn build_all(&mut self) -> Result<String> {
         let server_name = self.app.server.name.clone();
         let banner = format!(
@@ -144,10 +144,7 @@ impl<'a> BuildContext<'a> {
 
     /// Save `new_lockfile`
     pub fn write_lockfile(&mut self) -> Result<()> {
-        if std::env::var("MCMAN_DISABLE_LOCKFILE")
-            .map(|s| s.as_str() == "true")
-            .unwrap_or_default()
-        {
+        if std::env::var("MCMAN_DISABLE_LOCKFILE").is_ok_and(|s| s.as_str() == "true") {
             self.app.dbg("lockfile disabled");
         } else {
             self.new_lockfile.save()?;

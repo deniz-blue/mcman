@@ -9,7 +9,7 @@ pub const QUILT_MAVEN_GROUP: &str = "org.quiltmc";
 pub const QUILT_MAVEN_ARTIFACT: &str = "quilt-installer";
 pub const QUILT_MAVEN_FILE: &str = "${artifact}-${version}.jar";
 
-impl<'a> QuiltAPI<'a> {
+impl QuiltAPI<'_> {
     pub async fn resolve_installer(&self, version: &str) -> Result<ResolvedFile> {
         self.0
             .maven()

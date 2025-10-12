@@ -145,10 +145,7 @@ impl App {
     }
 
     pub fn dbg<S: Display>(&self, message: S) {
-        if env::var("MCMAN_DEBUG")
-            .map(|s| s.as_str() == "true")
-            .unwrap_or_default()
-        {
+        if env::var("MCMAN_DEBUG").is_ok_and(|s| s.as_str() == "true") {
             self.notify(Prefix::Debug, message);
         }
     }
@@ -165,9 +162,7 @@ impl App {
 
     #[allow(clippy::unused_self)]
     pub fn is_ci(&self) -> bool {
-        env::var("CI")
-            .map(|s| s.as_str() == "true")
-            .unwrap_or_default()
+        env::var("CI").is_ok_and(|s| s.as_str() == "true")
     }
 
     pub fn ci(&self, cmd: &str) {

@@ -15,7 +15,7 @@ use crate::app::{App, Prefix};
 
 pub struct WorldsAPI<'a>(pub &'a App);
 
-impl<'a> WorldsAPI<'a> {
+impl WorldsAPI<'_> {
     pub fn unpack(&self, world: &str) -> Result<()> {
         let spinner = self
             .0

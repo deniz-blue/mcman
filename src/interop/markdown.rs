@@ -19,7 +19,7 @@ pub struct MarkdownTemplate {
 
 pub struct MarkdownAPI<'a>(pub &'a App);
 
-impl<'a> MarkdownAPI<'a> {
+impl MarkdownAPI<'_> {
     pub fn init_server(&self) -> Result<()> {
         let mut f = File::create(self.0.server.path.join("README.md"))?;
         let readme_content = include_str!("../../res/default_readme")

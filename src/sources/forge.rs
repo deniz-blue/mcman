@@ -9,7 +9,7 @@ pub static FORGE_FILENAME: &str = "${artifact}-${version}-installer.jar";
 
 pub struct ForgeAPI<'a>(pub &'a App);
 
-impl<'a> ForgeAPI<'a> {
+impl ForgeAPI<'_> {
     /// Returns a string list of filtered versions, everything after the first dash (-)
     pub async fn fetch_versions(&self) -> Result<Vec<String>> {
         let (_, versions) = self

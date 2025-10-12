@@ -50,7 +50,7 @@ impl FileProvider {
 
 pub struct PackwizInterop<'a>(pub &'a mut App);
 
-impl<'a> PackwizInterop<'a> {
+impl PackwizInterop<'_> {
     pub fn get_file_provider(&self, s: &str) -> Result<FileProvider> {
         Ok(if s.starts_with("http") {
             FileProvider::RemoteURL(self.0.http_client.clone(), s.try_into()?)
@@ -118,7 +118,7 @@ impl<'a> PackwizInterop<'a> {
                             .download_resolved(
                                 ResolvedFile {
                                     url: url.join(&file.file)?.as_str().to_owned(),
-                                    filename: file.file.split('/').last().unwrap().to_owned(),
+                                    filename: file.file.split('/').next_back().unwrap().to_owned(),
                                     cache: CacheStrategy::None,
                                     size: None,
                                     hashes: HashMap::from([(

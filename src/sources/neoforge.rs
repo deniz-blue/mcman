@@ -9,15 +9,16 @@ pub static NEOFORGE_OLD_ARTIFACT: &str = "forge";
 pub static NEOFORGE_NEW_ARTIFACT: &str = "neoforge";
 pub static NEOFORGE_FILENAME: &str = "${artifact}-${version}-installer.jar";
 
+#[allow(clippy::doc_markdown)]
 /// The first NeoForge version that breaks Forge compatibility
 /// and has a different artifact name (1.20.2).
 ///
-/// Source: https://www.reddit.com/r/feedthebeast/comments/17kitw5/poll_now_that_neoforge_and_minecraft_forge_are_no/
+/// Source: <https://www.reddit.com/r/feedthebeast/comments/17kitw5/poll_now_that_neoforge_and_minecraft_forge_are_no/>
 pub static NEOFORGE_BREAKOFF_VERSION: Version = Version::new(1, 20, 2);
 
 pub struct NeoforgeAPI<'a>(pub &'a App);
 
-impl<'a> NeoforgeAPI<'a> {
+impl NeoforgeAPI<'_> {
     pub async fn fetch_versions(&self) -> Result<Vec<String>> {
         let (_, versions) = self
             .0

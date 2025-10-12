@@ -56,7 +56,7 @@ impl MavenMetadata {
 
 pub struct MavenAPI<'a>(pub &'a App);
 
-impl<'a> MavenAPI<'a> {
+impl MavenAPI<'_> {
     pub fn get_metadata_url(url: &str, group_id: &str, artifact_id: &str) -> String {
         format!(
             "{url}/{}/{artifact_id}/maven-metadata.xml",

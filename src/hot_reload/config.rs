@@ -75,7 +75,7 @@ impl HotReloadConfig {
     pub fn load_from(path: &PathBuf) -> Result<Self> {
         let data = fs::read_to_string(path)?;
         let mut h: Self = toml::from_str(&data)?;
-        h.path = path.to_owned();
+        h.path.clone_from(path);
         Ok(h)
     }
 

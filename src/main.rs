@@ -82,10 +82,7 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    if env::var("CI")
-        .map(|s| s.as_str() == "true")
-        .unwrap_or_default()
-    {
+    if env::var("CI").is_ok_and(|s| s.as_str() == "true") {
         println!("::endgroup::");
     }
 
@@ -94,7 +91,7 @@ async fn main() -> Result<()> {
     #[cfg(feature = "autocomplete")]
     if let Commands::Completions(args) = &args.command {
         commands::completions::run(args)?;
-    };
+    }
 
     let base_app = BaseApp::new()?;
 

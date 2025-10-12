@@ -298,7 +298,7 @@ impl App {
                             .next()
                             .unwrap_or(urlstr)
                             .split('/')
-                            .last()
+                            .next_back()
                             .unwrap();
 
                         let input = self.prompt_string_filled("Filename?", inferred)?;
@@ -394,7 +394,7 @@ impl App {
                                 let p = urlstr.strip_prefix(&repo).unwrap();
                                 if Path::new(p)
                                     .extension()
-                                    .map_or(false, |ext| ext.eq_ignore_ascii_case("jar"))
+                                    .is_some_and(|ext| ext.eq_ignore_ascii_case("jar"))
                                 {
                                     let mut li = p.rsplit('/').skip(2).collect::<Vec<_>>();
                                     li.reverse();
@@ -450,7 +450,7 @@ impl App {
 
                         let filename = if Path::new(urlstr)
                             .extension()
-                            .map_or(false, |ext| ext.eq_ignore_ascii_case("jar"))
+                            .is_some_and(|ext| ext.eq_ignore_ascii_case("jar"))
                         {
                             urlstr.rsplit('/').next().unwrap().to_owned()
                         } else {

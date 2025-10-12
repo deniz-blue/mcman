@@ -240,7 +240,7 @@ impl<'a> BuildContext<'a> {
                 log_file.write_all(buf.as_bytes()).await?;
                 log_file.write_all(b"\n").await?;
 
-                if let Some(last_line) = buf.split('\n').last() {
+                if let Some(last_line) = buf.split('\n').next_back() {
                     spinner.set_message(last_line.to_string());
                 }
             }
