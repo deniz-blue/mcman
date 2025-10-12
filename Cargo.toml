@@ -21,7 +21,7 @@ inherits = "release"
 lto = true
 
 [profile.release-lto-thin]
-inherits = "release-lto"
+inherits = "release"
 lto = "thin"
 
 [lints.clippy]
