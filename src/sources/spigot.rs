@@ -98,6 +98,6 @@ impl SpigotAPI<'_> {
 pub struct SpigotVersion {
     pub uuid: String,
     pub name: String,
-    pub resource: i64,
-    pub id: i64,
+    pub resource: u64,
+    pub id: u64,
 }
