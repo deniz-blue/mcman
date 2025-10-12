@@ -68,6 +68,7 @@ impl BuildContext<'_> {
             use std::os::unix::prelude::OpenOptionsExt;
             file = OpenOptions::new()
                 .create(true)
+                .truncate(true)
                 .write(true)
                 .mode(0o755)
                 .open(self.output_dir.join("start.sh"))?;
@@ -76,6 +77,7 @@ impl BuildContext<'_> {
         {
             file = OpenOptions::new()
                 .create(true)
+                .truncate(true)
                 .write(true)
                 .open(self.output_dir.join("start.sh"))?;
         }
