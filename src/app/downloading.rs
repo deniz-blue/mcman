@@ -101,7 +101,7 @@ impl App {
 
         let validate_hash = |hasher: Option<(String, Box<dyn DynDigest>, String)>| {
             if let Some((hash_name, digest, resolved_hash)) = hasher {
-                let stream_hash = hex::encode(&digest.finalize());
+                let stream_hash = hex::encode(digest.finalize());
 
                 if resolved_hash == stream_hash {
                     self.dbg("hash check success");

@@ -7,7 +7,7 @@ use crate::app::{App, CacheStrategy, ResolvedFile};
 
 pub struct FabricAPI<'a>(pub &'a App);
 
-impl<'a> FabricAPI<'a> {
+impl FabricAPI<'_> {
     pub async fn fetch_loaders(&self) -> Result<Vec<FabricLoader>> {
         Ok(mcapi::fabric::fetch_loaders(&self.0.http_client).await?)
     }

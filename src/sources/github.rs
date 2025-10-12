@@ -84,7 +84,7 @@ static GITHUB_API_VERSION: &str = "2022-11-28";
 
 pub struct GithubAPI<'a>(pub &'a App);
 
-impl<'a> GithubAPI<'a> {
+impl GithubAPI<'_> {
     pub async fn fetch_api<T: DeserializeOwned + Clone + Serialize>(
         &self,
         url: String,

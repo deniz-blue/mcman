@@ -8,7 +8,7 @@ use crate::app::AddonType;
 
 use super::BuildContext;
 
-impl<'a> BuildContext<'a> {
+impl BuildContext<'_> {
     pub async fn download_addons(&mut self, addon_type: AddonType) -> Result<()> {
         let server_list = self.app.get_addons(addon_type);
         let addons = match addon_type {

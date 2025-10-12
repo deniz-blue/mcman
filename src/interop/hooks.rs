@@ -12,7 +12,7 @@ use crate::{
 
 pub struct HooksAPI<'a>(pub &'a App);
 
-impl<'a> HooksAPI<'a> {
+impl HooksAPI<'_> {
     pub fn resolve_filename(&self, entry: &str) -> String {
         let hook = self
             .0

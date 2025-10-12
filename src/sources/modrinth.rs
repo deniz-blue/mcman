@@ -131,7 +131,7 @@ pub struct ModrinthAPI<'a>(pub &'a App);
 
 static API_URL: &str = "https://api.modrinth.com/v2";
 
-impl<'a> ModrinthAPI<'a> {
+impl ModrinthAPI<'_> {
     pub async fn fetch_api<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
         let json: T = self
             .0

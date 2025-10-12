@@ -71,7 +71,7 @@ impl App {
 
             pb.finish_and_clear();
 
-            let stream_hash = hex::encode(&digester.finalize());
+            let stream_hash = hex::encode(digester.finalize());
 
             Ok((preferred_hash.to_owned(), stream_hash))
         }
@@ -91,7 +91,7 @@ impl App {
             tokio::io::copy(&mut item.as_ref(), dest).await?;
         }
 
-        Ok(hex::encode(&digester.finalize()))
+        Ok(hex::encode(digester.finalize()))
     }
 
     pub fn hash_sha256(contents: &str) -> String {

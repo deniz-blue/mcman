@@ -8,7 +8,7 @@ use crate::model::{ServerType, StartupMethod};
 
 use super::BuildContext;
 
-impl<'a> BuildContext<'a> {
+impl BuildContext<'_> {
     pub async fn get_startup_method(&self, serverjar_name: &str) -> Result<StartupMethod> {
         let mcver = self.app.mc_version();
         Ok(match &self.app.server.jar {
@@ -68,6 +68,7 @@ impl<'a> BuildContext<'a> {
             use std::os::unix::prelude::OpenOptionsExt;
             file = OpenOptions::new()
                 .create(true)
+                .truncate(true)
                 .write(true)
                 .mode(0o755)
                 .open(self.output_dir.join("start.sh"))?;
@@ -76,6 +77,7 @@ impl<'a> BuildContext<'a> {
         {
             file = OpenOptions::new()
                 .create(true)
+                .truncate(true)
                 .write(true)
                 .open(self.output_dir.join("start.sh"))?;
         }

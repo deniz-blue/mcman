@@ -11,7 +11,7 @@ pub struct PaperMCAPI<'a>(pub &'a App);
 const PAPERMC_URL: &str = "https://api.papermc.io/v2";
 const CACHE_DIR: &str = "papermc";
 
-impl<'a> PaperMCAPI<'a> {
+impl PaperMCAPI<'_> {
     pub async fn fetch_api<T: DeserializeOwned + Clone + Serialize>(
         &self,
         url: String,

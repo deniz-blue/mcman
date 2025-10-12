@@ -1,7 +1,7 @@
 use crate::app::{App, Resolvable, ResolvedFile};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Display};
 
 use crate::model::Downloadable;
 
@@ -138,22 +138,22 @@ impl ServerType {
     }
 }
 
-impl ToString for ServerType {
-    fn to_string(&self) -> String {
+impl Display for ServerType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ServerType::Vanilla {} => String::from("Vanilla"),
-            ServerType::PaperMC { project, build } => format!("{project} build {build}"),
-            ServerType::Purpur { build } => format!("Purpur build {build}"),
-            ServerType::Fabric { loader, .. } => format!("Fabric {loader}"),
-            ServerType::Quilt { loader, .. } => format!("Quilt {loader}"),
-            ServerType::NeoForge { loader } => format!("NeoForge {loader}"),
-            ServerType::Forge { loader } => format!("Forge {loader}"),
-            ServerType::BuildTools { software, .. } => format!("(BuildTools) {software}"),
-            ServerType::Paper {} => "Paper".to_owned(),
-            ServerType::Velocity {} => "Velocity".to_owned(),
-            ServerType::Waterfall {} => "Waterfall".to_owned(),
-            ServerType::BungeeCord {} => "BungeeCord".to_owned(),
-            ServerType::Downloadable { inner } => inner.to_string(),
+            ServerType::Vanilla {} => write!(f, "Vanilla"),
+            ServerType::PaperMC { project, build } => write!(f, "{project} build {build}"),
+            ServerType::Purpur { build } => write!(f, "Purpur build {build}"),
+            ServerType::Fabric { loader, .. } => write!(f, "Fabric {loader}"),
+            ServerType::Quilt { loader, .. } => write!(f, "Quilt {loader}"),
+            ServerType::NeoForge { loader } => write!(f, "NeoForge {loader}"),
+            ServerType::Forge { loader } => write!(f, "Forge {loader}"),
+            ServerType::BuildTools { software, .. } => write!(f, "(BuildTools) {software}"),
+            ServerType::Paper {} => write!(f, "Paper"),
+            ServerType::Velocity {} => write!(f, "Velocity"),
+            ServerType::Waterfall {} => write!(f, "Waterfall"),
+            ServerType::BungeeCord {} => write!(f, "BungeeCord"),
+            ServerType::Downloadable { inner } => write!(f, "{inner}"),
         }
     }
 }

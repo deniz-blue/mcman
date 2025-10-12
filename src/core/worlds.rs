@@ -12,7 +12,7 @@ use crate::model::World;
 
 use super::BuildContext;
 
-impl<'a> BuildContext<'a> {
+impl BuildContext<'_> {
     pub async fn process_worlds(&self) -> Result<()> {
         let progress_bar = self.app.multi_progress.add(
             ProgressBar::new(self.app.server.worlds.len() as u64)

@@ -16,7 +16,7 @@ use crate::{
 
 pub struct MRPackInterop<'a>(pub &'a mut App);
 
-impl<'a> MRPackInterop<'a> {
+impl MRPackInterop<'_> {
     pub async fn import_all<R: Read + Seek>(
         &mut self,
         mut mrpack: MRPackReader<R>,

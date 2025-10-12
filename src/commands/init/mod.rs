@@ -79,7 +79,7 @@ pub async fn run(base_app: BaseApp, args: Args) -> Result<()> {
         }
 
         app.network = Some(Network::default());
-        app.network.as_mut().unwrap().name = name.clone();
+        app.network.as_mut().unwrap().name.clone_from(&name);
     } else {
         if let Ok(serv) = Server::load() {
             bail!(
@@ -96,7 +96,7 @@ pub async fn run(base_app: BaseApp, args: Args) -> Result<()> {
             app.network = Some(nw);
         }
 
-        app.server.name = name.clone();
+        app.server.name.clone_from(&name);
     }
 
     // Name

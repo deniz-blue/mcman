@@ -26,9 +26,9 @@ pub async fn get_project_version(
                     (&current_filter.platform, &platform_version)
                 {
                     v.platform_dependencies
-                        .get(&platform)
+                        .get(platform)
                         .unwrap()
-                        .contains(&platform_version)
+                        .contains(platform_version)
                 } else {
                     true
                 }
@@ -81,7 +81,7 @@ pub async fn get_project_version(
 
 pub struct HangarAPI<'a>(pub &'a App);
 
-impl<'a> HangarAPI<'a> {
+impl HangarAPI<'_> {
     pub async fn fetch_hangar_version(&self, id: &str, version: &str) -> Result<ProjectVersion> {
         let filter = self.get_platform_filter();
         let platform_version = if filter.platform.is_some() {
