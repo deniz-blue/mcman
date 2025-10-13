@@ -34,7 +34,7 @@ struct_excessive_bools = "allow"
 
 [dependencies]
 anyhow = "1.0"
-cached = "0.47"
+cached = "0.56"
 clap = { version = "4.4", features = ["derive"] }
 clap_complete = { version = "4.5", optional = true }
 confique = { version = "0.2", default-features = false, features = ["toml"] }
