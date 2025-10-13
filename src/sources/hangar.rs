@@ -475,7 +475,7 @@ impl HangarAPI<'_> {
                 namespace: Cow::Borrowed("hangar"),
                 path: cached_file_path,
             },
-            size: Some(download.get_file_info().size_bytes as u64),
+            size: Some(download.get_file_info().size_bytes),
             hashes: HashMap::from([("sha256".to_owned(), download.get_file_info().sha256_hash)]),
         })
     }
