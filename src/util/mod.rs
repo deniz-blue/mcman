@@ -1,6 +1,7 @@
 use std::{borrow::Cow, cmp::Ordering, fmt::Display};
 
 use anyhow::Result;
+use lazy_static::lazy_static;
 use regex::Regex;
 
 pub mod env;
@@ -78,4 +79,26 @@ pub fn sanitize(s: &str) -> Result<String> {
             "",
         )
         .to_string())
+}
+
+lazy_static! {
+    static ref DOLLAR_REGEX: Regex = Regex::new(r"\$\{(\w+)?\}").unwrap();
+}
+
+/// Utility fn for replacing strings containing "${}"
+pub fn dollar_repl<F>(input: &str, replacer: F) -> String
+where
+    F: Fn(&str) -> Option<String>,
+{
+    DOLLAR_REGEX
+        .replace_all(input, |caps: &regex::Captures| {
+            let var_name = caps.get(1).map(|v| v.as_str()).unwrap_or_default();
+
+            if let Some(v) = replacer(var_name) {
+                v
+            } else {
+                format!("${{{var_name}}}")
+            }
+        })
+        .into_owned()
 }

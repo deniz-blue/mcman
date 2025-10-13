@@ -9,7 +9,7 @@ use pathdiff::diff_paths;
 use tokio::fs;
 use walkdir::WalkDir;
 
-use crate::model::BootstrappedFile;
+use crate::{model::BootstrappedFile, util::dollar_repl};
 
 use super::BuildContext;
 
@@ -230,7 +230,7 @@ impl BuildContext<'_> {
     }
 
     pub fn bootstrap_content(&self, content: &str) -> String {
-        mcapi::dollar_repl(content, |k| {
+        dollar_repl(content, |k| {
             let k = k.trim();
 
             let (k, def) = if let Some((k, def)) = k.split_once(':') {
