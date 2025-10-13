@@ -1,15 +1,53 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use anyhow::{anyhow, Result};
-use mcapi::fabric::{FabricInstaller, FabricLoader, FABRIC_META_URL};
-
 use crate::app::{App, CacheStrategy, ResolvedFile};
+use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
+
+pub const FABRIC_META_URL: &str = "https://meta.fabricmc.net";
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct FabricLoader {
+    pub separator: String,
+    pub build: u64,
+    pub maven: String,
+    pub version: String,
+    pub stable: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct FabricInstaller {
+    pub url: String,
+    pub maven: String,
+    pub version: String,
+    pub stable: bool,
+}
+
+pub async fn fetch_loaders(client: &reqwest::Client) -> Result<Vec<FabricLoader>> {
+    Ok(client
+        .get(FABRIC_META_URL.to_owned() + "/v2/versions/loader")
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?)
+}
+
+pub async fn fetch_installers(client: &reqwest::Client) -> Result<Vec<FabricInstaller>> {
+    Ok(client
+        .get(FABRIC_META_URL.to_owned() + "/v2/versions/installer")
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?)
+}
 
 pub struct FabricAPI<'a>(pub &'a App);
 
 impl FabricAPI<'_> {
     pub async fn fetch_loaders(&self) -> Result<Vec<FabricLoader>> {
-        Ok(mcapi::fabric::fetch_loaders(&self.0.http_client).await?)
+        fetch_loaders(&self.0.http_client).await
     }
 
     pub async fn fetch_latest_loader(&self) -> Result<String> {
@@ -23,7 +61,7 @@ impl FabricAPI<'_> {
     }
 
     pub async fn fetch_installers(&self) -> Result<Vec<FabricInstaller>> {
-        Ok(mcapi::fabric::fetch_installers(&self.0.http_client).await?)
+        fetch_installers(&self.0.http_client).await
     }
 
     pub async fn fetch_latest_installer(&self) -> Result<String> {

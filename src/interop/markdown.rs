@@ -294,13 +294,12 @@ impl MarkdownAPI<'_> {
             }
 
             Downloadable::Hangar { id, version } => {
-                let proj = mcapi::hangar::fetch_project(&self.0.http_client, id).await?;
+                let proj = crate::sources::hangar::fetch_project(&self.0.http_client, id).await?;
 
                 (
                     format!(
                         "[{}](https://hangar.papermc.io/{})",
-                        proj.name,
-                        proj.namespace.to_string()
+                        proj.name, proj.namespace
                     ),
                     sanitize(&proj.description)?,
                     version.clone(),

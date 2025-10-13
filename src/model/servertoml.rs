@@ -9,6 +9,8 @@ use std::{
 use anyhow::{anyhow, bail, Result};
 use serde::{Deserialize, Serialize};
 
+use crate::util::dollar_repl;
+
 use super::{ClientSideMod, Downloadable, Hook, ServerLauncher, ServerType, World};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -140,7 +142,7 @@ impl Server {
     }
 
     pub fn format(&self, str: &str) -> String {
-        mcapi::dollar_repl(str, |key| match key {
+        dollar_repl(str, |key| match key {
             "mcver" | "mcversion" | "SERVER_VERSION" => Some(self.mc_version.clone()),
             "SERVER_NAME" => Some(self.name.clone()),
             k => self.variables.get(k).cloned(),
