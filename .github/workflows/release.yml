@@ -2,6 +2,9 @@ name: "Create Draft Release"
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   draft-release:
     runs-on: ubuntu-latest
