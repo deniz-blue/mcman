@@ -36,8 +36,8 @@ pub fn get_latest_semver(list: &[String]) -> Option<String> {
         loop {
             break match (ia.next(), ib.next()) {
                 (Some(a), Some(b)) => {
-                    let a = a.parse::<i32>();
-                    let b = b.parse::<i32>();
+                    let a = a.parse::<u32>();
+                    let b = b.parse::<u32>();
 
                     match (a, b) {
                         (Ok(a), Ok(b)) => match a.cmp(&b) {

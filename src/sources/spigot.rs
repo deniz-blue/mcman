@@ -5,10 +5,12 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::app::{App, CacheStrategy, ResolvedFile};
 
-#[derive(Debug, Deserialize, Serialize)]
-struct SpigotResourceVersion {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SpigotVersion {
+    pub uuid: String,
     pub name: String,
-    pub id: i32,
+    pub resource: u64,
+    pub id: u64,
 }
 
 pub struct SpigotAPI<'a>(pub &'a App);
@@ -92,12 +94,4 @@ impl SpigotAPI<'_> {
             hashes: HashMap::new(),
         })
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SpigotVersion {
-    pub uuid: String,
-    pub name: String,
-    pub resource: u64,
-    pub id: u64,
 }

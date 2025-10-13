@@ -11,7 +11,7 @@ static SUCCESS_STR: &str = "SUCCESS";
 #[serde(rename_all = "camelCase")]
 pub struct JenkinsBuildItem {
     pub url: String,
-    pub number: i32,
+    pub number: u64,
     pub result: String,
     #[serde(default)]
     pub fingerprint: Vec<JenkinsFingerprint>,
