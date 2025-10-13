@@ -47,7 +47,7 @@ hex = "0.4"
 indexmap = "2.1"
 indicatif = "0.18"
 md-5 = "0.10"
-notify-debouncer-full = { version = "0.3" }
+notify-debouncer-full = { version = "0.6" }
 opener = "0.8"
 pathdiff = { git = "https://github.com/Manishearth/pathdiff.git" }
 rpackwiz = { git = "https://github.com/vgskye/rpackwiz.git" }
