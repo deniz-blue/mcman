@@ -39,7 +39,7 @@ pub struct CurseRinthVersion {
     pub project_id: String,
     pub author_id: String,
     pub date_published: String,
-    pub downloads: i64,
+    pub downloads: u64,
     pub files: Vec<ModrinthFile>,
 }
 
