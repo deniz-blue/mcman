@@ -31,7 +31,7 @@ impl BuildArgs {
             output_dir,
             lockfile: Lockfile::default(),
             new_lockfile: Lockfile::default(),
-            server_process: None,
+            _server_process: None,
         })
     }
 }

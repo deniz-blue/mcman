@@ -15,7 +15,7 @@ pub struct PaperBuildsResponse {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct PaperVersionBuild {
-    pub build: i32,
+    pub build: u64,
     pub time: String,
     pub channel: PaperChannel,
     pub promoted: bool,

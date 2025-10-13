@@ -4,7 +4,6 @@ mod downloading;
 mod feedback;
 mod from_string;
 mod hashing;
-mod progress;
 mod resolvable;
 
 use anyhow::{Context, Result};

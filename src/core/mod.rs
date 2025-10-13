@@ -26,7 +26,8 @@ pub struct BuildContext<'a> {
 
     pub force: bool,
     pub skip_stages: Vec<String>,
-    pub server_process: Option<Child>,
+    // TODO: Use later?
+    pub _server_process: Option<Child>,
 }
 
 impl BuildContext<'_> {

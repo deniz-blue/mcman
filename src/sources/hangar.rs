@@ -364,7 +364,7 @@ pub async fn get_project_version(
         }
 
         // If we got less than `limit` items, no more pages are available.
-        if versions.result.len() < current_filter.limit as usize {
+        if (versions.result.len() as u64) < current_filter.limit {
             break;
         }
 
