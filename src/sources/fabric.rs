@@ -47,7 +47,7 @@ pub struct FabricAPI<'a>(pub &'a App);
 
 impl FabricAPI<'_> {
     pub async fn fetch_loaders(&self) -> Result<Vec<FabricLoader>> {
-        Ok(fetch_loaders(&self.0.http_client).await?)
+        fetch_loaders(&self.0.http_client).await
     }
 
     pub async fn fetch_latest_loader(&self) -> Result<String> {
@@ -61,7 +61,7 @@ impl FabricAPI<'_> {
     }
 
     pub async fn fetch_installers(&self) -> Result<Vec<FabricInstaller>> {
-        Ok(fetch_installers(&self.0.http_client).await?)
+        fetch_installers(&self.0.http_client).await
     }
 
     pub async fn fetch_latest_installer(&self) -> Result<String> {

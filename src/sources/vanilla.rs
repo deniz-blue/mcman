@@ -88,10 +88,12 @@ pub struct PistonLibrary {
     pub rules: Vec<PistonRule>,
 
     /// Present on old versions, something like this:
+    /// ```json
     /// "extract": {
     ///     "exclude": ["META-INF/"],
     ///     "name": "tv.twitch:twitch-external-platform:4.5"
     /// }
+    /// ```
     pub extract: Option<PistonExtractLibrary>,
 
     /// Present on old versions, some weird stuff involving classifiers
@@ -141,7 +143,7 @@ pub struct PistonLibraryDownload {
     pub artifact: PistonFile,
 
     /// Conditional files that may be needed to be downloaded alongside the library
-    /// The HashMap key specifies a classifier as additional information for downloading files
+    /// The `HashMap` key specifies a classifier as additional information for downloading files
     pub classifiers: Option<HashMap<String, PistonFile>>,
 }
 
@@ -169,9 +171,9 @@ pub struct PistonFile {
     pub size: u64,
     pub url: String,
 
-    /// (AssetIndex only) The game version ID the assets are for
+    /// (`AssetIndex` only) The game version ID the assets are for
     pub id: Option<String>,
-    /// (AssetIndex only) The size of the game version's assets
+    /// (`AssetIndex` only) The size of the game version's assets
     pub total_size: Option<u64>,
 
     /// Only present on library files

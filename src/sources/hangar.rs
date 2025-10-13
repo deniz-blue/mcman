@@ -1,6 +1,7 @@
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
+    fmt::Display,
 };
 
 use anyhow::{anyhow, Context, Result};
@@ -28,9 +29,9 @@ pub struct Namespace {
     pub slug: String,
 }
 
-impl ToString for Namespace {
-    fn to_string(&self) -> String {
-        format!("{}/{}", self.owner, self.slug)
+impl Display for Namespace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}/{}", self.owner, self.slug)
     }
 }
 
@@ -159,12 +160,12 @@ impl From<&str> for Platform {
     }
 }
 
-impl ToString for Platform {
-    fn to_string(&self) -> String {
+impl Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Paper => "PAPER".to_owned(),
-            Self::Waterfall => "WATERFALL".to_owned(),
-            Self::Velocity => "VELOCITY".to_owned(),
+            Self::Paper => write!(f, "PAPER"),
+            Self::Waterfall => write!(f, "WATERFALL"),
+            Self::Velocity => write!(f, "VELOCITY"),
         }
     }
 }
@@ -246,8 +247,6 @@ pub enum ReviewState {
     UnderReview,
     PartiallyReviewed,
 }
-
-///
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PlatformFilter {

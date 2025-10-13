@@ -299,8 +299,7 @@ impl MarkdownAPI<'_> {
                 (
                     format!(
                         "[{}](https://hangar.papermc.io/{})",
-                        proj.name,
-                        proj.namespace.to_string()
+                        proj.name, proj.namespace
                     ),
                     sanitize(&proj.description)?,
                     version.clone(),
