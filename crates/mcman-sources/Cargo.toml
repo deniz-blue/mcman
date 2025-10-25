@@ -1,0 +1,10 @@
+[package]
+name = "mcman-sources"
+edition = "2024"
+repository.workspace = true
+homepage.workspace = true
+version.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
