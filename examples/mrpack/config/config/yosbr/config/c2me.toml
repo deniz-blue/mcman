@@ -1,7 +1,0 @@
-version = 3
-# (Default: 2) Configures the parallelism of global executor.
-globalExecutorParallelism = "2"
-
-[threadedWorldGen]
-	# (Default: false) Whether to enable this feature
-	enabled = false

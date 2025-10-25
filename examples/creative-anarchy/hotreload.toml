@@ -1,7 +1,0 @@
-[[files]]
-path = "server.properties"
-action = "Reload"
-
-[[files]]
-path = "spigot.yml"
-action = "/say sussy"
