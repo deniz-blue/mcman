@@ -30,7 +30,7 @@ jobs:
       - run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --profile release-lto
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: mcman-${{ matrix.os }}
           path: |
