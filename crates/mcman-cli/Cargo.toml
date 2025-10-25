@@ -8,3 +8,9 @@ rust-version.workspace = true
 authors.workspace = true
 
 [dependencies]
+clap = { version = "4.5.50", features = ["derive"] }
+mcman-core = { version = "0.5.0", path = "../mcman-core" }
+mcman-sources = { version = "0.5.0", path = "../mcman-sources" }
+mcman-types = { version = "0.5.0", path = "../mcman-types" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
