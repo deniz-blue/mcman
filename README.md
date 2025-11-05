@@ -2,12 +2,12 @@
 
 ![mcman](./docs/mcman-3.png)
 
-[![GitHub release](https://img.shields.io/github/release/ParadigmMC/mcman.svg)](https://github.com/ParadigmMC/mcman/releases/latest)
-[![builds](https://img.shields.io/github/actions/workflow/status/ParadigmMC/mcman/build.yml?logo=github)](https://github.com/ParadigmMC/mcman/actions/workflows/build.yml)
-[![docker publish](https://img.shields.io/github/actions/workflow/status/ParadigmMC/mcman/publish.yml?logo=github&label=docker%20publish)](https://github.com/ParadigmMC/mcman/actions/workflows/publish.yml)
-![GitHub Repo stars](https://img.shields.io/github/stars/ParadigmMC/mcman?logo=github)
+[![GitHub release](https://img.shields.io/github/release/deniz-blue/mcman.svg)](https://github.com/deniz-blue/mcman/releases/latest)
+[![builds](https://img.shields.io/github/actions/workflow/status/deniz-blue/mcman/build.yml?logo=github)](https://github.com/deniz-blue/mcman/actions/workflows/build.yml)
+[![docker publish](https://img.shields.io/github/actions/workflow/status/deniz-blue/mcman/publish.yml?logo=github&label=docker%20publish)](https://github.com/deniz-blue/mcman/actions/workflows/publish.yml)
+![GitHub Repo stars](https://img.shields.io/github/stars/deniz-blue/mcman?logo=github)
 [![quiltmc featured](https://img.shields.io/badge/quiltmc-featured-8A2BE2)](https://tech.lgbt/@quiltmc/110690787441497920)
-![downloads](https://img.shields.io/github/downloads/ParadigmMC/mcman/total?logo=github)
+![downloads](https://img.shields.io/github/downloads/deniz-blue/mcman/total?logo=github)
 [![discord server](https://img.shields.io/discord/1197520507617153064?logo=discord)](https://discord.com/invite/QrBzpDxUyB)
 
 Powerful Minecraft Server Manager CLI. Manage your servers using git - easily install jars (server, plugins & mods); manage config files, worlds, entire networks, and more.
@@ -19,7 +19,7 @@ Powerful Minecraft Server Manager CLI. Manage your servers using git - easily in
 
 ![mcman init](https://cdn.discordapp.com/attachments/1109215116060266567/1134187743300296815/render1690481729604.gif)
 
-| 🚀 [Installation](https://paradigmmc.github.io/mcman/installation/) | ✨ [Getting Started](https://paradigmmc.github.io/mcman/tutorials/getting-started/) | 📜 [Documentation](https://paradigmmc.github.io/mcman/) |
+| 🚀 [Installation](https://deniz-blue.github.io/mcman/installation/) | ✨ [Getting Started](https://deniz-blue.github.io/mcman/tutorials/getting-started/) | 📜 [Documentation](https://deniz-blue.github.io/mcman/) |
 | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
 
 - Join the [discord](https://discord.gg/YFuxNmKvSr) for support!
