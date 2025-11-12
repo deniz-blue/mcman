@@ -143,7 +143,7 @@ impl Default for ServerLauncher {
     fn default() -> Self {
         Self {
             preset_flags: PresetFlags::None,
-            nogui: true,
+            nogui: false,
             jvm_args: String::new(),
             game_args: String::new(),
             disable: false,
