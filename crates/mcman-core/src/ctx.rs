@@ -1,8 +1,8 @@
 use anyhow::Result;
-use serde::de::DeserializeOwned;
 use http_cache_reqwest::{CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions};
 use reqwest::{Client, IntoUrl};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use serde::de::DeserializeOwned;
 
 pub const APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -44,6 +44,24 @@ impl Context {
             .json()
             .await?;
 
+        Ok(data)
+    }
+
+    pub async fn fetch_text(&self, url: impl IntoUrl) -> Result<String> {
+        let text = self.http
+            .get(url)
+            .send()
+            .await?
+            .error_for_status()?
+            .text()
+            .await?;
+
+        Ok(text)
+    }
+
+    pub async fn fetch_xml_owned<T: DeserializeOwned>(&self, url: impl IntoUrl) -> Result<T> {
+        let text = self.fetch_text(url).await?;
+        let data = serde_roxmltree::from_str::<T>(&text)?;
         Ok(data)
     }
 }

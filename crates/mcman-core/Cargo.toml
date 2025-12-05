@@ -16,3 +16,4 @@ http-cache-reqwest = { workspace = true }
 reqwest = { workspace = true }
 reqwest-middleware = { workspace = true }
 dirs = { workspace = true }
+serde-roxmltree = "0.10.0"

@@ -131,6 +131,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit-set"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
+
+[[package]]
 name = "bitflags"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1093,6 +1108,7 @@ dependencies = [
  "reqwest",
  "reqwest-middleware",
  "serde",
+ "serde-roxmltree",
  "serde_json",
  "serde_toml",
  "tokio",
@@ -1101,6 +1117,10 @@ dependencies = [
 [[package]]
 name = "mcman-models"
 version = "0.5.0"
+dependencies = [
+ "mcman-core",
+ "serde",
+]
 
 [[package]]
 name = "mcman-sources"
@@ -1544,6 +1564,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "roxmltree"
+version = "0.21.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1964b10c76125c36f8afe190065a4bf9a87bf324842c05701330bba9f1cacbb"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1658,6 +1687,17 @@ checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
  "serde_derive",
+]
+
+[[package]]
+name = "serde-roxmltree"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0743f112e55a1f0583402d712c27aa13beed9f81798d1b24d59913b5f1ba07c"
+dependencies = [
+ "bit-set",
+ "roxmltree",
+ "serde_core",
 ]
 
 [[package]]

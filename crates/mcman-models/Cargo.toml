@@ -8,3 +8,5 @@ rust-version.workspace = true
 authors.workspace = true
 
 [dependencies]
+mcman-core = { version = "0.5.0", path = "../mcman-core" }
+serde.workspace = true
