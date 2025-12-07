@@ -1,2 +1,4 @@
-pub mod project;
-pub mod version;
+mod project;
+pub use project::*;
+mod version;
+pub use version::*;

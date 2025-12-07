@@ -11,7 +11,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 serde_toml = { workspace = true }
 tokio = { workspace = true }
-anyhow = { workspace = true }
+miette = { workspace = true }
 http-cache-reqwest = { workspace = true }
 reqwest = { workspace = true }
 reqwest-middleware = { workspace = true }

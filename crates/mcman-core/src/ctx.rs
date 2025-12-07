@@ -1,4 +1,4 @@
-use anyhow::Result;
+use miette::{IntoDiagnostic, Result};
 use http_cache_reqwest::{CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions};
 use reqwest::{Client, IntoUrl};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
@@ -21,7 +21,7 @@ impl Context {
 
         let manager = CACacheManager::new(cache_path, true);
 
-        let http = Client::builder().user_agent(APP_USER_AGENT).build()?;
+        let http = Client::builder().user_agent(APP_USER_AGENT).build().into_diagnostic()?;
 
         let http = ClientBuilder::new(http)
             .with(Cache(HttpCache {
@@ -39,10 +39,13 @@ impl Context {
             .http
             .get(url)
             .send()
-            .await?
-            .error_for_status()?
+            .await
+            .into_diagnostic()?
+            .error_for_status()
+            .into_diagnostic()?
             .json()
-            .await?;
+            .await
+            .into_diagnostic()?;
 
         Ok(data)
     }
@@ -51,17 +54,20 @@ impl Context {
         let text = self.http
             .get(url)
             .send()
-            .await?
-            .error_for_status()?
+            .await
+            .into_diagnostic()?
+            .error_for_status()
+            .into_diagnostic()?
             .text()
-            .await?;
+            .await
+            .into_diagnostic()?;
 
         Ok(text)
     }
 
     pub async fn fetch_xml_owned<T: DeserializeOwned>(&self, url: impl IntoUrl) -> Result<T> {
         let text = self.fetch_text(url).await?;
-        let data = serde_roxmltree::from_str::<T>(&text)?;
+        let data = serde_roxmltree::from_str::<T>(&text).into_diagnostic()?;
         Ok(data)
     }
 }

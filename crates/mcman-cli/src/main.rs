@@ -23,7 +23,7 @@ async fn main() -> Result<()> {
 
     let api = ModrinthAPI {
         // url: "https://staging-api.modrinth.com".to_string(),
-        url: "https://api.modrinth.com".to_string(),
+        base_url: "https://api.modrinth.com".to_string(),
     };
 
     let sodium = api.get_project(&ctx, "sodium").await?;

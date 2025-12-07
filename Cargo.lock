@@ -205,7 +205,7 @@ dependencies = [
  "hex",
  "libc",
  "memmap2",
- "miette",
+ "miette 5.10.0",
  "reflink-copy",
  "serde",
  "serde_derive",
@@ -1090,11 +1090,11 @@ version = "0.5.0"
 name = "mcman-cli"
 version = "0.5.0"
 dependencies = [
- "anyhow",
  "clap",
  "mcman-core",
  "mcman-sources",
  "mcman-types",
+ "miette 7.6.0",
  "tokio",
 ]
 
@@ -1102,11 +1102,11 @@ dependencies = [
 name = "mcman-core"
 version = "0.5.0"
 dependencies = [
- "anyhow",
  "digest",
  "dirs",
  "http-cache-reqwest",
  "md-5",
+ "miette 7.6.0",
  "murmur2",
  "reqwest",
  "reqwest-middleware",
@@ -1132,9 +1132,9 @@ dependencies = [
 name = "mcman-sources"
 version = "0.5.0"
 dependencies = [
- "anyhow",
  "mcman-core",
  "mcman-types",
+ "miette 7.6.0",
  "serde",
  "serde_json",
  "serde_toml",
@@ -1176,9 +1176,20 @@ version = "5.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59bb584eaeeab6bd0226ccf3509a69d7936d148cf3d036ad350abe35e8c6856e"
 dependencies = [
- "miette-derive",
+ "miette-derive 5.10.0",
  "once_cell",
  "thiserror 1.0.69",
+ "unicode-width",
+]
+
+[[package]]
+name = "miette"
+version = "7.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f98efec8807c63c752b5bd61f862c165c115b0a35685bdcfd9238c7aeb592b7"
+dependencies = [
+ "cfg-if",
+ "miette-derive 7.6.0",
  "unicode-width",
 ]
 
@@ -1187,6 +1198,17 @@ name = "miette-derive"
 version = "5.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49e7bc1560b95a3c4a25d03de42fe76ca718ab92d1a22a55b9b4cf67b3ae635c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "miette-derive"
+version = "7.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db5b29714e950dbb20d5e6f74f9dcec4edbcc1067bb7f8ed198c097b8c1a818b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1849,7 +1871,7 @@ dependencies = [
  "base64 0.21.7",
  "digest",
  "hex",
- "miette",
+ "miette 5.10.0",
  "serde",
  "sha-1",
  "sha2",
