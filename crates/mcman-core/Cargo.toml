@@ -17,3 +17,8 @@ reqwest = { workspace = true }
 reqwest-middleware = { workspace = true }
 dirs = { workspace = true }
 serde-roxmltree = "0.10.0"
+digest = "0.10.7"
+murmur2 = "0.1.0"
+sha1 = "0.10.6"
+sha2 = "0.10.9"
+md-5 = "0.10.6"
