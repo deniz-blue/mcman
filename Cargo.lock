@@ -1103,14 +1103,19 @@ name = "mcman-core"
 version = "0.5.0"
 dependencies = [
  "anyhow",
+ "digest",
  "dirs",
  "http-cache-reqwest",
+ "md-5",
+ "murmur2",
  "reqwest",
  "reqwest-middleware",
  "serde",
  "serde-roxmltree",
  "serde_json",
  "serde_toml",
+ "sha1",
+ "sha2",
  "tokio",
 ]
 
@@ -1120,6 +1125,7 @@ version = "0.5.0"
 dependencies = [
  "mcman-core",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1138,6 +1144,16 @@ dependencies = [
 [[package]]
 name = "mcman-types"
 version = "0.5.0"
+
+[[package]]
+name = "md-5"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d89e7ee0cfbedfc4da3340218492196241d89eefb6dab27de5df917a6d2e78cf"
+dependencies = [
+ "cfg-if",
+ "digest",
+]
 
 [[package]]
 name = "memchr"
@@ -1203,6 +1219,12 @@ dependencies = [
  "wasi",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "murmur2"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb585ade2549a017db2e35978b77c319214fa4b37cede841e27954dd6e8f3ca8"
 
 [[package]]
 name = "native-tls"
