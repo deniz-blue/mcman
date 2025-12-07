@@ -12,7 +12,7 @@ pub const APP_USER_AGENT: &str = concat!(
 );
 
 pub struct Context {
-    http: ClientWithMiddleware,
+    pub http: ClientWithMiddleware,
 }
 
 impl Context {

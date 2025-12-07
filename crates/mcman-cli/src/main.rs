@@ -1,4 +1,4 @@
-use anyhow::Result;
+use miette::Result;
 use clap::{Parser, Subcommand};
 use mcman_core::ctx::Context;
 use mcman_sources::sources::modrinth::ModrinthAPI;
@@ -21,10 +21,7 @@ async fn main() -> Result<()> {
 
     let ctx = Context::new()?;
 
-    let api = ModrinthAPI {
-        // url: "https://staging-api.modrinth.com".to_string(),
-        base_url: "https://api.modrinth.com".to_string(),
-    };
+    let api = ModrinthAPI::default();
 
     let sodium = api.get_project(&ctx, "sodium").await?;
 

@@ -1,42 +1,55 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Deref};
 
 use digest::DynDigest;
 use serde::{Deserialize, Serialize};
 
 mod murmur2;
+mod format;
 pub use murmur2::*;
-use sha1::Digest;
+pub use format::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-pub struct Hashes(HashMap<HashFormat, String>);
+pub struct Hashes(pub HashMap<HashFormat, String>);
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
-#[serde(rename_all = "lowercase")]
-#[non_exhaustive]
-pub enum HashFormat {
-    #[serde(alias = "SHA-1")]
-    Sha1,
-    #[serde(alias = "SHA-2 256")]
-    Sha256,
-    #[serde(alias = "SHA-2 384")]
-    Sha384,
-    #[serde(alias = "SHA-2 512")]
-    Sha512,
-    Md5,
-    #[serde(alias = "curseforge")]
-    #[default]
-    Murmur2,
+impl Hashes {
+    pub fn new_single(format: HashFormat, hash: String) -> Self {
+        let mut map = HashMap::new();
+        map.insert(format, hash);
+        Hashes(map)
+    }
+
+    pub fn get_best_hash(&self) -> Option<(&HashFormat, &String)> {
+        static PREFERRED_ORDER: [HashFormat; 6] = [
+            HashFormat::Sha512,
+            HashFormat::Sha384,
+            HashFormat::Sha256,
+            HashFormat::Sha1,
+            HashFormat::Md5,
+            HashFormat::Murmur2,
+        ];
+
+        for format in &PREFERRED_ORDER {
+            if let Some(hash) = self.0.get(format) {
+                return Some((format, hash));
+            }
+        }
+
+        None
+    }
+
+    pub fn get_best_hasher(&self) -> Option<Box<dyn DynDigest>> {
+        if let Some((format, _)) = self.get_best_hash() {
+            Some((*format).into())
+        } else {
+            None
+        }
+    }
 }
 
-impl Into<Box<dyn DynDigest>> for HashFormat {
-    fn into(self) -> Box<dyn DynDigest> {
-        match self {
-            HashFormat::Murmur2 => Box::new(Murmur2::new()),
-            HashFormat::Md5 => Box::new(md5::Md5::new()),
-            HashFormat::Sha512 => Box::new(sha2::Sha512::new()),
-            HashFormat::Sha1 => Box::new(sha1::Sha1::new()),
-            HashFormat::Sha256 => Box::new(sha2::Sha256::new()),
-            HashFormat::Sha384 => Box::new(sha2::Sha384::new()),
-        }
+impl Deref for Hashes {
+    type Target = HashMap<HashFormat, String>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

@@ -9,7 +9,7 @@ authors.workspace = true
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
-serde_toml = { workspace = true }
+toml = { workspace = true }
 tokio = { workspace = true }
 miette = { workspace = true }
 http-cache-reqwest = { workspace = true }
@@ -22,3 +22,4 @@ murmur2 = "0.1.0"
 sha1 = "0.10.6"
 sha2 = "0.10.9"
 md-5 = "0.10.6"
+futures = "0.3.31"
