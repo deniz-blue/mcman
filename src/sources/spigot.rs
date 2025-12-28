@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::BTreeMap};
 
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -91,7 +91,7 @@ impl SpigotAPI<'_> {
                 path: cached_file_path,
             },
             size: None,
-            hashes: HashMap::new(),
+            hashes: BTreeMap::new(),
         })
     }
 }

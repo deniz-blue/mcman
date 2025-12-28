@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::BTreeMap};
 
 use anyhow::{anyhow, Result};
 
@@ -220,7 +220,7 @@ impl MavenAPI<'_> {
                 path: cached_file_path,
             },
             size: None,
-            hashes: HashMap::new(),
+            hashes: BTreeMap::new(),
         })
     }
 }

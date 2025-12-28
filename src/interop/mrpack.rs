@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use indicatif::{ProgressBar, ProgressFinish, ProgressIterator, ProgressStyle};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     fs::{self, File},
     io::{self, Read, Seek, Write},
     time::Duration,
@@ -213,7 +213,7 @@ pub struct MRPackIndex {
 #[serde(rename_all = "camelCase")]
 pub struct MRPackFile {
     path: String,
-    hashes: HashMap<String, String>,
+    hashes: BTreeMap<String, String>,
     env: Option<Env>,
     file_size: u64,
     downloads: Vec<String>,

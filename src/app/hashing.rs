@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use digest::{Digest, DynDigest};
 use indicatif::ProgressBar;
 use sha2::Sha256;
-use std::{collections::HashMap, marker::Unpin, path::PathBuf};
+use std::{collections::BTreeMap, marker::Unpin, path::PathBuf};
 use tokio::{
     fs::File,
     io::{AsyncRead, AsyncWrite},
@@ -13,7 +13,7 @@ use tokio_util::io::ReaderStream;
 use super::{App, ResolvedFile};
 
 impl App {
-    pub fn get_best_hash(hashes: &HashMap<String, String>) -> Option<(String, String)> {
+    pub fn get_best_hash(hashes: &BTreeMap<String, String>) -> Option<(String, String)> {
         hashes
             .get_key_value("sha512")
             .or(hashes.get_key_value("sha256"))

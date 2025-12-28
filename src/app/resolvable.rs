@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::BTreeMap};
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ pub struct ResolvedFile {
     pub filename: String,
     pub cache: CacheStrategy,
     pub size: Option<u64>,
-    pub hashes: HashMap<String, String>,
+    pub hashes: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

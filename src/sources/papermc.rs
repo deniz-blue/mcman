@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::{BTreeMap, HashMap}};
 
 use anyhow::{anyhow, Result};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -145,7 +145,7 @@ impl PaperMCAPI<'_> {
                 path: cached_file_path,
             },
             size: None,
-            hashes: HashMap::new(),
+            hashes: BTreeMap::new(),
         })
     }
 }

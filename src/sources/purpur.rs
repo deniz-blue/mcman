@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::BTreeMap};
 
 use anyhow::{anyhow, Result};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -64,7 +64,7 @@ impl PurpurAPI<'_> {
                 path: cached_file_path,
             },
             size: None,
-            hashes: HashMap::from([("md5".to_owned(), resolved_build.md5)]),
+            hashes: BTreeMap::from([("md5".to_owned(), resolved_build.md5)]),
         })
     }
 }

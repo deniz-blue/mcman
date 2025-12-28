@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::BTreeMap};
 
 use crate::app::{App, CacheStrategy, ResolvedFile};
 use anyhow::{anyhow, Result};
@@ -101,7 +101,7 @@ impl FabricAPI<'_> {
                 path: cached_file_path,
             },
             size: None,
-            hashes: HashMap::new(),
+            hashes: BTreeMap::new(),
         })
     }
 }

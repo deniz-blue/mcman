@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap, time::Duration};
+use std::{borrow::Cow, collections::BTreeMap, time::Duration};
 
 use anyhow::{anyhow, Result};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -95,7 +95,7 @@ pub enum ModrinthStatus {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ModrinthFile {
-    pub hashes: HashMap<String, String>,
+    pub hashes: BTreeMap<String, String>,
     pub url: String,
     pub filename: String,
     pub primary: bool,
