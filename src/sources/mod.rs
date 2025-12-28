@@ -1,3 +1,4 @@
+pub mod curseforge;
 pub mod curserinth;
 pub mod fabric;
 pub mod forge;

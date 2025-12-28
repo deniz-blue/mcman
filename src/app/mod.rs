@@ -332,6 +332,7 @@ impl App {
         maven => MavenAPI,
         jenkins => JenkinsAPI,
         modrinth => ModrinthAPI,
+        curseforge => CurseForgeAPI,
         curserinth => CurserinthAPI,
         neoforge => NeoforgeAPI,
         forge => ForgeAPI,

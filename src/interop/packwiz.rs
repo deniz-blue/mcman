@@ -200,10 +200,17 @@ impl PackwizInterop<'_> {
                     version: mr.version.clone(),
                 })
             } else if let Some(cf) = &upd.curseforge {
-                Some(Downloadable::CurseRinth {
-                    id: cf.project_id.to_string(),
-                    version: cf.file_id.to_string(),
-                })
+                if std::env::var("MCMAN_USE_CURSEFORGE").is_ok() {
+                    Some(Downloadable::CurseForge {
+                        id: cf.project_id.to_string(),
+                        version: cf.file_id.to_string(),
+                    })
+                } else {
+                    Some(Downloadable::CurseRinth {
+                        id: cf.project_id.to_string(),
+                        version: cf.file_id.to_string(),
+                    })
+                }
             } else {
                 // TODO clarify
                 self.0.warn("Unknown mod update".to_owned());

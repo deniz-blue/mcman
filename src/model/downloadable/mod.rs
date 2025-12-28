@@ -36,6 +36,13 @@ pub enum Downloadable {
         version: String,
     },
 
+    #[serde(alias = "cf")]
+    CurseForge {
+        id: String,
+        #[serde(default = "latest")]
+        version: String,
+    },
+
     Spigot {
         id: String,
         #[serde(default = "latest")]
@@ -104,6 +111,7 @@ impl Resolvable for Downloadable {
             }),
             Self::Modrinth { id, version } => app.modrinth().resolve_source(id, version).await,
             Self::CurseRinth { id, version } => app.curserinth().resolve_source(id, version).await,
+            Self::CurseForge { id, version } => app.curseforge().resolve_source(id, version).await,
             Self::Spigot { id, version } => app.spigot().resolve_source(id, version).await,
             Self::Hangar { id, version } => app.hangar().resolve_source(id, version).await,
             Self::GithubRelease { repo, tag, asset } => {
