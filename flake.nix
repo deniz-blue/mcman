@@ -9,26 +9,41 @@
     nixpkgs,
     crane,
     ...
-  }: {
-    packages = nixpkgs.lib.genAttrs nixpkgs.legacyPackages.x86_64-linux.rustc.meta.platforms (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-      craneLib = crane.mkLib pkgs;
+  }:
+    let
+      systems = nixpkgs.legacyPackages.x86_64-linux.rustc.meta.platforms;
 
-      src = pkgs.lib.cleanSourceWith {
-        src = ./.;
-        filter = path: type: (craneLib.filterCargoSources path type) || (builtins.match ".*res/.*" path != null);
-        name = "mcman";
+      mkMcman = pkgs:
+        let
+          craneLib = crane.mkLib pkgs;
+
+          src = pkgs.lib.cleanSourceWith {
+            src = ./.;
+            filter = path: type:
+              (craneLib.filterCargoSources path type)
+              || (builtins.match ".*res/.*" path != null);
+            name = "mcman";
+          };
+
+          common = {
+            inherit src;
+            strictDeps = true;
+            doCheck = false;
+          };
+
+          cargoArtifacts = craneLib.buildDepsOnly common;
+
+        in craneLib.buildPackage (common // {inherit cargoArtifacts;});
+
+    in {
+      packages = nixpkgs.lib.genAttrs systems
+        (system: rec {
+          mcman = mkMcman nixpkgs.legacyPackages.${system};
+          default = mcman;
+        });
+
+      overlays.default = self: super: {
+        mcman = mkMcman self;
       };
-      common = {
-        inherit src;
-        strictDeps = true;
-        doCheck = false;
-      };
-      cargoArtifacts =
-        craneLib.buildDepsOnly common;
-    in rec {
-      mcman = craneLib.buildPackage (common // {inherit cargoArtifacts;});
-      default = mcman;
-    });
-  };
+    };
 }
