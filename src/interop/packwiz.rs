@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -121,7 +121,7 @@ impl PackwizInterop<'_> {
                                     filename: file.file.split('/').next_back().unwrap().to_owned(),
                                     cache: CacheStrategy::None,
                                     size: None,
-                                    hashes: HashMap::from([(
+                                    hashes: BTreeMap::from([(
                                         match index.hash_format {
                                             HashFormat::Md5 => "md5",
                                             HashFormat::Sha1 => "sha1",

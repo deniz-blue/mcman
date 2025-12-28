@@ -1,7 +1,7 @@
 use crate::app::{App, CacheStrategy, ResolvedFile};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::{BTreeMap, HashMap}};
 
 pub struct VanillaAPI<'a>(pub &'a App);
 
@@ -315,7 +315,7 @@ impl VanillaAPI<'_> {
                 path: cached_file_path,
             },
             size: Some(file.size as u64),
-            hashes: HashMap::from([("sha1".to_owned(), file.sha1.clone())]),
+            hashes: BTreeMap::from([("sha1".to_owned(), file.sha1.clone())]),
         })
     }
 }

@@ -1,6 +1,6 @@
 use std::{
     borrow::Cow,
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     fmt::Display,
 };
 
@@ -476,7 +476,7 @@ impl HangarAPI<'_> {
                 path: cached_file_path,
             },
             size: Some(download.get_file_info().size_bytes),
-            hashes: HashMap::from([("sha256".to_owned(), download.get_file_info().sha256_hash)]),
+            hashes: BTreeMap::from([("sha256".to_owned(), download.get_file_info().sha256_hash)]),
         })
     }
 }

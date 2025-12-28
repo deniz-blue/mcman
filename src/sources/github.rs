@@ -1,6 +1,6 @@
 use std::{
     borrow::Cow,
-    collections::HashMap,
+    collections::BTreeMap,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
@@ -239,7 +239,7 @@ impl GithubAPI<'_> {
                 path: cached_file_path,
             },
             size: Some(asset.size),
-            hashes: HashMap::new(),
+            hashes: BTreeMap::new(),
         })
     }
 }

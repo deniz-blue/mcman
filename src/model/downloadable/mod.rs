@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -100,7 +100,7 @@ impl Resolvable for Downloadable {
                 },
                 cache: CacheStrategy::None,
                 size: None,
-                hashes: HashMap::new(),
+                hashes: BTreeMap::new(),
             }),
             Self::Modrinth { id, version } => app.modrinth().resolve_source(id, version).await,
             Self::CurseRinth { id, version } => app.curserinth().resolve_source(id, version).await,

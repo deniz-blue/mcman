@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::BTreeMap};
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
@@ -166,9 +166,9 @@ impl JenkinsAPI<'_> {
                 .iter()
                 .find(|f| f.file_name == artifact.file_name)
             {
-                HashMap::from([("md5".to_owned(), hash.clone())])
+                BTreeMap::from([("md5".to_owned(), hash.clone())])
             } else {
-                HashMap::new()
+                BTreeMap::new()
             },
         })
     }
