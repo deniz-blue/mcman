@@ -22,9 +22,16 @@ impl App {
                         version: version.to_owned(),
                     })
                 }
-                ("cr" | "cf" | "curseforge" | "curserinth", id) => {
+                ("cr" | "curserinth", id) => {
                     let (id, version) = id.split_once(',').unwrap_or((id, "latest"));
                     Ok(Downloadable::CurseRinth {
+                        id: id.to_owned(),
+                        version: version.to_owned(),
+                    })
+                }
+                ("cf" | "curseforge", id) => {
+                    let (id, version) = id.split_once(',').unwrap_or((id, "latest"));
+                    Ok(Downloadable::CurseForge {
                         id: id.to_owned(),
                         version: version.to_owned(),
                     })
@@ -183,7 +190,7 @@ impl App {
                     version.id.clone()
                 };
 
-                Ok(Downloadable::CurseRinth { id, version })
+                Ok(Downloadable::CurseForge { id, version })
             }
 
             // https://www.spigotmc.org/resources/http-requests.101253/

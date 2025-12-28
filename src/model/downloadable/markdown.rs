@@ -36,6 +36,9 @@ impl Downloadable {
             Self::CurseRinth { id, .. } => {
                 format!("`{id}`<sup>[CF](https://www.curseforge.com/minecraft/mc-mods/{id}) [CR](https://curserinth.kuylar.dev/mod/{id})</sup>")
             }
+            Self::CurseForge { id, .. } => {
+                format!("`{id}`<sup>[CF](https://www.curseforge.com/minecraft/mc-mods/{id})</sup>")
+            }
         }
     }
 
@@ -47,6 +50,7 @@ impl Downloadable {
             Self::Hangar { .. } => "Hangar",
             Self::Modrinth { .. } => "Modrinth",
             Self::CurseRinth { .. } => "CurseRinth",
+            Self::CurseForge { .. } => "CurseForge",
             Self::Spigot { .. } => "Spigot",
             Self::Maven { .. } => "Maven",
         }
@@ -71,6 +75,7 @@ impl Downloadable {
 
             Self::Modrinth { id, version }
             | Self::CurseRinth { id, version }
+            | Self::CurseForge { id, version }
             | Self::Hangar { id, version }
             | Self::Spigot { id, version } => (id.clone(), None, Some(version.clone())),
 
@@ -116,6 +121,7 @@ impl Downloadable {
             Self::Modrinth { id, .. } => format!("Modrinth:{id}"),
             Self::Hangar { id, .. } => format!("Hangar:{id}"),
             Self::CurseRinth { id, .. } => format!("CurseRinth:{id}"),
+            Self::CurseForge { id, .. } => format!("CurseForge:{id}"),
             Self::Spigot { id, .. } => format!("Spigot:{id}"),
             Self::GithubRelease { repo, .. } => format!("Github:{repo}"),
             Self::Jenkins { job, .. } => format!("Jenkins:{job}"),
