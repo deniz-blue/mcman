@@ -32,10 +32,12 @@ pub struct PaperProject {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum PaperChannel {
-    Default,
-    Experimental,
+    Stable,
+    Recommended,
+    Alpha,
+    Beta,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
