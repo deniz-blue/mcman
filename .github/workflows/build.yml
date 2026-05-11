@@ -13,7 +13,7 @@ jobs:
       checks: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
       - uses: actions-rs/clippy-check@v1
@@ -26,7 +26,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --profile release-lto
