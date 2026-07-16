@@ -63,14 +63,14 @@ Buildtrees are temporary directories used to build packages. They are created in
 `mcman.kdl` describes the packages to be installed. It is a KDL file that contains a list of packages.
 
 ```kdl
-package "adoptium:jdk" version="21"
+dep "adoptium:jdk" version="21"
 
 group "proxy" {
-    package "papermc:velocity" version="latest"
+    dep "papermc:velocity" version="latest"
 
     dir "plugins" {
-        package "modrinth:luckperms" version="latest" // Target type="velocity-proxy" resolves proxy jar
-        package "modrinth:velocity-viasneak" version="latest"
+        dep "modrinth:luckperms" version="latest"
+        dep "modrinth:velocity-viasneak" version="latest"
     }
 
     target path="./run/proxy" type="server"
@@ -78,28 +78,37 @@ group "proxy" {
 
 group "game-servers" {
     dir "plugins" {
-        package "modrinth:luckperms" version="latest" // Resolves Bukkit/Spigot jar
-        package "modrinth:spark" version="latest"
+        dep "modrinth:luckperms" version="latest" // Resolves Bukkit/Spigot jar
+        dep "modrinth:spark" version="latest"
     }
 
     group "lobby" {
-        package "papermc:paper" version="1.21.1"
+        target path="./run/lobby" type="server"
+
+        dep "papermc:paper" version="1.21.1"
 
         dir "plugins" {
-            package "modrinth:fastasyncworldedit" version="latest"
+            dep "modrinth:fastasyncworldedit" version="latest"
         }
 
-        target path="./run/lobby" type="server"
+		package "customplugin" {
+			git "https://...customplugin.git"
+			build {
+				execute "gradlew build" cd="."
+			}
+			link "build/libs/customplugin.jar" "plugins/customplugin.jar"
+		}
     }
 
-    group "survival" {
-        package "purpur:purpur" version="1.21.1"
+    group "smp" {
+        target path="./run/smp" type="server"
+        target path="./run/smp-packwiz" type="packwiz"
+		
+        dep "fabric:fabric" version="1.21.1" loader="latest"
 
-        dir "plugins" {
-            package "modrinth:chunky" version="latest"
+        dir "mods" {
+            dep "modrinth:create" version="latest"
         }
-
-        target path="./run/survival" type="server"
     }
 }
 ```
@@ -107,27 +116,27 @@ group "game-servers" {
 ### Tags
 
 - **`group`**: Boundary
+- **`dep`**: Dependency
+  - **Argument 0**: Preset identifier; `<provider>:<id...>`
 - **`package`**: Package to install
-  - Preset package
-    - **Argument 0**: Preset identifier; `<provider>:<id...>`
-  - Instructed package
-    - **Argument 0**: Label
-    - **Children**:
-      - **`git`**: Clone a git repository
-		- **Argument 0**: Repository URL
-		- **path=**
-	  - **`download`**: Download a file
-		- **Argument 0**: URL
-		- **path=**
-	  - **`build`**: Build instructions
-    	  - **Children**:
-        	- **`execute`**: Execute a command
-            	- **Argument 0**: Command
-            	- **cd=** Working dir
-	  - **`link`**: Files to use from the buildtree
-		- **Argument 0**: Source path relative to build directory
-		- **Argument 1**: Destination path relative to target directory
+  - **Argument 0**: Label
+  - **Children**:
+    - **`git`**: Clone a git repository
+      - **Argument 0**: Repository URL
+      - **path=**
+    - **`download`**: Download a file
+      - **Argument 0**: URL
+      - **path=**
+    - **`build`**: Build instructions
+      - **Children**:
+        - **`execute`**: Execute a command
+          - **Argument 0**: Command
+          - **cd=** Working dir
+    - **`link`**: Files to use from the buildtree
+      - **Argument 0**: Source path relative to build directory
+      - **Argument 1**: Destination path relative to target directory
 - **`target`**: Define a target to output something to
+  - **Argument 0**: Label
   - **path=** default "."
   - **type=** one of `none`, `client`, `server`, `packwiz`, `mrpack`, `unsup`
 - **`dir`**: Specify a directory, appends to target path
@@ -141,7 +150,43 @@ group "game-servers" {
 
 ## Lockfile
 
-TODO
+Lockfile also uses KDL format.
+
+**Tags**:
+
+- **`meta`**
+  - **version=** 1
+  - **`generated`**: Timestamp
+- **`target`**
+  - **Argument 0**: Label
+  - **path=** Path
+  - **Children**:
+    - **`dep`**
+      - **Argument 0**: `<provider>:<id...>`
+      - **version=** Locked version
+    - **`package`**
+	  - **Argument 0**: Label
+    - **Children** of either `dep` or `package`:
+      - **`artifact`**
+        - **Argument 0**: Path relative to target
+        - **hash=** Hash of the file
+        - **size=** Size of the file in bytes
+
+```kdl
+meta version=1 generated=2024-06-01T12:00:00Z
+
+target "proxy" path="./run/proxy" {
+	dep "papermc:velocity" version="3.4.0" {
+		artifact "velocity-3.4.0.jar" hash="abcdef" size=123456
+	}
+	package "modrinth:luckperms" {
+		artifact "plugins/luckperms-fabric-10.4.1.jar" hash="abcdef" size=123456
+	}
+	package "modrinth:velocity-viasneak" {
+		artifact "plugins/velocity-viasneak-1.0.0.jar" hash="abcdef" size=654321
+	}
+}
+```
 
 ## Resolution Steps
 
