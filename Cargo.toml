@@ -79,6 +79,10 @@ walkdir = "2.4"
 zip = "0.6"
 lazy_static = "1.5.0"
 thiserror = "2.0.17"
+blake3 = "1.8.5"
+kdl = "6.3.4"
+miette = "7.6.0"
+knus = "3.4.0"
 
 [features]
 autocomplete = ["clap_complete"]
