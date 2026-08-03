@@ -2,7 +2,7 @@ use knus::Decode;
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum DependencyId {
-	Modrinth(ModrinthProject),
+    Modrinth(ModrinthProject),
 }
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]

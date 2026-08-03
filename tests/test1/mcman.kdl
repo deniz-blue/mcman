@@ -1,0 +1,6 @@
+package label="paper" {
+	download "https://fill-data.papermc.io/v1/objects/059d00bbce0fa1707739618b3276f5c80b9655dc0f964306fa799a9c7cb01cc2/paper-26.2-92.jar"
+	link "paper-26.2-92.jar" "server.jar"
+}
+
+target "server" type="server"

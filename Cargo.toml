@@ -1,8 +1,8 @@
 [package]
 name = "mcman"
-version = "0.4.5"
+version = "0.5.0"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.97"
 repository = "https://github.com/ParadigmMC/mcman"
 homepage = "https://paradigmmc.github.io/mcman/"
 authors = ["ParadigmMC"]
@@ -24,16 +24,7 @@ lto = true
 inherits = "release"
 lto = "thin"
 
-[lints.clippy]
-all = { level = "deny", priority = -2 }
-pedantic = { level = "warn", priority = -1 }
-missing_docs_in_private_items = "allow"
-missing_errors_doc = "allow"
-module_name_repetitions = "allow"
-struct_excessive_bools = "allow"
-
 [dependencies]
-anyhow = "1.0"
 cached = "0.47"
 clap = { version = "4.4", features = ["derive"] }
 clap_complete = { version = "4.5", optional = true }
@@ -53,10 +44,12 @@ pathdiff = { git = "https://github.com/Manishearth/pathdiff.git" }
 rpackwiz = { git = "https://github.com/vgskye/rpackwiz.git" }
 regex = "1.10"
 reqwest = { version = "0.12", features = [
-    "json",
-    "stream",
-    "rustls-tls",
+	"json",
+	"stream",
+	"rustls-tls",
 ], default-features = false }
+reqwest-middleware = "0.3"
+reqwest-retry = "0.6"
 roxmltree = "0.20"
 semver = "1.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -65,12 +58,12 @@ sha1 = "0.10"
 sha2 = "0.10"
 tempfile = "3.9"
 tokio = { version = "1.35", features = [
-    "macros",
-    "rt",
-    "rt-multi-thread",
-    "process",
-    "signal",
-    "io-std",
+	"macros",
+	"rt",
+	"rt-multi-thread",
+	"process",
+	"signal",
+	"io-std",
 ] }
 tokio-stream = "0.1"
 tokio-util = { version = "0.7", features = ["io"] }
@@ -81,7 +74,7 @@ lazy_static = "1.5.0"
 thiserror = "2.0.17"
 blake3 = "1.8.5"
 kdl = "6.3.4"
-miette = "7.6.0"
+miette = { version = "7.6.0", features = ["fancy"] }
 knus = "3.4.0"
 
 [features]

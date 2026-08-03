@@ -12,39 +12,39 @@ pub struct Lockfile {
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
 pub struct LockfileMeta {
-	#[knus(property)]
+    #[knus(property)]
     pub version: u8,
-	#[knus(property)]
+    #[knus(property)]
     pub generated: String,
 }
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
 pub struct LockedTarget {
-	#[knus(argument)]
+    #[knus(argument)]
     pub name: String,
-	#[knus(property)]
+    #[knus(property)]
     pub path: PathBuf,
-	#[knus(children(name = "dependency"))]
-    pub dependencies: Vec<LockedDependency>,
+    #[knus(children(name = "use"))]
+    pub presets: Vec<LockedPreset>,
     #[knus(children(name = "package"))]
     pub packages: Vec<LockedPackage>,
 }
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-pub struct LockedDependency {
-	#[knus(argument)]
+pub struct LockedPreset {
+    #[knus(argument)]
     pub identifier: String,
-	#[knus(property)]
+    #[knus(property)]
     pub version: String,
-	#[knus(children(name = "artifact"))]
+    #[knus(children(name = "artifact"))]
     pub artifacts: Vec<Artifact>,
 }
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
 pub struct LockedPackage {
-	#[knus(argument)]
+    #[knus(argument)]
     pub name: String,
-	#[knus(children(name = "artifact"))]
+    #[knus(children(name = "artifact"))]
     pub artifacts: Vec<Artifact>,
 }
 
