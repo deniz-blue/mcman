@@ -1,0 +1,72 @@
+---
+source: tests/parse.rs
+expression: "parse(\"multi-dir\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [
+            Directory {
+                path: Some(
+                    "mods",
+                ),
+                presets: [
+                    Preset {
+                        identifier: "modrinth:fabric-api",
+                        version: Some(
+                            "latest",
+                        ),
+                    },
+                    Preset {
+                        identifier: "modrinth:sodium",
+                        version: Some(
+                            "latest",
+                        ),
+                    },
+                ],
+                packages: [],
+            },
+            Directory {
+                path: Some(
+                    "config",
+                ),
+                presets: [
+                    Preset {
+                        identifier: "modrinth:cloth-config",
+                        version: Some(
+                            "latest",
+                        ),
+                    },
+                ],
+                packages: [],
+            },
+            Directory {
+                path: Some(
+                    "plugins",
+                ),
+                presets: [
+                    Preset {
+                        identifier: "modrinth:spark",
+                        version: Some(
+                            "latest",
+                        ),
+                    },
+                ],
+                packages: [],
+            },
+        ],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "modded",
+                path: Some(
+                    "./run/modded",
+                ),
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}

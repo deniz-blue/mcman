@@ -81,6 +81,8 @@ knus = "3.4.0"
 assert_cmd = "2"
 assert_fs = "1"
 predicates = "3"
+insta = "1"
+miette = "7.6.0"
 
 [features]
 autocomplete = ["clap_complete"]

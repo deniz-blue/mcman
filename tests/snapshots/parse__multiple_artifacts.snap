@@ -1,0 +1,56 @@
+---
+source: tests/parse.rs
+expression: "parse(\"multiple-artifacts\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [
+            Directory {
+                path: None,
+                presets: [],
+                packages: [
+                    Package {
+                        label: Some(
+                            "big-plugin",
+                        ),
+                        sources: [
+                            Download(
+                                Download {
+                                    url: "https://example.com/big-plugin-2.0.jar",
+                                    path: None,
+                                },
+                            ),
+                        ],
+                        build: None,
+                        artifacts: [
+                            PackageArtifact {
+                                from: "big-plugin-2.0.jar",
+                                to: Some(
+                                    "plugins/big-plugin.jar",
+                                ),
+                            },
+                            PackageArtifact {
+                                from: "big-plugin-2.0.jar",
+                                to: Some(
+                                    "plugins/backup/big-plugin.jar",
+                                ),
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "server",
+                path: None,
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}

@@ -285,7 +285,11 @@ Should cross-cutting exceptions turn out to need more than nesting can express, 
 
 Placement is determined solely by `dir` nesting. Providers never choose a path. A `use` outside any `dir` places its files at the target root.
 
-Which artifact a provider resolves to may still depend on the target type — `modrinth:luckperms` is a Bukkit jar for a Paper target and a Fabric jar for a Fabric one. That is variant selection, and it is separate from placement.
+`type=` does not participate. It selects what the target *outputs* — a server directory, a client directory, a packwiz pack, an mrpack archive — and nothing else.
+
+Which artifact a provider resolves to is a separate axis again: `modrinth:luckperms` is a Bukkit jar under Paper and a Fabric jar under Fabric, and both of those are `type="server"`. That is decided by the **platform** in the target's resolved set, from `use "papermc:paper"` or `use "fabric:fabric"`. The `smp` group above shows the two axes are independent — one Fabric loader feeding a `server` target and a `packwiz` target.
+
+**Open:** how the platform is established when no loader is in scope, as in a client modpack that lists only mods.
 
 `runtime` has no placement at all. It is recorded in the lockfile and consumed by the launcher; it never emits a file into a target.
 

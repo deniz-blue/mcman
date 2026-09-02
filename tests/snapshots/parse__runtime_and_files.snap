@@ -1,0 +1,61 @@
+---
+source: tests/parse.rs
+expression: "parse(\"runtime-and-files\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [
+            Preset {
+                identifier: "adoptium:jdk",
+                version: Some(
+                    "21",
+                ),
+            },
+        ],
+        directories: [
+            Directory {
+                path: Some(
+                    "plugins",
+                ),
+                presets: [
+                    Preset {
+                        identifier: "modrinth:luckperms",
+                        version: Some(
+                            "latest",
+                        ),
+                    },
+                ],
+                packages: [],
+            },
+        ],
+        copies: [
+            CopyFile {
+                from: "config/server.properties",
+                to: "server.properties",
+                overwrite: true,
+            },
+            CopyFile {
+                from: "config/bukkit.yml",
+                to: "bukkit.yml",
+                overwrite: false,
+            },
+        ],
+        links: [
+            LinkFile {
+                from: "config/permissions.yml",
+                to: "plugins/LuckPerms/permissions.yml",
+            },
+        ],
+        targets: [
+            Target {
+                name: "smp",
+                path: Some(
+                    "./run/smp",
+                ),
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}

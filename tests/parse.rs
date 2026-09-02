@@ -1,97 +1,84 @@
-use assert_cmd::Command;
+use mcman::manifest::Manifest;
+use miette::Diagnostic;
 use std::fs;
 
-fn setup_fixture(fixture_name: &str) -> assert_fs::TempDir {
-    let dir = assert_fs::TempDir::new().unwrap();
-    let src = format!("tests/fixtures/{fixture_name}.kdl");
-    fs::copy(&src, dir.path().join("mcman.kdl")).unwrap();
-    dir
+fn parse(fixture: &str) -> Manifest {
+    let path = format!("tests/fixtures/{fixture}.kdl");
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
+    Manifest::parse(&path, &text).unwrap_or_else(|e| panic!("{path} should parse:\n{e:?}"))
 }
 
-fn run_mcman(dir: &assert_fs::TempDir) -> assert_cmd::assert::Assert {
-    Command::cargo_bin("mcman")
-        .unwrap()
-        .current_dir(dir.path())
-        .assert()
+/// Collects the diagnostic messages alone. The rendered form embeds the
+/// offending source lines, so matching against it would pass on any error
+/// reported near them rather than on the one being asserted.
+fn rejection(fixture: &str) -> String {
+    let path = format!("tests/fixtures/invalid/{fixture}.kdl");
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
+    let report = match Manifest::parse(&path, &text) {
+        Ok(manifest) => panic!("{path} should have been rejected, parsed as:\n{manifest:#?}"),
+        Err(report) => report,
+    };
+
+    let mut messages = vec![report.to_string()];
+    if let Some(related) = report.related() {
+        messages.extend(related.map(|diagnostic| diagnostic.to_string()));
+    }
+    messages.join("\n")
 }
 
-#[test]
-fn parse_minimal() {
-    let dir = setup_fixture("minimal");
-    run_mcman(&dir).success();
+/// Snapshots the parsed tree, so a fixture that silently loses nodes fails
+/// rather than passing because nothing errored.
+macro_rules! parses {
+    ($($test:ident: $fixture:literal,)*) => {
+        $(
+            #[test]
+            fn $test() {
+                insta::assert_debug_snapshot!(parse($fixture));
+            }
+        )*
+    };
 }
 
-#[test]
-fn parse_server_with_presets() {
-    let dir = setup_fixture("server-with-presets");
-    run_mcman(&dir).success();
+macro_rules! rejects {
+    ($($test:ident: $fixture:literal => $needle:literal,)*) => {
+        $(
+            #[test]
+            fn $test() {
+                let error = rejection($fixture);
+                assert!(
+                    error.contains($needle),
+                    "expected an error mentioning {:?}, got:\n{error}",
+                    $needle,
+                );
+            }
+        )*
+    };
 }
 
-#[test]
-fn parse_nested_groups() {
-    let dir = setup_fixture("nested-groups");
-    run_mcman(&dir).success();
+parses! {
+    minimal: "minimal",
+    server_with_presets: "server-with-presets",
+    nested_groups: "nested-groups",
+    multiple_targets: "multiple-targets",
+    custom_package_download: "custom-package-download",
+    custom_package_git_build: "custom-package-git-build",
+    all_target_types: "all-target-types",
+    empty_groups: "empty-groups",
+    multi_dir: "multi-dir",
+    full_design_doc: "full-mcman",
+    package_with_path: "package-with-path",
+    multiple_artifacts: "multiple-artifacts",
+    runtime_and_files: "runtime-and-files",
 }
 
-#[test]
-fn parse_multiple_targets() {
-    let dir = setup_fixture("multiple-targets");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_custom_package_download() {
-    let dir = setup_fixture("custom-package-download");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_custom_package_git_build() {
-    let dir = setup_fixture("custom-package-git-build");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_all_target_types() {
-    let dir = setup_fixture("all-target-types");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_empty_groups() {
-    let dir = setup_fixture("empty-groups");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_multi_dir() {
-    let dir = setup_fixture("multi-dir");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_full_design_doc() {
-    let dir = setup_fixture("full-mcman");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_package_with_path() {
-    let dir = setup_fixture("package-with-path");
-    run_mcman(&dir).success();
-}
-
-#[test]
-fn parse_multiple_links() {
-    let dir = setup_fixture("multiple-links");
-    run_mcman(&dir).success();
-}
-
-// Error cases
-
-#[test]
-fn reject_missing_manifest() {
-    let dir = assert_fs::TempDir::new().unwrap();
-    // no mcman.kdl in the dir
-    run_mcman(&dir).failure();
+rejects! {
+    unknown_node: "unknown-node" => "unexpected node `plugins`",
+    unknown_dir_node: "unknown-dir-node" => "unexpected node `download`",
+    runtime_in_dir: "runtime-in-dir" => "unexpected node `runtime`",
+    unknown_package_node: "unknown-package-node" => "unexpected node `link`",
+    duplicate_build: "duplicate-build" => "a package may only have one `build`",
+    unknown_target_type: "unknown-target-type" => "Invalid target type: kubernetes",
+    group_without_children: "group-without-children" => "group must have children",
+    surplus_group_entries: "surplus-group-entries" => "unexpected property `path`",
+    surplus_package_entries: "surplus-package-entries" => "unexpected argument",
 }

@@ -1,0 +1,4 @@
+target "main" type="server"
+package "custom" "stray-argument" {
+    download "https://example.com/custom.jar"
+}

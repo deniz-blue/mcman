@@ -1,0 +1,74 @@
+---
+source: tests/parse.rs
+expression: "parse(\"nested-groups\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [],
+        copies: [],
+        links: [],
+        targets: [],
+        subgroups: [
+            Group {
+                label: Some(
+                    "infra",
+                ),
+                runtimes: [],
+                directories: [],
+                copies: [],
+                links: [],
+                targets: [],
+                subgroups: [
+                    Group {
+                        label: Some(
+                            "proxy",
+                        ),
+                        runtimes: [],
+                        directories: [],
+                        copies: [],
+                        links: [],
+                        targets: [],
+                        subgroups: [
+                            Group {
+                                label: Some(
+                                    "velocity",
+                                ),
+                                runtimes: [],
+                                directories: [
+                                    Directory {
+                                        path: Some(
+                                            "plugins",
+                                        ),
+                                        presets: [
+                                            Preset {
+                                                identifier: "modrinth:luckperms",
+                                                version: Some(
+                                                    "latest",
+                                                ),
+                                            },
+                                        ],
+                                        packages: [],
+                                    },
+                                ],
+                                copies: [],
+                                links: [],
+                                targets: [
+                                    Target {
+                                        name: "velocity",
+                                        path: Some(
+                                            "./run/velocity",
+                                        ),
+                                        kind: Server,
+                                    },
+                                ],
+                                subgroups: [],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+}

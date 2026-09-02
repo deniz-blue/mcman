@@ -15,8 +15,5 @@ site/
 # mcman: Exclude local dotenv files
 **/.env
 
-
-
-
-
-
+# insta: pending snapshots, accepted into *.snap or discarded
+*.snap.new

@@ -1,0 +1,89 @@
+---
+source: tests/parse.rs
+expression: "parse(\"package-with-path\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [
+            Directory {
+                path: None,
+                presets: [],
+                packages: [
+                    Package {
+                        label: Some(
+                            "webmap",
+                        ),
+                        sources: [
+                            Download(
+                                Download {
+                                    url: "https://example.com/bluemap-4.0.jar",
+                                    path: Some(
+                                        "downloads/bluemap.jar",
+                                    ),
+                                },
+                            ),
+                        ],
+                        build: None,
+                        artifacts: [
+                            PackageArtifact {
+                                from: "downloads/bluemap.jar",
+                                to: Some(
+                                    "plugins/bluemap.jar",
+                                ),
+                            },
+                        ],
+                    },
+                    Package {
+                        label: Some(
+                            "custom-mod",
+                        ),
+                        sources: [
+                            Git(
+                                Git {
+                                    url: "https://github.com/example/custom-mod.git",
+                                    path: Some(
+                                        "src/mod",
+                                    ),
+                                },
+                            ),
+                        ],
+                        build: Some(
+                            PackageBuild {
+                                tasks: [
+                                    Execute(
+                                        ExecuteTask {
+                                            command: "./gradlew",
+                                            directory: Some(
+                                                "src/mod",
+                                            ),
+                                        },
+                                    ),
+                                ],
+                            },
+                        ),
+                        artifacts: [
+                            PackageArtifact {
+                                from: "build/libs/custom-mod.jar",
+                                to: Some(
+                                    "mods/custom-mod.jar",
+                                ),
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "server",
+                path: None,
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}

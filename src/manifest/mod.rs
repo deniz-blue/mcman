@@ -1,90 +1,97 @@
-use std::{ops::Deref, path::PathBuf, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 
-use knus::{Decode, DecodeChildren};
-use miette::miette;
+use knus::{
+    ast::SpannedNode, decode::Context, errors::DecodeError, traits::ErrorSpan, Decode,
+    DecodeChildren,
+};
+use miette::{miette, Result};
 
-use crate::package::Package;
+use crate::{
+    core::kdl::{decode_label, reject_beyond_label, reject_node},
+    package::Package,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Default)]
 pub struct Manifest {
     pub root: Group,
 }
 
-impl<S: knus::traits::ErrorSpan> DecodeChildren<S> for Manifest {
+impl Manifest {
+    pub fn parse(name: &str, text: &str) -> Result<Self> {
+        knus::parse(name, text).map_err(Into::into)
+    }
+}
+
+impl<S: ErrorSpan> DecodeChildren<S> for Manifest {
     fn decode_children(
-        nodes: &[knus::ast::SpannedNode<S>],
-        ctx: &mut knus::decode::Context<S>,
-    ) -> Result<Self, knus::errors::DecodeError<S>> {
+        nodes: &[SpannedNode<S>],
+        ctx: &mut Context<S>,
+    ) -> Result<Self, DecodeError<S>> {
         Ok(Self {
             root: Group::decode_children(nodes, ctx)?,
         })
     }
 }
 
+const GROUP_NODES: &str = "group, dir, target, use, package, runtime, copy, link";
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Default)]
 pub struct Group {
     pub label: Option<String>,
+    pub runtimes: Vec<Preset>,
     pub directories: Vec<Directory>,
+    pub copies: Vec<CopyFile>,
+    pub links: Vec<LinkFile>,
     pub targets: Vec<Target>,
     pub subgroups: Vec<Group>,
 }
 
-impl<S: knus::traits::ErrorSpan> Decode<S> for Group {
-    fn decode_node(
-        node: &knus::ast::SpannedNode<S>,
-        ctx: &mut knus::decode::Context<S>,
-    ) -> Result<Self, knus::errors::DecodeError<S>> {
-        let label = node.arguments.get(0).map(|arg| match arg.literal.deref() {
-            knus::ast::Literal::String(s) => s.clone().into(),
-            _ => String::new(),
-        });
+impl<S: ErrorSpan> Decode<S> for Group {
+    fn decode_node(node: &SpannedNode<S>, ctx: &mut Context<S>) -> Result<Self, DecodeError<S>> {
+        let label = decode_label(node, ctx);
+        reject_beyond_label(node, ctx);
 
-        let mut group = Self::decode_children(
-            &node
-                .children
-                .clone()
-                .ok_or(knus::errors::DecodeError::Missing {
-                    span: node.span().clone(),
-                    message: String::from("group must have children"),
-                })?,
-            ctx,
-        )?;
+        let children = node
+            .children
+            .clone()
+            .ok_or(DecodeError::missing(node, "group must have children"))?;
 
+        let mut group = Self::decode_children(&children, ctx)?;
         group.label = label;
-        
-		Ok(group)
+
+        Ok(group)
     }
 }
 
-impl<S: knus::traits::ErrorSpan> DecodeChildren<S> for Group {
+impl<S: ErrorSpan> DecodeChildren<S> for Group {
     fn decode_children(
-        nodes: &[knus::ast::SpannedNode<S>],
-        ctx: &mut knus::decode::Context<S>,
-    ) -> Result<Self, knus::errors::DecodeError<S>> {
-        let mut directories = Vec::new();
-        let mut targets = Vec::new();
-        let mut subgroups = Vec::new();
-        let mut rest = Vec::new();
+        nodes: &[SpannedNode<S>],
+        ctx: &mut Context<S>,
+    ) -> Result<Self, DecodeError<S>> {
+        let mut group = Group::default();
+        // `use` and `package` written outside any `dir` place files at the target
+        // root, which is a `dir` with no path.
+        let mut target_root = Directory::default();
 
         for node in nodes {
             match &*node.node_name.as_ref() {
-                "dir" => directories.push(Directory::decode_node(node, ctx)?),
-                "target" => targets.push(Target::decode_node(node, ctx)?),
-                "group" => subgroups.push(Group::decode_node(node, ctx)?),
-                _ => rest.push(node.clone()),
+                "dir" => group.directories.push(Directory::decode_node(node, ctx)?),
+                "target" => group.targets.push(Target::decode_node(node, ctx)?),
+                "group" => group.subgroups.push(Group::decode_node(node, ctx)?),
+                "runtime" => group.runtimes.push(Preset::decode_node(node, ctx)?),
+                "copy" => group.copies.push(CopyFile::decode_node(node, ctx)?),
+                "link" => group.links.push(LinkFile::decode_node(node, ctx)?),
+                "use" => target_root.presets.push(Preset::decode_node(node, ctx)?),
+                "package" => target_root.packages.push(Package::decode_node(node, ctx)?),
+                _ => reject_node(node, ctx, GROUP_NODES),
             }
         }
 
-        if !rest.is_empty() {
-            directories.push(Directory::decode_children(&rest, ctx)?);
+        if !target_root.presets.is_empty() || !target_root.packages.is_empty() {
+            group.directories.push(target_root);
         }
 
-        Ok(Self {
-            label: None,
-            directories,
-            targets,
-            subgroups,
-        })
+        Ok(group)
     }
 }
 
@@ -96,30 +103,6 @@ pub struct Directory {
     pub presets: Vec<Preset>,
     #[knus(children(name = "package"))]
     pub packages: Vec<Package>,
-}
-
-impl<S: knus::traits::ErrorSpan> DecodeChildren<S> for Directory {
-    fn decode_children(
-        nodes: &[knus::ast::SpannedNode<S>],
-        ctx: &mut knus::decode::Context<S>,
-    ) -> Result<Self, knus::errors::DecodeError<S>> {
-        let mut presets = Vec::new();
-        let mut packages = Vec::new();
-
-        for node in nodes {
-            match &*node.node_name.as_ref() {
-                "use" => presets.push(Preset::decode_node(node, ctx)?),
-                "package" => packages.push(Package::decode_node(node, ctx)?),
-                _ => {}
-            }
-        }
-
-        Ok(Self {
-            path: None,
-            presets,
-            packages,
-        })
-    }
 }
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
@@ -165,4 +148,22 @@ pub struct Preset {
     pub identifier: String,
     #[knus(property)]
     pub version: Option<String>,
+}
+
+#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
+pub struct CopyFile {
+    #[knus(argument)]
+    pub from: PathBuf,
+    #[knus(argument)]
+    pub to: PathBuf,
+    #[knus(property, default)]
+    pub overwrite: bool,
+}
+
+#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
+pub struct LinkFile {
+    #[knus(argument)]
+    pub from: PathBuf,
+    #[knus(argument)]
+    pub to: PathBuf,
 }

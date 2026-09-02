@@ -1,0 +1,5 @@
+target "main" type="server"
+package "custom" {
+    download "https://example.com/custom.jar"
+    link "custom.jar" "plugins/custom.jar"
+}

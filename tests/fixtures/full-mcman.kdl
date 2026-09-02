@@ -1,5 +1,5 @@
 // Full realistic manifest matching the design doc example
-use "adoptium:jdk" version="21"
+runtime "adoptium:jdk" version="21"
 
 group "proxy" {
     use "papermc:velocity" version="latest"
@@ -32,7 +32,7 @@ group "game-servers" {
             build {
                 execute "gradlew build" cd="."
             }
-            link "build/libs/customplugin.jar" "plugins/customplugin.jar"
+            artifact "build/libs/customplugin.jar" "plugins/customplugin.jar"
         }
     }
 

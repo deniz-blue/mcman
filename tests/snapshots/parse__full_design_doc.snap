@@ -1,0 +1,243 @@
+---
+source: tests/parse.rs
+expression: "parse(\"full-mcman\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [
+            Preset {
+                identifier: "adoptium:jdk",
+                version: Some(
+                    "21",
+                ),
+            },
+        ],
+        directories: [],
+        copies: [],
+        links: [],
+        targets: [],
+        subgroups: [
+            Group {
+                label: Some(
+                    "proxy",
+                ),
+                runtimes: [],
+                directories: [
+                    Directory {
+                        path: Some(
+                            "plugins",
+                        ),
+                        presets: [
+                            Preset {
+                                identifier: "modrinth:luckperms",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                            Preset {
+                                identifier: "modrinth:velocity-viasneak",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                        ],
+                        packages: [],
+                    },
+                    Directory {
+                        path: None,
+                        presets: [
+                            Preset {
+                                identifier: "papermc:velocity",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                        ],
+                        packages: [],
+                    },
+                ],
+                copies: [],
+                links: [],
+                targets: [
+                    Target {
+                        name: "proxy",
+                        path: Some(
+                            "./run/proxy",
+                        ),
+                        kind: Server,
+                    },
+                ],
+                subgroups: [],
+            },
+            Group {
+                label: Some(
+                    "game-servers",
+                ),
+                runtimes: [],
+                directories: [
+                    Directory {
+                        path: Some(
+                            "plugins",
+                        ),
+                        presets: [
+                            Preset {
+                                identifier: "modrinth:luckperms",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                            Preset {
+                                identifier: "modrinth:spark",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                        ],
+                        packages: [],
+                    },
+                ],
+                copies: [],
+                links: [],
+                targets: [],
+                subgroups: [
+                    Group {
+                        label: Some(
+                            "lobby",
+                        ),
+                        runtimes: [],
+                        directories: [
+                            Directory {
+                                path: Some(
+                                    "plugins",
+                                ),
+                                presets: [
+                                    Preset {
+                                        identifier: "modrinth:fastasyncworldedit",
+                                        version: Some(
+                                            "latest",
+                                        ),
+                                    },
+                                ],
+                                packages: [],
+                            },
+                            Directory {
+                                path: None,
+                                presets: [
+                                    Preset {
+                                        identifier: "papermc:paper",
+                                        version: Some(
+                                            "1.21.1",
+                                        ),
+                                    },
+                                ],
+                                packages: [
+                                    Package {
+                                        label: Some(
+                                            "customplugin",
+                                        ),
+                                        sources: [
+                                            Git(
+                                                Git {
+                                                    url: "https://github.com/example/customplugin.git",
+                                                    path: None,
+                                                },
+                                            ),
+                                        ],
+                                        build: Some(
+                                            PackageBuild {
+                                                tasks: [
+                                                    Execute(
+                                                        ExecuteTask {
+                                                            command: "gradlew build",
+                                                            directory: Some(
+                                                                ".",
+                                                            ),
+                                                        },
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        artifacts: [
+                                            PackageArtifact {
+                                                from: "build/libs/customplugin.jar",
+                                                to: Some(
+                                                    "plugins/customplugin.jar",
+                                                ),
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                        copies: [],
+                        links: [],
+                        targets: [
+                            Target {
+                                name: "lobby",
+                                path: Some(
+                                    "./run/lobby",
+                                ),
+                                kind: Server,
+                            },
+                        ],
+                        subgroups: [],
+                    },
+                    Group {
+                        label: Some(
+                            "smp",
+                        ),
+                        runtimes: [],
+                        directories: [
+                            Directory {
+                                path: Some(
+                                    "mods",
+                                ),
+                                presets: [
+                                    Preset {
+                                        identifier: "modrinth:create",
+                                        version: Some(
+                                            "latest",
+                                        ),
+                                    },
+                                ],
+                                packages: [],
+                            },
+                            Directory {
+                                path: None,
+                                presets: [
+                                    Preset {
+                                        identifier: "fabric:fabric",
+                                        version: Some(
+                                            "1.21.1",
+                                        ),
+                                    },
+                                ],
+                                packages: [],
+                            },
+                        ],
+                        copies: [],
+                        links: [],
+                        targets: [
+                            Target {
+                                name: "smp-server",
+                                path: Some(
+                                    "./run/smp",
+                                ),
+                                kind: Server,
+                            },
+                            Target {
+                                name: "smp-pack",
+                                path: Some(
+                                    "./run/smp-packwiz",
+                                ),
+                                kind: Packwiz,
+                            },
+                        ],
+                        subgroups: [],
+                    },
+                ],
+            },
+        ],
+    },
+}

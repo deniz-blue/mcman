@@ -1,0 +1,52 @@
+---
+source: tests/parse.rs
+expression: "parse(\"empty-groups\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "bare",
+                path: None,
+                kind: Server,
+            },
+        ],
+        subgroups: [
+            Group {
+                label: Some(
+                    "empty-group",
+                ),
+                runtimes: [],
+                directories: [],
+                copies: [],
+                links: [],
+                targets: [],
+                subgroups: [],
+            },
+            Group {
+                label: Some(
+                    "group-with-empty-dir",
+                ),
+                runtimes: [],
+                directories: [
+                    Directory {
+                        path: Some(
+                            "plugins",
+                        ),
+                        presets: [],
+                        packages: [],
+                    },
+                ],
+                copies: [],
+                links: [],
+                targets: [],
+                subgroups: [],
+            },
+        ],
+    },
+}

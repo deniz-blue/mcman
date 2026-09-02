@@ -1,0 +1,56 @@
+---
+source: tests/parse.rs
+expression: "parse(\"all-target-types\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "default",
+                path: None,
+                kind: None,
+            },
+            Target {
+                name: "client-pack",
+                path: Some(
+                    "./out/client",
+                ),
+                kind: Client,
+            },
+            Target {
+                name: "server-jar",
+                path: Some(
+                    "./out/server",
+                ),
+                kind: Server,
+            },
+            Target {
+                name: "packwiz-pack",
+                path: Some(
+                    "./out/packwiz",
+                ),
+                kind: Packwiz,
+            },
+            Target {
+                name: "mrpack-export",
+                path: Some(
+                    "./out/mrpack",
+                ),
+                kind: Mrpack,
+            },
+            Target {
+                name: "unsup-type",
+                path: Some(
+                    "./out/unsup",
+                ),
+                kind: Unsup,
+            },
+        ],
+        subgroups: [],
+    },
+}

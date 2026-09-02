@@ -1,0 +1,21 @@
+---
+source: tests/parse.rs
+expression: "parse(\"minimal\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "main",
+                path: None,
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}

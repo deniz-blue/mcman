@@ -1,0 +1,2 @@
+group "empty"
+target "main" type="server"

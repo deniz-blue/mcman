@@ -1,0 +1,63 @@
+---
+source: tests/parse.rs
+expression: "parse(\"custom-package-git-build\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [
+            Directory {
+                path: None,
+                presets: [],
+                packages: [
+                    Package {
+                        label: Some(
+                            "custom-plugin",
+                        ),
+                        sources: [
+                            Git(
+                                Git {
+                                    url: "https://github.com/example/custom-plugin.git",
+                                    path: None,
+                                },
+                            ),
+                        ],
+                        build: Some(
+                            PackageBuild {
+                                tasks: [
+                                    Execute(
+                                        ExecuteTask {
+                                            command: "gradlew build",
+                                            directory: Some(
+                                                ".",
+                                            ),
+                                        },
+                                    ),
+                                ],
+                            },
+                        ),
+                        artifacts: [
+                            PackageArtifact {
+                                from: "build/libs/custom-plugin.jar",
+                                to: Some(
+                                    "plugins/custom-plugin.jar",
+                                ),
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        copies: [],
+        links: [],
+        targets: [
+            Target {
+                name: "server",
+                path: None,
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}

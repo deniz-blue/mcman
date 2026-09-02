@@ -5,6 +5,7 @@ use crate::store::Store;
 use std::sync::Arc;
 
 pub mod http;
+pub mod kdl;
 
 #[derive(Clone)]
 pub struct AppContext {

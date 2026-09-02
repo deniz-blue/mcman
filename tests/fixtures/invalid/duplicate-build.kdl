@@ -1,0 +1,11 @@
+target "main" type="server"
+package "custom" {
+    git "https://github.com/example/custom.git"
+    build {
+        execute "gradlew build"
+    }
+    build {
+        execute "gradlew shadowJar"
+    }
+    artifact "build/libs/custom.jar" "plugins/custom.jar"
+}

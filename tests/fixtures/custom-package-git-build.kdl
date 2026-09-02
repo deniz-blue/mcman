@@ -6,5 +6,5 @@ package "custom-plugin" {
     build {
         execute "gradlew build" cd="."
     }
-    link "build/libs/custom-plugin.jar" "plugins/custom-plugin.jar"
+    artifact "build/libs/custom-plugin.jar" "plugins/custom-plugin.jar"
 }

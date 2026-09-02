@@ -3,7 +3,7 @@ target "server" type="server"
 
 package "webmap" {
     download "https://example.com/bluemap-4.0.jar" path="downloads/bluemap.jar"
-    link "downloads/bluemap.jar" "plugins/bluemap.jar"
+    artifact "downloads/bluemap.jar" "plugins/bluemap.jar"
 }
 
 package "custom-mod" {
@@ -11,5 +11,5 @@ package "custom-mod" {
     build {
         execute "./gradlew" cd="src/mod"
     }
-    link "build/libs/custom-mod.jar" "mods/custom-mod.jar"
+    artifact "build/libs/custom-mod.jar" "mods/custom-mod.jar"
 }

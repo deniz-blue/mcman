@@ -1,0 +1,125 @@
+---
+source: tests/parse.rs
+expression: "parse(\"multiple-targets\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [],
+        copies: [],
+        links: [],
+        targets: [],
+        subgroups: [
+            Group {
+                label: Some(
+                    "proxy",
+                ),
+                runtimes: [],
+                directories: [
+                    Directory {
+                        path: Some(
+                            "plugins",
+                        ),
+                        presets: [
+                            Preset {
+                                identifier: "modrinth:luckperms",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                        ],
+                        packages: [],
+                    },
+                ],
+                copies: [],
+                links: [],
+                targets: [
+                    Target {
+                        name: "proxy",
+                        path: Some(
+                            "./run/proxy",
+                        ),
+                        kind: Server,
+                    },
+                ],
+                subgroups: [],
+            },
+            Group {
+                label: Some(
+                    "lobby",
+                ),
+                runtimes: [],
+                directories: [
+                    Directory {
+                        path: Some(
+                            "plugins",
+                        ),
+                        presets: [
+                            Preset {
+                                identifier: "modrinth:spark",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                        ],
+                        packages: [],
+                    },
+                ],
+                copies: [],
+                links: [],
+                targets: [
+                    Target {
+                        name: "lobby",
+                        path: Some(
+                            "./run/lobby",
+                        ),
+                        kind: Server,
+                    },
+                ],
+                subgroups: [],
+            },
+            Group {
+                label: Some(
+                    "smp",
+                ),
+                runtimes: [],
+                directories: [
+                    Directory {
+                        path: Some(
+                            "mods",
+                        ),
+                        presets: [
+                            Preset {
+                                identifier: "modrinth:create",
+                                version: Some(
+                                    "latest",
+                                ),
+                            },
+                        ],
+                        packages: [],
+                    },
+                ],
+                copies: [],
+                links: [],
+                targets: [
+                    Target {
+                        name: "smp-server",
+                        path: Some(
+                            "./run/smp",
+                        ),
+                        kind: Server,
+                    },
+                    Target {
+                        name: "smp-pack",
+                        path: Some(
+                            "./run/smp-pack",
+                        ),
+                        kind: Packwiz,
+                    },
+                ],
+                subgroups: [],
+            },
+        ],
+    },
+}
