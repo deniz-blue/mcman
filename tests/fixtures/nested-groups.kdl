@@ -1,0 +1,12 @@
+// Groups nested three levels deep
+group "infra" {
+    group "proxy" {
+        group "velocity" {
+            target "velocity" path="./run/velocity" type="server"
+
+            dir "plugins" {
+                use "modrinth:luckperms" version="latest"
+            }
+        }
+    }
+}

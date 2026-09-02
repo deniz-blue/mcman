@@ -1,0 +1,7 @@
+// One target for every supported type
+target "default" type="none"
+target "client-pack" path="./out/client" type="client"
+target "server-jar" path="./out/server" type="server"
+target "packwiz-pack" path="./out/packwiz" type="packwiz"
+target "mrpack-export" path="./out/mrpack" type="mrpack"
+target "unsup-type" path="./out/unsup" type="unsup"

@@ -1,0 +1,7 @@
+// Custom package using a download source
+target "server" type="server"
+
+package "viaversion" {
+    download "https://github.com/ViaVersion/ViaVersion/releases/download/5.0.0/ViaVersion-5.0.0.jar"
+    link "ViaVersion-5.0.0.jar" "plugins/ViaVersion-5.0.0.jar"
+}

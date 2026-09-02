@@ -1,0 +1,10 @@
+// Groups and dirs with no children — should parse without error
+group "empty-group" {
+}
+
+group "group-with-empty-dir" {
+    dir "plugins" {
+    }
+}
+
+target "bare" type="server"

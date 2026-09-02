@@ -1,0 +1,15 @@
+// Multiple dir blocks accumulating into one group
+target "modded" path="./run/modded" type="server"
+
+dir "mods" {
+    use "modrinth:fabric-api" version="latest"
+    use "modrinth:sodium" version="latest"
+}
+
+dir "config" {
+    use "modrinth:cloth-config" version="latest"
+}
+
+dir "plugins" {
+    use "modrinth:spark" version="latest"
+}

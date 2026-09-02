@@ -1,0 +1,10 @@
+// Custom package cloned from git with build steps
+target "server" type="server"
+
+package "custom-plugin" {
+    git "https://github.com/example/custom-plugin.git"
+    build {
+        execute "gradlew build" cd="."
+    }
+    link "build/libs/custom-plugin.jar" "plugins/custom-plugin.jar"
+}

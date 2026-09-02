@@ -1,0 +1,2 @@
+// Bare minimum valid manifest: a single target, nothing else
+target "main" type="server"

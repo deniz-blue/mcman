@@ -1,0 +1,25 @@
+// Multiple targets of different types in sibling groups
+group "proxy" {
+    target "proxy" path="./run/proxy" type="server"
+
+    dir "plugins" {
+        use "modrinth:luckperms" version="latest"
+    }
+}
+
+group "lobby" {
+    target "lobby" path="./run/lobby" type="server"
+
+    dir "plugins" {
+        use "modrinth:spark" version="latest"
+    }
+}
+
+group "smp" {
+    target "smp-server" path="./run/smp" type="server"
+    target "smp-pack" path="./run/smp-pack" type="packwiz"
+
+    dir "mods" {
+        use "modrinth:create" version="latest"
+    }
+}

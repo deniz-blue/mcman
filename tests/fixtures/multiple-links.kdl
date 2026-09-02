@@ -1,0 +1,8 @@
+// Package producing multiple output files via several link directives
+target "server" type="server"
+
+package "big-plugin" {
+    download "https://example.com/big-plugin-2.0.jar"
+    link "big-plugin-2.0.jar" "plugins/big-plugin.jar"
+    link "big-plugin-2.0.jar" "plugins/backup/big-plugin.jar"
+}

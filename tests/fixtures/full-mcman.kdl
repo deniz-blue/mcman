@@ -1,0 +1,49 @@
+// Full realistic manifest matching the design doc example
+use "adoptium:jdk" version="21"
+
+group "proxy" {
+    use "papermc:velocity" version="latest"
+
+    dir "plugins" {
+        use "modrinth:luckperms" version="latest"
+        use "modrinth:velocity-viasneak" version="latest"
+    }
+
+    target "proxy" path="./run/proxy" type="server"
+}
+
+group "game-servers" {
+    dir "plugins" {
+        use "modrinth:luckperms" version="latest"
+        use "modrinth:spark" version="latest"
+    }
+
+    group "lobby" {
+        target "lobby" path="./run/lobby" type="server"
+
+        use "papermc:paper" version="1.21.1"
+
+        dir "plugins" {
+            use "modrinth:fastasyncworldedit" version="latest"
+        }
+
+        package "customplugin" {
+            git "https://github.com/example/customplugin.git"
+            build {
+                execute "gradlew build" cd="."
+            }
+            link "build/libs/customplugin.jar" "plugins/customplugin.jar"
+        }
+    }
+
+    group "smp" {
+        target "smp-server" path="./run/smp" type="server"
+        target "smp-pack" path="./run/smp-packwiz" type="packwiz"
+
+        use "fabric:fabric" version="1.21.1"
+
+        dir "mods" {
+            use "modrinth:create" version="latest"
+        }
+    }
+}

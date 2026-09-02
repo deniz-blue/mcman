@@ -77,6 +77,11 @@ kdl = "6.3.4"
 miette = { version = "7.6.0", features = ["fancy"] }
 knus = "3.4.0"
 
+[dev-dependencies]
+assert_cmd = "2"
+assert_fs = "1"
+predicates = "3"
+
 [features]
 autocomplete = ["clap_complete"]
 default = ["autocomplete"]
