@@ -148,6 +148,7 @@ impl FromStr for TargetType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "none" | "" => Ok(TargetType::None),
             "client" => Ok(TargetType::Client),
             "server" => Ok(TargetType::Server),
             "packwiz" => Ok(TargetType::Packwiz),
@@ -160,5 +161,8 @@ impl FromStr for TargetType {
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Preset {
+    #[knus(argument)]
     pub identifier: String,
+    #[knus(property)]
+    pub version: Option<String>,
 }

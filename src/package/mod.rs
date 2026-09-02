@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
 use knus::{Decode, DecodeChildren};
+use miette::Result;
 
 use crate::package::{build::PackageBuild, link::PackageLink, source::PackageSource};
 
@@ -62,5 +63,11 @@ impl<S: knus::traits::ErrorSpan> DecodeChildren<S> for Package {
         }
 
         Ok(package)
+    }
+}
+
+impl Package {
+    pub async fn build(&self) -> Result<()> {
+        Ok(())
     }
 }
