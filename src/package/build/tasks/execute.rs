@@ -1,9 +1,10 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use knus::Decode;
 use miette::{IntoDiagnostic, Result};
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[knus(span_type = knus::span::Span)]
 pub struct ExecuteTask {
     #[knus(argument)]
     pub command: String,
@@ -12,7 +13,7 @@ pub struct ExecuteTask {
 }
 
 impl ExecuteTask {
-    pub async fn run(&self, working_dir: &PathBuf) -> Result<()> {
+    pub async fn run(&self, working_dir: &Path) -> Result<()> {
         let current_dir = working_dir.join(self.directory.clone().unwrap_or_default());
 
         let mut child = tokio::process::Command::new(&self.command)

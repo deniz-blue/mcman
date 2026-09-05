@@ -1,0 +1,9 @@
+// One-argument artifact, taking the file name of its source
+target "main" type="server"
+
+dir "plugins" {
+    package "custom" {
+        download "https://example.com/custom.jar"
+        artifact "build/libs/custom-1.0.jar"
+    }
+}

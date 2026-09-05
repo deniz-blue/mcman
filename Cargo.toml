@@ -82,7 +82,7 @@ assert_cmd = "2"
 assert_fs = "1"
 predicates = "3"
 insta = "1"
-miette = "7.6.0"
+miette = "7"
 
 [features]
 autocomplete = ["clap_complete"]

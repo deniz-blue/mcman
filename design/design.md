@@ -9,6 +9,7 @@ Codenamed Cardboard is a mcman rewrite to fix a lot of flaws in the original des
   - **Preset**: Package building, downloading, etc, is handled by `mcman` itself.
   - **Custom**: Handled by the user using configuration.
 - **Runtime**: A dependency that configures the environment a target runs in rather than producing files inside it. A JDK, for example.
+- **Platform**: What a target runs on — Paper, Velocity, Fabric. Providers resolve against it to pick between variants of the same package.
 
 <FLAG>
 
@@ -42,7 +43,7 @@ Global folder definition:
 
 The store holds a flat directory of objects which each represent a single file. They are indexed by their hash, which is a 40 character hex string. The first two characters of the hash are used as a directory name to avoid having too many files in a single directory.
 
-Objects are written mode `444`. Targets hardlink to them, so a process that writes through a hardlink must fail loudly rather than silently corrupt an object shared by every other target.
+Objects are written mode `444`, so a write through a hardlink fails rather than corrupting an object shared by every target.
 
 ### Store Packages
 
@@ -78,25 +79,24 @@ Buildtrees are temporary directories used to build packages. They are created in
 A target directory contains **real files**. It is never a tree of symlinks into the store by default.
 
 - On the same filesystem, artifacts are **hardlinked** from the store. Otherwise they are copied.
-- A hardlink is indistinguishable from a copy to Docker, rsync, hosting panels, `zip` and packwiz; it needs no privileges on Windows; and it does not dangle when the store is absent.
-- Anything the server is expected to write — config placed by `copy` — is a real copy, never a hardlink.
-- Group-level `link` is an explicit opt-in to symlinking, for local development where the store should stay the single source of truth.
+- Anything the server writes, such as config placed by `fs:copy`, is a real copy, never a hardlink.
+- `fs:symlink` is an opt-in symlink, for local development.
 
 ### Build is offline
 
-With a complete lockfile and a warm store, `mcman build` performs no network I/O. This is the invariant that makes mcman usable as a build step:
+With a complete lockfile and a warm store, `mcman build` performs no network I/O. `--locked` enforces it: the build fails rather than resolving if the lockfile does not already cover the manifest.
 
 ```dockerfile
 FROM mcman AS builder
 WORKDIR /build
 COPY mcman.kdl mcman.lock ./
-RUN --mount=type=cache,target=/var/cache/mcman mcman build --target smp
+RUN --mount=type=cache,target=/var/cache/mcman mcman build --locked smp
 
 FROM eclipse-temurin:21-jre
 COPY --from=builder /build/run/smp /server
 ```
 
-The store lives in a BuildKit cache mount, so it never enters a layer, and the runtime stage receives plain files.
+The store lives in a BuildKit cache mount and never enters a layer.
 
 ## Manifest
 
@@ -106,6 +106,8 @@ The store lives in a BuildKit cache mount, so it never enters a layer, and the r
 runtime "adoptium:jdk" version="21"
 
 group "proxy" {
+    platform "velocity"
+
     use "papermc:velocity" version="latest"
 
     dir "plugins" {
@@ -125,29 +127,35 @@ group "game-servers" {
     group "lobby" {
         target "lobby" path="./run/lobby" type="server"
 
-        use "papermc:paper" version="1.21.1"
+        platform "paper" minecraft="1.21.1"
+        use "papermc:paper"
 
         dir "plugins" {
             use "modrinth:fastasyncworldedit" version="latest"
-        }
 
-        package "customplugin" {
-            git "https://...customplugin.git"
-            build {
-                execute "gradlew build" cd="."
+            package "customplugin" {
+                git "https://...customplugin.git"
+                build {
+                    execute "gradlew build" cd="."
+                }
+                artifact "build/libs/customplugin.jar"
             }
-            artifact "build/libs/customplugin.jar" "plugins/customplugin.jar"
         }
     }
 
     group "smp" {
-        target "smp-server" path="./run/smp" type="server"
-        target "smp-pack" path="./run/smp-packwiz" type="packwiz"
-
-        use "fabric:fabric" version="1.21.1" loader="latest"
+        platform "fabric" minecraft="1.21.1" loader="latest"
 
         dir "mods" {
             use "modrinth:create" version="latest"
+        }
+
+        target "smp-pack" path="./run/smp-packwiz" type="packwiz"
+
+        group "smp-server" {
+            target "smp-server" path="./run/smp" type="server"
+
+            use "fabric:fabric"
         }
     }
 }
@@ -159,10 +167,13 @@ group "game-servers" {
   - **Argument 0**: Label
 - **`use`**: Dependency
   - **Argument 0**: Preset identifier; `<provider>:<id...>`
-  - **version=**
+  - **version=** The version of this package — a Paper build, a Modrinth file. Never a Minecraft version; that comes from `platform`
 - **`runtime`**: Environment dependency that produces no files in the target
   - **Argument 0**: Preset identifier; `<provider>:<id...>`
   - **version=**
+- **`platform`**: What the target runs on, and the compatibility context providers resolve against
+  - **Argument 0**: Platform name; `paper`, `velocity`, `fabric`, ...
+  - **Remaining properties** are defined by the platform, not by mcman
 - **`package`**: Package to install
   - **Argument 0**: Label
   - **Children**:
@@ -177,21 +188,21 @@ group "game-servers" {
         - **`execute`**: Execute a command
           - **Argument 0**: Command
           - **cd=** Working dir
-    - **`artifact`**: Files the package produces
+    - **`artifact`**: A file the package produces
       - **Argument 0**: Source path relative to the build directory
-      - **Argument 1**: Destination path relative to the target directory
+      - **Argument 1**: Destination path relative to the directory the `package` is declared in. Defaults to the file name of argument 0
 - **`target`**: Define a target to output something to
   - **Argument 0**: Label
   - **path=** default "."
   - **type=** one of `none`, `client`, `server`, `packwiz`, `mrpack`, `unsup`
 - **`dir`**: Specify a directory, appends to target path
-- **`copy`**: Copy a file from the source directory to the target directory
+- **`fs:copy`**: Copy a file from the source directory to the target directory
   - **Argument 0**: Source path relative to source directory
-  - **Argument 1**: Destination path relative to target directory
+  - **Argument 1**: Destination path relative to the declaring `dir`
   - **overwrite=** Whether to overwrite existing files (default: false)
-- **`link`**: Create a readonly symlink from the source directory to the target directory
+- **`fs:symlink`**: Create a readonly symlink from the source directory to the target directory
   - **Argument 0**: Source path relative to source directory
-  - **Argument 1**: Destination path relative to target directory
+  - **Argument 1**: Destination path relative to the declaring `dir`
 
 ## Scoping
 
@@ -236,34 +247,36 @@ group "network" {
 
 ### Merging
 
-Directories with the same path merge. Where the same preset identifier appears more than once along the path, the declaration closest to the target wins.
+Directories with the same path merge. `dir "."` and a bare `use` both address the target root, so they merge too.
+
+A package may be declared **once** on the path from the root to a target. Redeclaring one nearer the target is an error, not an override:
 
 ```kdl
 group "servers" {
     dir "plugins" {
-        use "modrinth:luckperms"
         use "modrinth:spark" version="1.10"
     }
 
     group "lobby" {
         target "lobby" path="./run/lobby"
+
         dir "plugins" {
-            use "modrinth:fastasyncworldedit"
-            use "modrinth:spark" version="1.11"
+            use "modrinth:spark" version="1.11"   // error
         }
     }
 }
 ```
 
 ```
-run/lobby/plugins/luckperms.jar
-run/lobby/plugins/spark-1.11.jar
-run/lobby/plugins/fastasyncworldedit.jar
+× `modrinth:spark` is declared again in group `lobby`
+help: A package may be declared once on the path from the root to a target. To
+      give some targets a different version, move the package into a group that
+      only those targets are under.
 ```
 
-**There is no way to remove an inherited package.** The set a target receives is a monotone union along its root path, so answering "does this target have X?" never requires proving an absence — no removal three levels up can invalidate what a group reads like locally. Version override preserves this; removal would not.
+The same rule covers `runtime` and `platform`, and covers `fs:copy` and `fs:symlink` by destination.
 
-If a package is wanted by some descendants and not others, it was never shared by the ancestor. Express that in the structure:
+**An inherited package cannot be overridden or removed.** What a target receives is the union along its path, and every member of that union is declared exactly once. A package wanted by some descendants and not others is expressed in the structure:
 
 ```kdl
 group "servers" {
@@ -279,23 +292,100 @@ group "servers" {
 }
 ```
 
-Should cross-cutting exceptions turn out to need more than nesting can express, the answer is an additive one — a named block referenced from several groups — not a subtractive one.
-
 ### Placement
 
-Placement is determined solely by `dir` nesting. Providers never choose a path. A `use` outside any `dir` places its files at the target root.
+Placement is determined solely by `dir` nesting. Providers never choose a path. Everything that writes a file into a target does so under the `dir` it is declared in: `use`, `package`, `fs:copy` and `fs:symlink` alike. Declared outside any `dir`, they write at the target root.
+
+An `artifact` names one file in the build directory and where it goes. The second argument is a path under the declaring `dir`, and defaults to the file name of the first. Both of these are declared inside `dir "plugins"`:
+
+```kdl
+artifact "build/libs/customplugin.jar"           // plugins/customplugin.jar
+artifact "build/libs/customplugin.jar" "x/o.jar" // plugins/x/o.jar
+```
 
 `type=` does not participate. It selects what the target *outputs* — a server directory, a client directory, a packwiz pack, an mrpack archive — and nothing else.
 
-Which artifact a provider resolves to is a separate axis again: `modrinth:luckperms` is a Bukkit jar under Paper and a Fabric jar under Fabric, and both of those are `type="server"`. That is decided by the **platform** in the target's resolved set, from `use "papermc:paper"` or `use "fabric:fabric"`. The `smp` group above shows the two axes are independent — one Fabric loader feeding a `server` target and a `packwiz` target.
+Which variant a provider resolves to is a third axis, decided by the target's `platform`: `modrinth:luckperms` is a Bukkit jar under Paper and a Fabric jar under Fabric, and both are `type="server"`.
 
-**Open:** how the platform is established when no loader is in scope, as in a client modpack that lists only mods.
+`runtime` has no placement. It is recorded in the lockfile and consumed by the launcher; it never emits a file into a target.
 
-`runtime` has no placement at all. It is recorded in the lockfile and consumed by the launcher; it never emits a file into a target.
+### Platform
+
+A platform is the compatibility context providers resolve against. Each platform defines what its own context contains; there is no universal Minecraft-version field.
+
+```kdl
+platform "paper" minecraft="1.21.1"
+platform "velocity"
+platform "fabric" minecraft="1.21.1" loader="0.16.5"
+```
+
+The argument names the platform. Every property past it is defined by that platform, not by mcman.
+
+`platform` is scoped and inherited like `use` and `runtime`, under the same declare-once rule. A target may have **at most one**; a second is a plan-time error, before any network I/O.
+
+**A platform is never inferred.** `use "papermc:paper"` does not establish one. Presets read the platform instead: `platform "paper" minecraft="1.21.1"` with `use "papermc:paper"` is complete, because the provider takes the game version from the context.
+
+`version=` is therefore always the version of that package — a Paper build, a Velocity release, a Modrinth file — and never a Minecraft version.
+
+Each provider declares which platform properties it consumes: `papermc:paper` reads `minecraft`, `fabric:fabric` reads `minecraft` and `loader`, `modrinth` reads `minecraft` and the platform name. A provider whose resolved artifact carries its own compatibility metadata checks it against the context and fails on disagreement.
+
+Declaring a platform does not download it. `platform "fabric" minecraft="1.21.1"` establishes the context; `use "fabric:fabric"` asks for the jar. A packwiz pack records the versions in `pack.toml` and contains no loader jar, so it takes the platform and not the package — which is why `smp` above puts its server in a subgroup.
+
+A missing platform is an error only on demand, raised by the provider that needs one. Modrinth cannot filter versions without it; `download` never asks. A target that only performs `fs:copy` needs no platform.
 
 ### Dead groups
 
 A group containing no `target`, and no descendant group containing one, has no effect on any output. mcman warns.
+
+## CLI
+
+Two halves. The first needs an `mcman.kdl`; the second exposes the store and the providers on their own.
+
+### Manifest commands
+
+| Command | |
+| --- | --- |
+| `mcman build [targets...]` | Resolve, fetch, materialize. No targets means all of them. |
+| `mcman lock [targets...]` | Resolve and write `mcman.lock`. Nothing is materialized. |
+| `mcman update [packages...]` | Re-resolve past the existing pins. |
+| `mcman explain [targets...]` | What each target resolves to, annotated with the group each entry was declared in. |
+| `mcman init` | Scaffold an `mcman.kdl`. |
+
+`build` resolves and updates the lockfile on its own when the manifest has moved.
+
+- **`--locked`** fails instead, if the lockfile would have to change.
+- **`--offline`** never touches the network and fails if the store is missing something.
+- **`--force`** rebuilds custom packages whose identity is unchanged.
+
+The manifest is found by searching upward from the working directory, or named with `-f`.
+
+### Standalone commands
+
+| Command | |
+| --- | --- |
+| `mcman store put <file>...` | Prints the hash of each. |
+| `mcman store get <hash> [-o <path>]` | Materializes it, or prints its store path. |
+| `mcman store has <hash>` | Exit code only. |
+| `mcman store list` / `path` | |
+| `mcman store prune [--older-than 30d]` / `clear` / `verify` | |
+| `mcman resolve <id>...` | The concrete version, URL and hash. Network, no writes. |
+| `mcman fetch <id\|url>... [-o <dest>]` | Resolve, put in the store, materialize if `-o` is given. |
+
+`fetch` accepts a bare URL as well as a preset. The platform is given by flag, and is not inferred from the identifier:
+
+```bash
+mcman fetch papermc:paper --platform paper --minecraft 1.21.1 -o server.jar
+```
+
+`mcman fetch papermc:velocity` needs neither flag; Velocity's context is empty.
+
+`store prune` removes objects by age. Liveness cannot be computed — the store is global and mcman cannot know every manifest on the machine.
+
+### Output
+
+`--json` on everything that emits data — `explain`, `resolve`, `fetch`, `store list`. Its shape is a stability commitment.
+
+`MCMAN_STORE` sets the store path alongside `--store`.
 
 ## Lockfile
 
@@ -310,6 +400,9 @@ Lockfile also uses KDL format.
   - **Argument 0**: Label
   - **path=** Path
   - **Children**:
+    - **`platform`**: The resolved context; a change to it invalidates the lock
+      - **Argument 0**: Platform name
+      - Platform-defined properties
     - **`use`**
       - **Argument 0**: `<provider>:<id...>`
       - **version=** Locked version
@@ -331,6 +424,7 @@ Lockfile also uses KDL format.
 meta version=1 generated=2024-06-01T12:00:00Z
 
 target "proxy" path="./run/proxy" {
+	platform "velocity"
 	runtime "adoptium:jdk" version="21.0.4+7"
 
 	use "papermc:velocity" version="3.4.0" {
@@ -348,10 +442,13 @@ target "proxy" path="./run/proxy" {
 ## Resolution Steps
 
 1. Read the manifest and lockfile
-2. Walk the manifest tree. For each target, accumulate the packages, runtimes and directories declared along the path from the root to the target's group, merging same-path directories and letting the declaration closest to the target win
+2. Walk the manifest tree. For each target, accumulate the packages, runtimes, directories and platform declared along the path from the root to the target's group, merging same-path directories. A second declaration of anything already on the path is an error, and more than one `platform` is an error
    - Warn on any group whose subtree contains no target
-3. Resolve each target's wanted packages
+3. Resolve each target's wanted packages against its platform
   - If a preset, resolve the preset to an instructed package
+  - A provider that needs a platform and finds none declared fails here, not during the walk
+  - A provider reads whatever platform properties it needs; `version=` is only ever the package's own version
+  - A provider that resolves something carrying its own compatibility metadata checks it against the declared platform and fails on disagreement
 
 **Package resolution & installation**:
 

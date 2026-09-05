@@ -144,7 +144,9 @@ Plan {
                             artifacts: [
                                 PackageArtifact {
                                     from: "build/libs/customplugin.jar",
-                                    to: "plugins/customplugin.jar",
+                                    to: Some(
+                                        "plugins/customplugin.jar",
+                                    ),
                                 },
                             ],
                         },

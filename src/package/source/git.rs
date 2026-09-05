@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use knus::Decode;
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[knus(span_type = knus::span::Span)]
 pub struct Git {
     #[knus(argument)]
     pub url: String,

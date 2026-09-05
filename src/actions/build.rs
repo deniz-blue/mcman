@@ -1,32 +1,30 @@
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 use miette::{IntoDiagnostic, Result};
 
 use crate::{
     core::AppContext,
-    manifest::{Directory, Group, Manifest, Preset, Target},
+    manifest::{Manifest, Preset},
     package::{source::PackageSource, Package},
+    plan::{self, PlanWarning, TargetPlan},
 };
 
 pub async fn build_manifest_all(ctx: &AppContext, path: &Path, manifest: &Manifest) -> Result<()> {
-    let mut todo = HashMap::<Target, Vec<Directory>>::new();
+    let plan = plan::from_manifest(manifest)?;
 
-    fn process_group(todo: &mut HashMap<Target, Vec<Directory>>, group: &Group) {
-        for target in &group.targets {
-            todo.entry(target.clone())
-                .or_insert_with(Vec::new)
-                .extend(group.directories.clone());
-        }
-
-        for subgroup in &group.subgroups {
-            process_group(todo, subgroup);
+    for warning in &plan.warnings {
+        match warning {
+            PlanWarning::GroupWithoutTarget { label: Some(label) } => {
+                eprintln!("warning: group `{label}` reaches no target")
+            }
+            PlanWarning::GroupWithoutTarget { label: None } => {
+                eprintln!("warning: the manifest declares no targets")
+            }
         }
     }
 
-    process_group(&mut todo, &manifest.root);
-
-    for (target, directories) in todo {
-        build_manifest_target(ctx, path, &target, directories).await?;
+    for target in &plan.targets {
+        build_manifest_target(ctx, path, target).await?;
     }
 
     Ok(())
@@ -35,16 +33,15 @@ pub async fn build_manifest_all(ctx: &AppContext, path: &Path, manifest: &Manife
 pub async fn build_manifest_target(
     ctx: &AppContext,
     manifest_path: &Path,
-    target: &Target,
-    directories: Vec<Directory>,
+    plan: &TargetPlan,
 ) -> Result<()> {
-    let target_path = if let Some(path) = &target.path {
+    let target_path = if let Some(path) = &plan.target.path {
         manifest_path.join(path)
     } else {
         manifest_path.to_path_buf()
     };
 
-    for directory in directories {
+    for directory in &plan.directories {
         let dir_path = if let Some(path) = &directory.path {
             target_path.join(path)
         } else {
@@ -74,7 +71,7 @@ pub async fn build_package(ctx: &AppContext, output_path: &Path, package: &Packa
         for source in &package.sources {
             match source {
                 PackageSource::Download(download) => {
-                    let key = download.run(ctx).await?;
+                    let _key = download.run(ctx).await?;
                 }
                 _ => unreachable!(),
             }
@@ -86,7 +83,7 @@ pub async fn build_package(ctx: &AppContext, output_path: &Path, package: &Packa
 
 pub async fn build_package_complex(
     ctx: &AppContext,
-    output_path: &Path,
+    _output_path: &Path,
     package: &Package,
 ) -> Result<()> {
     let build_dir = ctx.store.temp_dir().await?;
@@ -106,6 +103,6 @@ pub async fn build_package_complex(
     Ok(())
 }
 
-pub async fn build_preset(ctx: &AppContext, _path: &Path, _preset: &Preset) -> Result<()> {
+pub async fn build_preset(_ctx: &AppContext, _path: &Path, _preset: &Preset) -> Result<()> {
     Ok(())
 }

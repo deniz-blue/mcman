@@ -1,11 +1,10 @@
 use knus::{
-    ast::SpannedNode, decode::Context, errors::DecodeError, traits::ErrorSpan, Decode,
-    DecodeChildren,
+    ast::SpannedNode, decode::Context, errors::DecodeError, span::Span, Decode, DecodeChildren,
 };
 use miette::Result;
 
 use crate::{
-    core::kdl::{decode_label, reject_beyond_label, reject_node},
+    core::kdl::{debug_without_span, decode_label, reject_beyond_label, reject_node},
     package::{artifact::PackageArtifact, build::PackageBuild, source::PackageSource},
 };
 
@@ -15,16 +14,27 @@ pub mod source;
 
 const PACKAGE_NODES: &str = "git, download, build, artifact";
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[derive(Clone, PartialEq, Eq, Hash, Default)]
 pub struct Package {
     pub label: Option<String>,
     pub sources: Vec<PackageSource>,
     pub build: Option<PackageBuild>,
     pub artifacts: Vec<PackageArtifact>,
+    pub span: Span,
 }
 
-impl<S: ErrorSpan> Decode<S> for Package {
-    fn decode_node(node: &SpannedNode<S>, ctx: &mut Context<S>) -> Result<Self, DecodeError<S>> {
+debug_without_span!(Package {
+    label,
+    sources,
+    build,
+    artifacts,
+});
+
+impl Decode<Span> for Package {
+    fn decode_node(
+        node: &SpannedNode<Span>,
+        ctx: &mut Context<Span>,
+    ) -> Result<Self, DecodeError<Span>> {
         let label = decode_label(node, ctx);
         reject_beyond_label(node, ctx);
 
@@ -35,26 +45,33 @@ impl<S: ErrorSpan> Decode<S> for Package {
 
         let mut package = Self::decode_children(&children, ctx)?;
         package.label = label;
+        package.span = *node.span();
 
         Ok(package)
     }
 }
 
-impl<S: ErrorSpan> DecodeChildren<S> for Package {
+impl DecodeChildren<Span> for Package {
     fn decode_children(
-        nodes: &[SpannedNode<S>],
-        ctx: &mut Context<S>,
-    ) -> Result<Self, DecodeError<S>> {
+        nodes: &[SpannedNode<Span>],
+        ctx: &mut Context<Span>,
+    ) -> Result<Self, DecodeError<Span>> {
         let mut package = Package::default();
 
         for node in nodes {
-            match &*node.node_name.as_ref() {
-                "git" | "download" => {
-                    package.sources.push(PackageSource::decode_node(node, ctx)?)
+            match node.node_name.as_ref() {
+                "git" | "download" => package.sources.push(PackageSource::decode_node(node, ctx)?),
+                "artifact" => {
+                    let artifact = PackageArtifact::decode_node(node, ctx)?;
+                    if artifact.to.is_none() && artifact.from.file_name().is_none() {
+                        ctx.emit_error(DecodeError::unexpected(
+                            node,
+                            "node",
+                            "`artifact` needs a destination when its source has no file name",
+                        ));
+                    }
+                    package.artifacts.push(artifact);
                 }
-                "artifact" => package
-                    .artifacts
-                    .push(PackageArtifact::decode_node(node, ctx)?),
                 "build" => {
                     if package.build.is_some() {
                         ctx.emit_error(DecodeError::unexpected(

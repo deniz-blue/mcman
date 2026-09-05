@@ -55,10 +55,7 @@ pub fn epoch_millis() -> u128 {
 impl Store {
     pub fn object_path(&self, key: &ObjectKey) -> PathBuf {
         let hash = key.0.to_hex().to_string();
-        self.path
-            .join("objects")
-            .join(hash[0..2].to_string())
-            .join(hash)
+        self.path.join("objects").join(&hash[0..2]).join(hash)
     }
 
     pub async fn object_exists(&self, key: &ObjectKey) -> Result<bool> {

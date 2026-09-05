@@ -5,6 +5,7 @@ use crate::package::build::tasks::{BuildTask, BuildTaskRunner};
 pub mod tasks;
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[knus(span_type = knus::span::Span)]
 pub struct PackageBuild {
     #[knus(children)]
     pub tasks: Vec<BuildTask>,

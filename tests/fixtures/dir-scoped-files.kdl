@@ -1,5 +1,4 @@
-// `fs:copy` is placed by the `dir` it is declared in, so one file name can
-// appear in several of them.
+// One file name in two dirs, which are two different files
 target "smp" path="./run/smp" type="server"
 
 dir "plugins/LuckPerms" {

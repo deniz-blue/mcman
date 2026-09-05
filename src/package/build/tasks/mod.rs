@@ -7,6 +7,7 @@ use crate::package::build::tasks::execute::ExecuteTask;
 pub mod execute;
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash)]
+#[knus(span_type = knus::span::Span)]
 pub enum BuildTask {
     Execute(ExecuteTask),
 }

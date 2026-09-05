@@ -7,8 +7,7 @@ use knus::{
     traits::ErrorSpan,
 };
 
-/// Records `node` as not belonging where it was found, and keeps decoding so
-/// every unknown node in the manifest is reported at once rather than one per run.
+/// Emits rather than returns, so one run reports every unknown node.
 pub fn reject_node<S: ErrorSpan>(node: &SpannedNode<S>, ctx: &mut Context<S>, allowed: &str) {
     let name = node.node_name.as_ref();
     ctx.emit_error(DecodeError::unexpected(
@@ -29,8 +28,7 @@ pub fn decode_label<S: ErrorSpan>(node: &SpannedNode<S>, ctx: &mut Context<S>) -
     }
 }
 
-/// A hand-written `decode_node` reads a label and nothing else, so every
-/// surplus argument and every property on such a node is a typo.
+/// A hand-written `decode_node` reads argument 0 and nothing else; the rest is a typo.
 pub fn reject_beyond_label<S: ErrorSpan>(node: &SpannedNode<S>, ctx: &mut Context<S>) {
     for argument in node.arguments.iter().skip(1) {
         ctx.emit_error(DecodeError::unexpected(
@@ -40,7 +38,7 @@ pub fn reject_beyond_label<S: ErrorSpan>(node: &SpannedNode<S>, ctx: &mut Contex
         ));
     }
 
-    for (name, _) in node.properties.iter() {
+    for name in node.properties.keys() {
         ctx.emit_error(DecodeError::unexpected(
             name,
             "property",
@@ -48,3 +46,19 @@ pub fn reject_beyond_label<S: ErrorSpan>(node: &SpannedNode<S>, ctx: &mut Contex
         ));
     }
 }
+
+/// Spans exist for diagnostics only. Omitting them from `Debug` keeps snapshots
+/// structural, so editing one fixture does not shift every byte offset below it.
+macro_rules! debug_without_span {
+    ($type:ident { $($field:ident),* $(,)? }) => {
+        impl std::fmt::Debug for $type {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.debug_struct(stringify!($type))
+                    $(.field(stringify!($field), &self.$field))*
+                    .finish()
+            }
+        }
+    };
+}
+
+pub(crate) use debug_without_span;

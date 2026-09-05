@@ -1,5 +1,5 @@
 target "main" type="server"
 package "custom" {
     download "https://example.com/custom.jar"
-    artifact "custom.jar"
+    artifact ".."
 }

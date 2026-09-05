@@ -24,6 +24,7 @@ fn epoch_now() -> u128 {
 }
 
 #[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[knus(span_type = knus::span::Span)]
 pub struct Download {
     #[knus(argument)]
     pub url: String,

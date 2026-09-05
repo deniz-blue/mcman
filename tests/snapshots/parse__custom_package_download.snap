@@ -27,7 +27,9 @@ Manifest {
                         artifacts: [
                             PackageArtifact {
                                 from: "ViaVersion-5.0.0.jar",
-                                to: "plugins/ViaVersion-5.0.0.jar",
+                                to: Some(
+                                    "plugins/ViaVersion-5.0.0.jar",
+                                ),
                             },
                         ],
                     },
