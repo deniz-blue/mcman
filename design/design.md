@@ -100,7 +100,7 @@ The store lives in a BuildKit cache mount and never enters a layer.
 
 ## Manifest
 
-`mcman.kdl` describes the packages to be installed. It is a KDL file that contains a list of packages.
+`mcman.kdl` describes the packages to be installed. It is a [KDL v2](https://kdl.dev) file that contains a list of packages. Booleans are written `#true` and `#false`.
 
 ```kdl
 runtime "adoptium:jdk" version="21"
@@ -199,7 +199,7 @@ group "game-servers" {
 - **`fs:copy`**: Copy a file from the source directory to the target directory
   - **Argument 0**: Source path relative to source directory
   - **Argument 1**: Destination path relative to the declaring `dir`
-  - **overwrite=** Whether to overwrite existing files (default: false)
+  - **overwrite=** Whether to overwrite existing files (default: `#false`)
 - **`fs:symlink`**: Create a readonly symlink from the source directory to the target directory
   - **Argument 0**: Source path relative to source directory
   - **Argument 1**: Destination path relative to the declaring `dir`
@@ -389,7 +389,7 @@ mcman fetch papermc:paper --platform paper --minecraft 1.21.1 -o server.jar
 
 ## Lockfile
 
-Lockfile also uses KDL format.
+Lockfile also uses KDL v2. mcman writes it, so a value is quoted only where a bare word would be ambiguous.
 
 **Tags**:
 

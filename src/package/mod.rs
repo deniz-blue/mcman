@@ -1,10 +1,8 @@
-use knus::{
-    ast::SpannedNode, decode::Context, errors::DecodeError, span::Span, Decode, DecodeChildren,
-};
-use miette::Result;
+use kdl::KdlNode;
+use miette::{Result, SourceSpan};
 
 use crate::{
-    core::kdl::{debug_without_span, decode_label, reject_beyond_label, reject_node},
+    core::kdl::{child_nodes, debug_without_span, reject_node, Errors, Reader},
     package::{artifact::PackageArtifact, build::PackageBuild, source::PackageSource},
 };
 
@@ -14,13 +12,13 @@ pub mod source;
 
 const PACKAGE_NODES: &str = "git, download, build, artifact";
 
-#[derive(Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Package {
     pub label: Option<String>,
     pub sources: Vec<PackageSource>,
     pub build: Option<PackageBuild>,
     pub artifacts: Vec<PackageArtifact>,
-    pub span: Span,
+    pub span: SourceSpan,
 }
 
 debug_without_span!(Package {
@@ -30,67 +28,48 @@ debug_without_span!(Package {
     artifacts,
 });
 
-impl Decode<Span> for Package {
-    fn decode_node(
-        node: &SpannedNode<Span>,
-        ctx: &mut Context<Span>,
-    ) -> Result<Self, DecodeError<Span>> {
-        let label = decode_label(node, ctx);
-        reject_beyond_label(node, ctx);
+impl Package {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let span = reader.span();
+        let label = reader.argument();
+        reader.required_children("package must have children");
+        reader.reject_unread();
 
-        let children = node
-            .children
-            .clone()
-            .ok_or(DecodeError::missing(node, "package must have children"))?;
+        let mut package = Self {
+            label,
+            sources: Vec::new(),
+            build: None,
+            artifacts: Vec::new(),
+            span,
+        };
 
-        let mut package = Self::decode_children(&children, ctx)?;
-        package.label = label;
-        package.span = *node.span();
-
-        Ok(package)
-    }
-}
-
-impl DecodeChildren<Span> for Package {
-    fn decode_children(
-        nodes: &[SpannedNode<Span>],
-        ctx: &mut Context<Span>,
-    ) -> Result<Self, DecodeError<Span>> {
-        let mut package = Package::default();
-
-        for node in nodes {
-            match node.node_name.as_ref() {
-                "git" | "download" => package.sources.push(PackageSource::decode_node(node, ctx)?),
+        for child in child_nodes(node) {
+            match child.name().value() {
+                "git" | "download" => package.sources.push(PackageSource::read(child, errors)),
                 "artifact" => {
-                    let artifact = PackageArtifact::decode_node(node, ctx)?;
+                    let artifact = PackageArtifact::read(child, errors);
                     if artifact.to.is_none() && artifact.from.file_name().is_none() {
-                        ctx.emit_error(DecodeError::unexpected(
-                            node,
-                            "node",
+                        errors.push(
+                            child.span(),
                             "`artifact` needs a destination when its source has no file name",
-                        ));
+                        );
                     }
                     package.artifacts.push(artifact);
                 }
                 "build" => {
                     if package.build.is_some() {
-                        ctx.emit_error(DecodeError::unexpected(
-                            node,
-                            "node",
-                            "a package may only have one `build`",
-                        ));
+                        errors.push(child.span(), "a package may only have one `build`");
                     }
-                    package.build = Some(PackageBuild::decode_node(node, ctx)?);
+                    package.build = Some(PackageBuild::read(child, errors));
                 }
-                _ => reject_node(node, ctx, PACKAGE_NODES),
+                _ => reject_node(child, errors, PACKAGE_NODES),
             }
         }
 
-        Ok(package)
+        package
     }
-}
 
-impl Package {
     pub async fn build(&self) -> Result<()> {
         Ok(())
     }

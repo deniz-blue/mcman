@@ -1,12 +1,22 @@
 use std::path::PathBuf;
 
-use knus::Decode;
+use kdl::KdlNode;
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+use crate::core::kdl::{Errors, Reader};
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Git {
-    #[knus(argument)]
     pub url: String,
-    #[knus(property)]
     pub path: Option<PathBuf>,
+}
+
+impl Git {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let url = reader.required_argument("repository url");
+        let path = reader.path_property("path");
+        reader.reject_unread();
+
+        Self { url, path }
+    }
 }

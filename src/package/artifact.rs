@@ -1,17 +1,25 @@
 use std::path::{Path, PathBuf};
 
-use knus::Decode;
+use kdl::KdlNode;
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+use crate::core::kdl::{Errors, Reader};
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct PackageArtifact {
-    #[knus(argument)]
     pub from: PathBuf,
-    #[knus(argument)]
     pub to: Option<PathBuf>,
 }
 
 impl PackageArtifact {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let from = reader.required_path_argument("source path");
+        let to = reader.path_argument();
+        reader.reject_unread();
+
+        Self { from, to }
+    }
+
     pub fn destination(&self) -> &Path {
         match &self.to {
             Some(to) => to,

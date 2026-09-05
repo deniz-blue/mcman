@@ -3,7 +3,7 @@ runtime "adoptium:jdk" version="21"
 
 target "smp" path="./run/smp" type="server"
 
-fs:copy "config/server.properties" "server.properties" overwrite=true
+fs:copy "config/server.properties" "server.properties" overwrite=#true
 fs:copy "config/bukkit.yml" "bukkit.yml"
 fs:symlink "config/permissions.yml" "plugins/LuckPerms/permissions.yml"
 

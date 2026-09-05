@@ -1,0 +1,12 @@
+// The lock lock-diff-manifest.kdl resolves to
+meta version=1 generated="2024-06-01T12:00:00Z"
+
+target "smp" path="./run/smp" {
+    runtime "adoptium:jdk" version="21.0.4+7"
+    use "modrinth:luckperms" version="5.4.102" {
+        artifact "plugins/luckperms.jar" hash="abcdef" size=1
+    }
+    package "customplugin" identity="abcdef" {
+        artifact "plugins/customplugin.jar" hash="abcdef" size=2
+    }
+}

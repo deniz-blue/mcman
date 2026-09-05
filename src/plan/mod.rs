@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use knus::span::Span;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
@@ -94,7 +93,7 @@ pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {
         if !names.insert(&target.name) {
             return Err(PlanError::DuplicateTarget {
                 name: target.name.clone(),
-                at: target.span.into(),
+                at: target.span,
             });
         }
     }
@@ -118,7 +117,7 @@ impl Scope {
                 return Err(PlanError::RedeclaredPreset {
                     identifier: runtime.identifier.clone(),
                     group: label(),
-                    at: runtime.span.into(),
+                    at: runtime.span,
                 });
             }
         }
@@ -143,7 +142,7 @@ impl Scope {
                     return Err(PlanError::RedeclaredPreset {
                         identifier: preset.identifier.clone(),
                         group: label(),
-                        at: preset.span.into(),
+                        at: preset.span,
                     });
                 }
             }
@@ -158,7 +157,7 @@ impl Scope {
                     return Err(PlanError::RedeclaredPackage {
                         label: existing.clone(),
                         group: label(),
-                        at: package.span.into(),
+                        at: package.span,
                     });
                 }
             }
@@ -174,7 +173,7 @@ impl Scope {
         &mut self,
         destination: PathBuf,
         group: &Group,
-        at: Span,
+        at: SourceSpan,
     ) -> Result<(), PlanError> {
         if self.written_paths.insert(destination.clone()) {
             return Ok(());
@@ -183,7 +182,7 @@ impl Scope {
         Err(PlanError::ConflictingFile {
             destination,
             group: group.label.clone(),
-            at: at.into(),
+            at,
         })
     }
 

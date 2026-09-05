@@ -1,15 +1,20 @@
 use std::path::PathBuf;
 
-use knus::Decode;
+use kdl::KdlNode;
 
-use crate::package::build::tasks::execute::ExecuteTask;
+use crate::{core::kdl::Errors, package::build::tasks::execute::ExecuteTask};
 
 pub mod execute;
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash)]
-#[knus(span_type = knus::span::Span)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum BuildTask {
     Execute(ExecuteTask),
+}
+
+impl BuildTask {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        Self::Execute(ExecuteTask::read(node, errors))
+    }
 }
 
 pub struct BuildTaskContext {

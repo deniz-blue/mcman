@@ -1,0 +1,13 @@
+// Manifest paired with lock-diff.kdl
+runtime "adoptium:jdk" version="21"
+
+target "smp" path="./run/smp" type="server"
+
+dir "plugins" {
+    use "modrinth:luckperms" version="latest"
+
+    package "customplugin" {
+        download "https://example.com/custom.jar"
+        artifact "custom.jar"
+    }
+}

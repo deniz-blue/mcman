@@ -1,40 +1,35 @@
 use std::{path::PathBuf, str::FromStr};
 
-use knus::{
-    ast::SpannedNode, decode::Context, errors::DecodeError, span::Span, Decode, DecodeChildren,
-};
+use kdl::{KdlDocument, KdlNode};
 use miette::{miette, Result};
 
 use crate::{
-    core::kdl::{debug_without_span, decode_label, reject_beyond_label, reject_node},
+    core::kdl::{child_nodes, debug_without_span, reject_node, Errors, Reader},
     package::Package,
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Manifest {
     pub root: Group,
 }
 
 impl Manifest {
     pub fn parse(name: &str, text: &str) -> Result<Self> {
-        knus::parse(name, text).map_err(Into::into)
-    }
-}
+        let document: KdlDocument = text.parse().map_err(miette::Report::new)?;
 
-impl DecodeChildren<Span> for Manifest {
-    fn decode_children(
-        nodes: &[SpannedNode<Span>],
-        ctx: &mut Context<Span>,
-    ) -> Result<Self, DecodeError<Span>> {
-        Ok(Self {
-            root: Group::decode_children(nodes, ctx)?,
-        })
+        let mut errors = Errors::default();
+        let root = Group::read(document.nodes(), &mut errors);
+
+        match errors.into_report(name, text) {
+            Some(report) => Err(report.into()),
+            None => Ok(Self { root }),
+        }
     }
 }
 
 const GROUP_NODES: &str = "group, dir, target, use, package, runtime, fs:copy, fs:symlink";
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Group {
     pub label: Option<String>,
     pub runtimes: Vec<Preset>,
@@ -43,48 +38,42 @@ pub struct Group {
     pub subgroups: Vec<Group>,
 }
 
-impl Decode<Span> for Group {
-    fn decode_node(
-        node: &SpannedNode<Span>,
-        ctx: &mut Context<Span>,
-    ) -> Result<Self, DecodeError<Span>> {
-        let label = decode_label(node, ctx);
-        reject_beyond_label(node, ctx);
+impl Group {
+    fn read_node(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let label = reader.argument();
+        let has_children = reader.required_children("group must have children");
+        reader.reject_unread();
 
-        let children = node
-            .children
-            .clone()
-            .ok_or(DecodeError::missing(node, "group must have children"))?;
+        if !has_children {
+            return Self {
+                label,
+                ..Self::default()
+            };
+        }
 
-        let mut group = Self::decode_children(&children, ctx)?;
+        let children = child_nodes(node);
+        let mut group = Self::read(children, errors);
         group.label = label;
-
-        Ok(group)
+        group
     }
-}
 
-impl DecodeChildren<Span> for Group {
-    fn decode_children(
-        nodes: &[SpannedNode<Span>],
-        ctx: &mut Context<Span>,
-    ) -> Result<Self, DecodeError<Span>> {
+    fn read(nodes: &[KdlNode], errors: &mut Errors) -> Self {
         let mut group = Group::default();
         // The target root is a `dir` with no path.
         let mut target_root = Directory::default();
 
         for node in nodes {
-            match node.node_name.as_ref() {
-                "dir" => group.directories.push(Directory::decode_node(node, ctx)?),
-                "target" => group.targets.push(Target::decode_node(node, ctx)?),
-                "group" => group.subgroups.push(Group::decode_node(node, ctx)?),
-                "runtime" => group.runtimes.push(Preset::decode_node(node, ctx)?),
-                "use" => target_root.presets.push(Preset::decode_node(node, ctx)?),
-                "package" => target_root.packages.push(Package::decode_node(node, ctx)?),
-                "fs:copy" => target_root.copies.push(CopyFile::decode_node(node, ctx)?),
-                "fs:symlink" => target_root
-                    .symlinks
-                    .push(SymlinkFile::decode_node(node, ctx)?),
-                _ => reject_node(node, ctx, GROUP_NODES),
+            match node.name().value() {
+                "dir" => group.directories.push(Directory::read(node, errors)),
+                "target" => group.targets.push(Target::read(node, errors)),
+                "group" => group.subgroups.push(Group::read_node(node, errors)),
+                "runtime" => group.runtimes.push(Preset::read(node, errors)),
+                "use" => target_root.presets.push(Preset::read(node, errors)),
+                "package" => target_root.packages.push(Package::read(node, errors)),
+                "fs:copy" => target_root.copies.push(CopyFile::read(node, errors)),
+                "fs:symlink" => target_root.symlinks.push(SymlinkFile::read(node, errors)),
+                _ => reject_node(node, errors, GROUP_NODES),
             }
         }
 
@@ -92,22 +81,18 @@ impl DecodeChildren<Span> for Group {
             group.directories.push(target_root);
         }
 
-        Ok(group)
+        group
     }
 }
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+const DIR_NODES: &str = "use, package, fs:copy, fs:symlink";
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Directory {
-    #[knus(argument)]
     pub path: Option<PathBuf>,
-    #[knus(children(name = "use"))]
     pub presets: Vec<Preset>,
-    #[knus(children(name = "package"))]
     pub packages: Vec<Package>,
-    #[knus(children(name = "fs:copy"))]
     pub copies: Vec<CopyFile>,
-    #[knus(children(name = "fs:symlink"))]
     pub symlinks: Vec<SymlinkFile>,
 }
 
@@ -118,25 +103,71 @@ impl Directory {
             && self.copies.is_empty()
             && self.symlinks.is_empty()
     }
+
+    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let path = reader.path_argument();
+        reader.reject_unread();
+
+        let mut directory = Self {
+            path,
+            ..Self::default()
+        };
+
+        for child in child_nodes(node) {
+            match child.name().value() {
+                "use" => directory.presets.push(Preset::read(child, errors)),
+                "package" => directory.packages.push(Package::read(child, errors)),
+                "fs:copy" => directory.copies.push(CopyFile::read(child, errors)),
+                "fs:symlink" => directory.symlinks.push(SymlinkFile::read(child, errors)),
+                _ => reject_node(child, errors, DIR_NODES),
+            }
+        }
+
+        directory
+    }
 }
 
-#[derive(Decode, Clone, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Target {
-    #[knus(argument)]
     pub name: String,
-    #[knus(property, str)]
     pub path: Option<PathBuf>,
-    #[knus(property(name = "type"), str)]
     pub kind: TargetType,
-    #[knus(span)]
-    pub span: Span,
+    pub span: miette::SourceSpan,
 }
 
 debug_without_span!(Target { name, path, kind });
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+impl Target {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let span = reader.span();
+        let name = reader.required_argument("target name");
+        let path = reader.path_property("path");
+        let kind = reader.property("type");
+        reader.reject_unread();
+
+        let kind = match kind {
+            Some(kind) => match TargetType::from_str(&kind) {
+                Ok(kind) => kind,
+                Err(error) => {
+                    errors.push(span, error.to_string());
+                    TargetType::None
+                }
+            },
+            None => TargetType::None,
+        };
+
+        Self {
+            name,
+            path,
+            kind,
+            span,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum TargetType {
     #[default]
     None,
@@ -163,15 +194,11 @@ impl FromStr for TargetType {
     }
 }
 
-#[derive(Decode, Clone, PartialEq, Eq, Hash)]
-#[knus(span_type = knus::span::Span)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Preset {
-    #[knus(argument)]
     pub identifier: String,
-    #[knus(property)]
     pub version: Option<String>,
-    #[knus(span)]
-    pub span: Span,
+    pub span: miette::SourceSpan,
 }
 
 debug_without_span!(Preset {
@@ -179,17 +206,28 @@ debug_without_span!(Preset {
     version
 });
 
-#[derive(Decode, Clone, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+impl Preset {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let span = reader.span();
+        let identifier = reader.required_argument("preset identifier");
+        let version = reader.property("version");
+        reader.reject_unread();
+
+        Self {
+            identifier,
+            version,
+            span,
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct CopyFile {
-    #[knus(argument)]
     pub from: PathBuf,
-    #[knus(argument)]
     pub to: PathBuf,
-    #[knus(property, default)]
     pub overwrite: bool,
-    #[knus(span)]
-    pub span: Span,
+    pub span: miette::SourceSpan,
 }
 
 debug_without_span!(CopyFile {
@@ -198,15 +236,41 @@ debug_without_span!(CopyFile {
     overwrite
 });
 
-#[derive(Decode, Clone, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+impl CopyFile {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let span = reader.span();
+        let from = reader.required_path_argument("source path");
+        let to = reader.required_path_argument("destination path");
+        let overwrite = reader.flag_property("overwrite");
+        reader.reject_unread();
+
+        Self {
+            from,
+            to,
+            overwrite,
+            span,
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct SymlinkFile {
-    #[knus(argument)]
     pub from: PathBuf,
-    #[knus(argument)]
     pub to: PathBuf,
-    #[knus(span)]
-    pub span: Span,
+    pub span: miette::SourceSpan,
 }
 
 debug_without_span!(SymlinkFile { from, to });
+
+impl SymlinkFile {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let span = reader.span();
+        let from = reader.required_path_argument("source path");
+        let to = reader.required_path_argument("destination path");
+        reader.reject_unread();
+
+        Self { from, to, span }
+    }
+}

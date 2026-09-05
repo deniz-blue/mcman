@@ -1,12 +1,18 @@
 use std::path::PathBuf;
 
-use knus::Decode;
+use kdl::KdlNode;
 use miette::{IntoDiagnostic, Result};
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncWriteExt;
 use tokio_stream::StreamExt;
 
-use crate::{core::AppContext, store::ObjectKey};
+use crate::{
+    core::{
+        kdl::{Errors, Reader},
+        AppContext,
+    },
+    store::ObjectKey,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedUrl {
@@ -23,16 +29,22 @@ fn epoch_now() -> u128 {
         .as_millis()
 }
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Download {
-    #[knus(argument)]
     pub url: String,
-    #[knus(property, str)]
     pub path: Option<PathBuf>,
 }
 
 impl Download {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let url = reader.required_argument("url");
+        let path = reader.path_property("path");
+        reader.reject_unread();
+
+        Self { url, path }
+    }
+
     pub async fn run(&self, ctx: &AppContext) -> Result<ObjectKey> {
         let response = ctx
             .http

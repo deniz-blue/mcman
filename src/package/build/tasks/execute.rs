@@ -1,18 +1,26 @@
 use std::path::{Path, PathBuf};
 
-use knus::Decode;
+use kdl::KdlNode;
 use miette::{IntoDiagnostic, Result};
 
-#[derive(Decode, Clone, Debug, PartialEq, Eq, Hash, Default)]
-#[knus(span_type = knus::span::Span)]
+use crate::core::kdl::{Errors, Reader};
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct ExecuteTask {
-    #[knus(argument)]
     pub command: String,
-    #[knus(property(name = "cd"))]
     pub directory: Option<PathBuf>,
 }
 
 impl ExecuteTask {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let command = reader.required_argument("command");
+        let directory = reader.path_property("cd");
+        reader.reject_unread();
+
+        Self { command, directory }
+    }
+
     pub async fn run(&self, working_dir: &Path) -> Result<()> {
         let current_dir = working_dir.join(self.directory.clone().unwrap_or_default());
 
