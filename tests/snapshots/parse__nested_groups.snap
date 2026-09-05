@@ -7,8 +7,6 @@ Manifest {
         label: None,
         runtimes: [],
         directories: [],
-        copies: [],
-        links: [],
         targets: [],
         subgroups: [
             Group {
@@ -17,8 +15,6 @@ Manifest {
                 ),
                 runtimes: [],
                 directories: [],
-                copies: [],
-                links: [],
                 targets: [],
                 subgroups: [
                     Group {
@@ -27,8 +23,6 @@ Manifest {
                         ),
                         runtimes: [],
                         directories: [],
-                        copies: [],
-                        links: [],
                         targets: [],
                         subgroups: [
                             Group {
@@ -50,10 +44,10 @@ Manifest {
                                             },
                                         ],
                                         packages: [],
+                                        copies: [],
+                                        symlinks: [],
                                     },
                                 ],
-                                copies: [],
-                                links: [],
                                 targets: [
                                     Target {
                                         name: "velocity",

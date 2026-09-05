@@ -14,8 +14,6 @@ Manifest {
             },
         ],
         directories: [],
-        copies: [],
-        links: [],
         targets: [],
         subgroups: [
             Group {
@@ -43,6 +41,8 @@ Manifest {
                             },
                         ],
                         packages: [],
+                        copies: [],
+                        symlinks: [],
                     },
                     Directory {
                         path: None,
@@ -55,10 +55,10 @@ Manifest {
                             },
                         ],
                         packages: [],
+                        copies: [],
+                        symlinks: [],
                     },
                 ],
-                copies: [],
-                links: [],
                 targets: [
                     Target {
                         name: "proxy",
@@ -95,10 +95,10 @@ Manifest {
                             },
                         ],
                         packages: [],
+                        copies: [],
+                        symlinks: [],
                     },
                 ],
-                copies: [],
-                links: [],
                 targets: [],
                 subgroups: [
                     Group {
@@ -120,6 +120,8 @@ Manifest {
                                     },
                                 ],
                                 packages: [],
+                                copies: [],
+                                symlinks: [],
                             },
                             Directory {
                                 path: None,
@@ -161,17 +163,15 @@ Manifest {
                                         artifacts: [
                                             PackageArtifact {
                                                 from: "build/libs/customplugin.jar",
-                                                to: Some(
-                                                    "plugins/customplugin.jar",
-                                                ),
+                                                to: "plugins/customplugin.jar",
                                             },
                                         ],
                                     },
                                 ],
+                                copies: [],
+                                symlinks: [],
                             },
                         ],
-                        copies: [],
-                        links: [],
                         targets: [
                             Target {
                                 name: "lobby",
@@ -202,6 +202,8 @@ Manifest {
                                     },
                                 ],
                                 packages: [],
+                                copies: [],
+                                symlinks: [],
                             },
                             Directory {
                                 path: None,
@@ -214,10 +216,10 @@ Manifest {
                                     },
                                 ],
                                 packages: [],
+                                copies: [],
+                                symlinks: [],
                             },
                         ],
-                        copies: [],
-                        links: [],
                         targets: [
                             Target {
                                 name: "smp-server",

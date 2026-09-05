@@ -7,8 +7,6 @@ Manifest {
         label: None,
         runtimes: [],
         directories: [],
-        copies: [],
-        links: [],
         targets: [],
         subgroups: [
             Group {
@@ -30,10 +28,10 @@ Manifest {
                             },
                         ],
                         packages: [],
+                        copies: [],
+                        symlinks: [],
                     },
                 ],
-                copies: [],
-                links: [],
                 targets: [
                     Target {
                         name: "proxy",
@@ -64,10 +62,10 @@ Manifest {
                             },
                         ],
                         packages: [],
+                        copies: [],
+                        symlinks: [],
                     },
                 ],
-                copies: [],
-                links: [],
                 targets: [
                     Target {
                         name: "lobby",
@@ -98,10 +96,10 @@ Manifest {
                             },
                         ],
                         packages: [],
+                        copies: [],
+                        symlinks: [],
                     },
                 ],
-                copies: [],
-                links: [],
                 targets: [
                     Target {
                         name: "smp-server",

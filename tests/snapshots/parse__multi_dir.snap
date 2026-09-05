@@ -26,6 +26,8 @@ Manifest {
                     },
                 ],
                 packages: [],
+                copies: [],
+                symlinks: [],
             },
             Directory {
                 path: Some(
@@ -40,6 +42,8 @@ Manifest {
                     },
                 ],
                 packages: [],
+                copies: [],
+                symlinks: [],
             },
             Directory {
                 path: Some(
@@ -54,10 +58,10 @@ Manifest {
                     },
                 ],
                 packages: [],
+                copies: [],
+                symlinks: [],
             },
         ],
-        copies: [],
-        links: [],
         targets: [
             Target {
                 name: "modded",

@@ -40,17 +40,15 @@ Manifest {
                         artifacts: [
                             PackageArtifact {
                                 from: "build/libs/custom-plugin.jar",
-                                to: Some(
-                                    "plugins/custom-plugin.jar",
-                                ),
+                                to: "plugins/custom-plugin.jar",
                             },
                         ],
                     },
                 ],
+                copies: [],
+                symlinks: [],
             },
         ],
-        copies: [],
-        links: [],
         targets: [
             Target {
                 name: "server",

@@ -27,23 +27,19 @@ Manifest {
                         artifacts: [
                             PackageArtifact {
                                 from: "big-plugin-2.0.jar",
-                                to: Some(
-                                    "plugins/big-plugin.jar",
-                                ),
+                                to: "plugins/big-plugin.jar",
                             },
                             PackageArtifact {
                                 from: "big-plugin-2.0.jar",
-                                to: Some(
-                                    "plugins/backup/big-plugin.jar",
-                                ),
+                                to: "plugins/backup/big-plugin.jar",
                             },
                         ],
                     },
                 ],
+                copies: [],
+                symlinks: [],
             },
         ],
-        copies: [],
-        links: [],
         targets: [
             Target {
                 name: "server",

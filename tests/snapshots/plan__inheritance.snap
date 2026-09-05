@@ -1,0 +1,103 @@
+---
+source: tests/plan.rs
+expression: "plan(\"inheritance\")"
+---
+Plan {
+    targets: [
+        TargetPlan {
+            target: Target {
+                name: "lobby",
+                path: Some(
+                    "./run/lobby",
+                ),
+                kind: Server,
+            },
+            runtimes: [
+                Preset {
+                    identifier: "adoptium:jdk",
+                    version: Some(
+                        "21",
+                    ),
+                },
+            ],
+            directories: [
+                Directory {
+                    path: Some(
+                        "plugins",
+                    ),
+                    presets: [
+                        Preset {
+                            identifier: "modrinth:luckperms",
+                            version: Some(
+                                "5.4.0",
+                            ),
+                        },
+                        Preset {
+                            identifier: "modrinth:spark",
+                            version: Some(
+                                "1.10",
+                            ),
+                        },
+                        Preset {
+                            identifier: "modrinth:fastasyncworldedit",
+                            version: Some(
+                                "latest",
+                            ),
+                        },
+                    ],
+                    packages: [],
+                    copies: [],
+                    symlinks: [],
+                },
+            ],
+        },
+        TargetPlan {
+            target: Target {
+                name: "smp",
+                path: Some(
+                    "./run/smp",
+                ),
+                kind: Server,
+            },
+            runtimes: [
+                Preset {
+                    identifier: "adoptium:jdk",
+                    version: Some(
+                        "21",
+                    ),
+                },
+            ],
+            directories: [
+                Directory {
+                    path: Some(
+                        "plugins",
+                    ),
+                    presets: [
+                        Preset {
+                            identifier: "modrinth:luckperms",
+                            version: Some(
+                                "5.4.0",
+                            ),
+                        },
+                        Preset {
+                            identifier: "modrinth:spark",
+                            version: Some(
+                                "1.10",
+                            ),
+                        },
+                    ],
+                    packages: [],
+                    copies: [],
+                    symlinks: [],
+                },
+            ],
+        },
+    ],
+    warnings: [
+        GroupWithoutTarget {
+            label: Some(
+                "unreachable",
+            ),
+        },
+    ],
+}

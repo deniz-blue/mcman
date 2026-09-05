@@ -29,9 +29,7 @@ Manifest {
                         artifacts: [
                             PackageArtifact {
                                 from: "downloads/bluemap.jar",
-                                to: Some(
-                                    "plugins/bluemap.jar",
-                                ),
+                                to: "plugins/bluemap.jar",
                             },
                         ],
                     },
@@ -66,17 +64,15 @@ Manifest {
                         artifacts: [
                             PackageArtifact {
                                 from: "build/libs/custom-mod.jar",
-                                to: Some(
-                                    "mods/custom-mod.jar",
-                                ),
+                                to: "mods/custom-mod.jar",
                             },
                         ],
                     },
                 ],
+                copies: [],
+                symlinks: [],
             },
         ],
-        copies: [],
-        links: [],
         targets: [
             Target {
                 name: "server",

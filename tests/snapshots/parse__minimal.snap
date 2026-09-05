@@ -7,8 +7,6 @@ Manifest {
         label: None,
         runtimes: [],
         directories: [],
-        copies: [],
-        links: [],
         targets: [
             Target {
                 name: "main",

@@ -1,0 +1,52 @@
+---
+source: tests/parse.rs
+expression: "parse(\"dir-scoped-files\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        runtimes: [],
+        directories: [
+            Directory {
+                path: Some(
+                    "plugins/LuckPerms",
+                ),
+                presets: [],
+                packages: [],
+                copies: [
+                    CopyFile {
+                        from: "config/luckperms.yml",
+                        to: "config.yml",
+                        overwrite: false,
+                    },
+                ],
+                symlinks: [],
+            },
+            Directory {
+                path: Some(
+                    "plugins/spark",
+                ),
+                presets: [],
+                packages: [],
+                copies: [
+                    CopyFile {
+                        from: "config/spark.yml",
+                        to: "config.yml",
+                        overwrite: false,
+                    },
+                ],
+                symlinks: [],
+            },
+        ],
+        targets: [
+            Target {
+                name: "smp",
+                path: Some(
+                    "./run/smp",
+                ),
+                kind: Server,
+            },
+        ],
+        subgroups: [],
+    },
+}
