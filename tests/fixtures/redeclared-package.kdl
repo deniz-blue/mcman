@@ -1,0 +1,15 @@
+group "servers" {
+    package "customplugin" {
+        git "https://example.invalid/customplugin.git"
+        artifact "build/libs/customplugin.jar" "plugins/customplugin.jar"
+    }
+
+    group "lobby" {
+        target "lobby" path="./run/lobby" type="server"
+
+        package "customplugin" {
+            git "https://example.invalid/fork.git"
+            artifact "build/libs/customplugin.jar" "plugins/customplugin.jar"
+        }
+    }
+}

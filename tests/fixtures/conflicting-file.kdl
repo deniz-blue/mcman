@@ -1,0 +1,7 @@
+fs:copy "config/base.yml" "plugins/config.yml"
+
+group "lobby" {
+    target "lobby" path="./run/lobby" type="server"
+
+    fs:copy "config/lobby.yml" "plugins/config.yml"
+}

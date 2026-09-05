@@ -1,0 +1,11 @@
+// `fs:copy` is placed by the `dir` it is declared in, so one file name can
+// appear in several of them.
+target "smp" path="./run/smp" type="server"
+
+dir "plugins/LuckPerms" {
+    fs:copy "config/luckperms.yml" "config.yml"
+}
+
+dir "plugins/spark" {
+    fs:copy "config/spark.yml" "config.yml"
+}

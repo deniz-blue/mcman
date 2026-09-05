@@ -1,0 +1,10 @@
+// Both write `plugins/LuckPerms/config.yml`.
+target "smp" path="./run/smp" type="server"
+
+dir "plugins" {
+    fs:copy "config/base.yml" "LuckPerms/config.yml"
+}
+
+dir "plugins/LuckPerms" {
+    fs:copy "config/lobby.yml" "config.yml"
+}

@@ -1,0 +1,8 @@
+// Same target name declared in two groups — ambiguous whatever the paths.
+group "a" {
+    target "lobby" path="./run/lobby" type="server"
+}
+
+group "b" {
+    target "lobby" path="./run/elsewhere" type="server"
+}

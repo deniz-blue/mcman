@@ -1,0 +1,11 @@
+dir "plugins" {
+    use "modrinth:spark" version="1.10"
+}
+
+group "lobby" {
+    target "lobby" path="./run/lobby" type="server"
+
+    dir "plugins" {
+        use "modrinth:spark" version="1.11"
+    }
+}
