@@ -5,6 +5,7 @@ expression: "parse(\"server-with-presets\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [
             Directory {

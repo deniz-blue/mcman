@@ -5,6 +5,7 @@ expression: "parse(\"multiple-artifacts\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [
             Directory {

@@ -5,6 +5,7 @@ expression: "parse(\"package-with-path\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [
             Directory {

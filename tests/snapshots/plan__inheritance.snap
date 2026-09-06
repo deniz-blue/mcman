@@ -12,6 +12,7 @@ Plan {
                 ),
                 kind: Server,
             },
+            platform: None,
             runtimes: [
                 Preset {
                     identifier: "adoptium:jdk",
@@ -59,6 +60,7 @@ Plan {
                 ),
                 kind: Server,
             },
+            platform: None,
             runtimes: [
                 Preset {
                     identifier: "adoptium:jdk",

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::BTreeMap, path::PathBuf};
 
 use kdl::{KdlDocument, KdlEntry, KdlNode, KdlValue};
 use miette::{Diagnostic, NamedSource, SourceSpan};
@@ -48,7 +48,7 @@ pub struct Reader<'a> {
     node: &'a KdlNode,
     errors: &'a mut Errors,
     arguments_read: usize,
-    properties_read: Vec<&'static str>,
+    properties_read: Vec<&'a str>,
 }
 
 impl<'a> Reader<'a> {
@@ -72,11 +72,15 @@ impl<'a> Reader<'a> {
     }
 
     pub fn required_argument(&mut self, what: &str) -> String {
+        let written = self.arguments().nth(self.arguments_read).is_some();
+
         match self.argument() {
             Some(value) => value,
             None => {
-                let span = self.node.span();
-                self.errors.push(span, format!("`{what}` is required"));
+                if !written {
+                    let span = self.node.span();
+                    self.errors.push(span, format!("`{what}` is required"));
+                }
                 String::new()
             }
         }
@@ -97,15 +101,35 @@ impl<'a> Reader<'a> {
     }
 
     pub fn required_property(&mut self, name: &'static str) -> String {
+        let written = self.node.entry(name).is_some();
+
         match self.property(name) {
             Some(value) => value,
             None => {
-                let span = self.node.span();
-                self.errors
-                    .push(span, format!("property `{name}` is required"));
+                if !written {
+                    let span = self.node.span();
+                    self.errors
+                        .push(span, format!("property `{name}` is required"));
+                }
                 String::new()
             }
         }
+    }
+
+    pub fn properties(&mut self) -> BTreeMap<String, String> {
+        let node = self.node;
+        let mut properties = BTreeMap::new();
+
+        for entry in node.entries() {
+            let Some(name) = entry.name() else { continue };
+            self.properties_read.push(name.value());
+
+            if let Some(value) = self.string(entry) {
+                properties.insert(name.value().to_owned(), value);
+            }
+        }
+
+        properties
     }
 
     pub fn path_property(&mut self, name: &'static str) -> Option<PathBuf> {

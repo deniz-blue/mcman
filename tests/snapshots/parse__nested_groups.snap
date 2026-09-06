@@ -5,6 +5,7 @@ expression: "parse(\"nested-groups\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [],
         targets: [],
@@ -13,6 +14,7 @@ Manifest {
                 label: Some(
                     "infra",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [],
                 targets: [],
@@ -21,6 +23,7 @@ Manifest {
                         label: Some(
                             "proxy",
                         ),
+                        platforms: [],
                         runtimes: [],
                         directories: [],
                         targets: [],
@@ -29,6 +32,7 @@ Manifest {
                                 label: Some(
                                     "velocity",
                                 ),
+                                platforms: [],
                                 runtimes: [],
                                 directories: [
                                     Directory {

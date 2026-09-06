@@ -2,6 +2,7 @@
 meta version=1 generated="2024-06-01T12:00:00Z"
 
 target "smp" path="./run/smp" {
+    platform "paper" minecraft="1.21.1"
     runtime "adoptium:jdk" version="21.0.4+7"
     use "modrinth:luckperms" version="5.4.102" {
         artifact "plugins/luckperms.jar" hash="abcdef" size=1

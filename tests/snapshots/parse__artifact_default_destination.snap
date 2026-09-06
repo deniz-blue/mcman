@@ -5,6 +5,7 @@ expression: "parse(\"artifact-default-destination\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [
             Directory {

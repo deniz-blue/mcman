@@ -1,5 +1,5 @@
 use mcman::{
-    manifest::Manifest,
+    manifest::{Manifest, Platform},
     plan::{self, Plan, PlanWarning},
 };
 use miette::Diagnostic;
@@ -35,6 +35,15 @@ fn presets(plan: &Plan, target: &str, directory: &str) -> Vec<String> {
                 .collect()
         })
         .unwrap_or_default()
+}
+
+fn platform(plan: &Plan, target: &str) -> Option<Platform> {
+    plan.targets
+        .iter()
+        .find(|candidate| candidate.target.name == target)
+        .unwrap_or_else(|| panic!("no target `{target}` in the plan"))
+        .platform
+        .clone()
 }
 
 fn rejection(fixture: &str) -> String {
@@ -169,6 +178,51 @@ fn a_group_reaching_no_target_warns() {
         [PlanWarning::GroupWithoutTarget {
             label: Some("unreachable".into())
         }]
+    );
+}
+
+#[test]
+fn a_platform_reaches_targets_in_subgroups() {
+    let plan = plan("platform");
+
+    assert!(matches!(
+        platform(&plan, "proxy"),
+        Some(Platform::Velocity(_))
+    ));
+    assert_eq!(platform(&plan, "plain"), None);
+
+    let Some(Platform::Fabric(fabric)) = platform(&plan, "smp") else {
+        panic!("`smp` should inherit the fabric platform of its parent group");
+    };
+    assert_eq!(fabric.minecraft, "1.21.1");
+    assert_eq!(fabric.loader.as_deref(), Some("0.16.5"));
+}
+
+#[test]
+fn a_redeclared_platform_is_rejected() {
+    assert_eq!(
+        rejection("redeclared-platform"),
+        "a second platform `fabric` is declared in group `smp`"
+    );
+}
+
+#[test]
+fn a_redeclared_platform_points_at_both_declarations() {
+    let error = plan::from_manifest(&manifest("redeclared-platform"))
+        .expect_err("redeclared-platform should be rejected");
+    let text = fs::read_to_string("tests/fixtures/redeclared-platform.kdl").unwrap();
+    let sources: Vec<String> = error
+        .labels()
+        .expect("the error carries labels")
+        .map(|label| text[label.offset()..label.offset() + label.len()].to_string())
+        .collect();
+
+    assert_eq!(
+        sources,
+        [
+            "platform \"fabric\" minecraft=\"1.21.1\"",
+            "platform \"paper\" minecraft=\"1.21.1\"",
+        ]
     );
 }
 

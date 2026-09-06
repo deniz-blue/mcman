@@ -12,6 +12,11 @@ Plan {
                 ),
                 kind: Server,
             },
+            platform: Some(
+                Velocity(
+                    VelocityPlatform,
+                ),
+            ),
             runtimes: [
                 Preset {
                     identifier: "adoptium:jdk",
@@ -67,6 +72,13 @@ Plan {
                 ),
                 kind: Server,
             },
+            platform: Some(
+                Paper(
+                    PaperPlatform {
+                        minecraft: "1.21.1",
+                    },
+                ),
+            ),
             runtimes: [
                 Preset {
                     identifier: "adoptium:jdk",
@@ -100,20 +112,6 @@ Plan {
                             ),
                         },
                     ],
-                    packages: [],
-                    copies: [],
-                    symlinks: [],
-                },
-                Directory {
-                    path: None,
-                    presets: [
-                        Preset {
-                            identifier: "papermc:paper",
-                            version: Some(
-                                "1.21.1",
-                            ),
-                        },
-                    ],
                     packages: [
                         Package {
                             label: Some(
@@ -144,9 +142,7 @@ Plan {
                             artifacts: [
                                 PackageArtifact {
                                     from: "build/libs/customplugin.jar",
-                                    to: Some(
-                                        "plugins/customplugin.jar",
-                                    ),
+                                    to: None,
                                 },
                             ],
                         },
@@ -154,71 +150,12 @@ Plan {
                     copies: [],
                     symlinks: [],
                 },
-            ],
-        },
-        TargetPlan {
-            target: Target {
-                name: "smp-server",
-                path: Some(
-                    "./run/smp",
-                ),
-                kind: Server,
-            },
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
-            directories: [
-                Directory {
-                    path: Some(
-                        "plugins",
-                    ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:spark",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                    ],
-                    packages: [],
-                    copies: [],
-                    symlinks: [],
-                },
-                Directory {
-                    path: Some(
-                        "mods",
-                    ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:create",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                    ],
-                    packages: [],
-                    copies: [],
-                    symlinks: [],
-                },
                 Directory {
                     path: None,
                     presets: [
                         Preset {
-                            identifier: "fabric:fabric",
-                            version: Some(
-                                "1.21.1",
-                            ),
+                            identifier: "papermc:paper",
+                            version: None,
                         },
                     ],
                     packages: [],
@@ -235,6 +172,83 @@ Plan {
                 ),
                 kind: Packwiz,
             },
+            platform: Some(
+                Fabric(
+                    FabricPlatform {
+                        minecraft: "1.21.1",
+                        loader: Some(
+                            "latest",
+                        ),
+                    },
+                ),
+            ),
+            runtimes: [
+                Preset {
+                    identifier: "adoptium:jdk",
+                    version: Some(
+                        "21",
+                    ),
+                },
+            ],
+            directories: [
+                Directory {
+                    path: Some(
+                        "plugins",
+                    ),
+                    presets: [
+                        Preset {
+                            identifier: "modrinth:luckperms",
+                            version: Some(
+                                "latest",
+                            ),
+                        },
+                        Preset {
+                            identifier: "modrinth:spark",
+                            version: Some(
+                                "latest",
+                            ),
+                        },
+                    ],
+                    packages: [],
+                    copies: [],
+                    symlinks: [],
+                },
+                Directory {
+                    path: Some(
+                        "mods",
+                    ),
+                    presets: [
+                        Preset {
+                            identifier: "modrinth:create",
+                            version: Some(
+                                "latest",
+                            ),
+                        },
+                    ],
+                    packages: [],
+                    copies: [],
+                    symlinks: [],
+                },
+            ],
+        },
+        TargetPlan {
+            target: Target {
+                name: "smp-server",
+                path: Some(
+                    "./run/smp",
+                ),
+                kind: Server,
+            },
+            platform: Some(
+                Fabric(
+                    FabricPlatform {
+                        minecraft: "1.21.1",
+                        loader: Some(
+                            "latest",
+                        ),
+                    },
+                ),
+            ),
             runtimes: [
                 Preset {
                     identifier: "adoptium:jdk",
@@ -287,9 +301,7 @@ Plan {
                     presets: [
                         Preset {
                             identifier: "fabric:fabric",
-                            version: Some(
-                                "1.21.1",
-                            ),
+                            version: None,
                         },
                     ],
                     packages: [],

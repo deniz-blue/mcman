@@ -4,6 +4,7 @@ expression: "lockfile(\"lock-full\").to_kdl()"
 ---
 meta version=1 generated="2024-06-01T12:00:00Z"
 target proxy path="./run/proxy" {
+    platform velocity
     runtime adoptium:jdk version="21.0.4+7"
     use papermc:velocity version="3.4.0" {
         artifact velocity-3.4.0.jar hash=abcdef size=123456

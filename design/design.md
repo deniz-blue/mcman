@@ -319,7 +319,7 @@ platform "velocity"
 platform "fabric" minecraft="1.21.1" loader="0.16.5"
 ```
 
-The argument names the platform. Every property past it is defined by that platform, not by mcman.
+The argument names the platform, and which properties follow is fixed by that platform rather than shared across all of them. `velocity` takes none at all. An unknown platform and an unknown property are both rejected when the manifest is read, so a typo does not reach a provider as a missing value.
 
 `platform` is scoped and inherited like `use` and `runtime`, under the same declare-once rule. A target may have **at most one**; a second is a plan-time error, before any network I/O.
 

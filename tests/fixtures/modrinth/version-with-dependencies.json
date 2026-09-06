@@ -1,0 +1,44 @@
+{
+  "game_versions": [
+    "1.21.1"
+  ],
+  "loaders": [
+    "fabric"
+  ],
+  "environment": "client_only",
+  "id": "bAo1Qhte",
+  "project_id": "YL57xq9U",
+  "author_id": "DzLrfrbK",
+  "featured": false,
+  "name": "Iris 1.8.14 Beta 1 for Fabric 1.21.1",
+  "version_number": "1.8.14-beta.1+1.21.1-fabric",
+  "changelog": "Updates to Sodium 0.8, and fixes a few old bugs.",
+  "changelog_url": null,
+  "date_published": "2026-06-13T15:56:42.633700Z",
+  "downloads": 1804925,
+  "version_type": "beta",
+  "status": "listed",
+  "requested_status": null,
+  "files": [
+    {
+      "id": "iGKkHSZY",
+      "hashes": {
+        "sha1": "6776c0340845887477bfa463acc736ce7fcb6de5",
+        "sha512": "a7fbb629793c52f0be8b049f787cb598879239b1ad8e1de62e103c8b9efff140e3232b93ef1f14e505d262897d8cf9505b1126396429ad4056bff969c8674e52"
+      },
+      "url": "https://cdn.modrinth.com/data/YL57xq9U/versions/bAo1Qhte/iris-fabric-1.8.14-beta.1%2Bmc1.21.1.jar",
+      "filename": "iris-fabric-1.8.14-beta.1+mc1.21.1.jar",
+      "primary": true,
+      "size": 2791343,
+      "file_type": null
+    }
+  ],
+  "dependencies": [
+    {
+      "version_id": "s7adptIg",
+      "project_id": "AANobbMI",
+      "file_name": null,
+      "dependency_type": "required"
+    }
+  ]
+}

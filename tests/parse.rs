@@ -78,6 +78,7 @@ parses! {
     runtime_and_files: "runtime-and-files",
     dir_scoped_files: "dir-scoped-files",
     artifact_default_destination: "artifact-default-destination",
+    platform: "platform",
 }
 
 rejects! {
@@ -91,4 +92,9 @@ rejects! {
     surplus_group_entries: "surplus-group-entries" => "unexpected property `path`",
     surplus_package_entries: "surplus-package-entries" => "unexpected argument",
     artifact_without_file_name: "artifact-without-file-name" => "`artifact` needs a destination when its source has no file name",
+    platform_in_dir: "platform-in-dir" => "unexpected node `platform`",
+    platform_property_is_not_a_string: "platform-property-is-not-a-string" => "expected a string, found 1.21",
+    unknown_platform: "unknown-platform" => "unknown platform `papr`, expected one of: paper, velocity, fabric",
+    platform_without_minecraft: "platform-without-minecraft" => "property `minecraft` is required",
+    platform_with_unknown_property: "platform-with-unknown-property" => "unexpected property `minecarft`",
 }

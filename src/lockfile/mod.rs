@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use kdl::{KdlDocument, KdlNode};
 use miette::Result;
@@ -8,7 +11,7 @@ use crate::core::kdl::{child_nodes, reject_node, Errors, Reader};
 pub mod diff;
 
 const LOCKFILE_NODES: &str = "meta, target";
-const TARGET_NODES: &str = "runtime, use, package";
+const TARGET_NODES: &str = "platform, runtime, use, package";
 const ENTRY_NODES: &str = "artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -50,6 +53,17 @@ impl Lockfile {
             let mut node = KdlNode::new("target");
             node.push(target.name.as_str());
             node.push(("path", display(&target.path)));
+
+            if let Some(platform) = &target.platform {
+                let mut child = KdlNode::new("platform");
+                child.push(platform.name.as_str());
+
+                for (property, value) in &platform.properties {
+                    child.push((property.as_str(), value.as_str()));
+                }
+
+                node.ensure_children().nodes_mut().push(child);
+            }
 
             for runtime in &target.runtimes {
                 let mut child = KdlNode::new("runtime");
@@ -117,6 +131,7 @@ impl LockfileMeta {
 pub struct LockedTarget {
     pub name: String,
     pub path: PathBuf,
+    pub platform: Option<LockedPlatform>,
     pub runtimes: Vec<LockedRuntime>,
     pub presets: Vec<LockedPreset>,
     pub packages: Vec<LockedPackage>,
@@ -137,6 +152,12 @@ impl LockedTarget {
 
         for child in child_nodes(node) {
             match child.name().value() {
+                "platform" => {
+                    if target.platform.is_some() {
+                        errors.push(child.span(), "a target has one `platform`");
+                    }
+                    target.platform = Some(LockedPlatform::read(child, errors));
+                }
                 "runtime" => target.runtimes.push(LockedRuntime::read(child, errors)),
                 "use" => target.presets.push(LockedPreset::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),
@@ -145,6 +166,23 @@ impl LockedTarget {
         }
 
         target
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct LockedPlatform {
+    pub name: String,
+    pub properties: BTreeMap<String, String>,
+}
+
+impl LockedPlatform {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let name = reader.required_argument("platform name");
+        let properties = reader.properties();
+        reader.reject_unread();
+
+        Self { name, properties }
     }
 }
 

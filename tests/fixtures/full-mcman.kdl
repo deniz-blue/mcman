@@ -2,6 +2,8 @@
 runtime "adoptium:jdk" version="21"
 
 group "proxy" {
+    platform "velocity"
+
     use "papermc:velocity" version="latest"
 
     dir "plugins" {
@@ -14,36 +16,42 @@ group "proxy" {
 
 group "game-servers" {
     dir "plugins" {
-        use "modrinth:luckperms" version="latest"
+        use "modrinth:luckperms" version="latest" // Resolves Bukkit/Spigot jar
         use "modrinth:spark" version="latest"
     }
 
     group "lobby" {
         target "lobby" path="./run/lobby" type="server"
 
-        use "papermc:paper" version="1.21.1"
+        platform "paper" minecraft="1.21.1"
+        use "papermc:paper"
 
         dir "plugins" {
             use "modrinth:fastasyncworldedit" version="latest"
-        }
 
-        package "customplugin" {
-            git "https://github.com/example/customplugin.git"
-            build {
-                execute "gradlew build" cd="."
+            package "customplugin" {
+                git "https://github.com/example/customplugin.git"
+                build {
+                    execute "gradlew build" cd="."
+                }
+                artifact "build/libs/customplugin.jar"
             }
-            artifact "build/libs/customplugin.jar" "plugins/customplugin.jar"
         }
     }
 
     group "smp" {
-        target "smp-server" path="./run/smp" type="server"
-        target "smp-pack" path="./run/smp-packwiz" type="packwiz"
-
-        use "fabric:fabric" version="1.21.1"
+        platform "fabric" minecraft="1.21.1" loader="latest"
 
         dir "mods" {
             use "modrinth:create" version="latest"
+        }
+
+        target "smp-pack" path="./run/smp-packwiz" type="packwiz"
+
+        group "smp-server" {
+            target "smp-server" path="./run/smp" type="server"
+
+            use "fabric:fabric"
         }
     }
 }

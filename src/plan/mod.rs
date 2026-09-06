@@ -3,10 +3,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use miette::{Diagnostic, SourceSpan};
-use thiserror::Error;
+use miette::SourceSpan;
 
-use crate::manifest::{Directory, Group, Manifest, Preset, Target};
+use crate::manifest::{Directory, Group, Manifest, Platform, PlatformContext, Preset, Target};
+
+mod error;
+
+pub use error::PlanError;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Plan {
@@ -17,6 +20,7 @@ pub struct Plan {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TargetPlan {
     pub target: Target,
+    pub platform: Option<Platform>,
     pub runtimes: Vec<Preset>,
     pub directories: Vec<Directory>,
 }
@@ -25,63 +29,6 @@ pub struct TargetPlan {
 pub enum PlanWarning {
     /// `label` is `None` for the manifest root.
     GroupWithoutTarget { label: Option<String> },
-}
-
-#[derive(Debug, Error, Diagnostic)]
-pub enum PlanError {
-    #[error("`{identifier}` is declared again in {}", describe(.group))]
-    #[diagnostic(
-        code(mcman::redeclared_preset),
-        help("A package may be declared once on the path from the root to a target. To give some targets a different version, move the package into a group that only those targets are under.")
-    )]
-    RedeclaredPreset {
-        identifier: String,
-        group: Option<String>,
-        #[label("declared again here")]
-        at: SourceSpan,
-    },
-
-    #[error("package `{label}` is declared again in {}", describe(.group))]
-    #[diagnostic(
-        code(mcman::redeclared_package),
-        help("A package may be declared once on the path from the root to a target.")
-    )]
-    RedeclaredPackage {
-        label: String,
-        group: Option<String>,
-        #[label("declared again here")]
-        at: SourceSpan,
-    },
-
-    #[error("`{}` is written by more than one `fs:copy` or `fs:symlink` in {}", .destination.display(), describe(.group))]
-    #[diagnostic(
-        code(mcman::conflicting_file),
-        help("Two declarations on the same path would race to write the same file.")
-    )]
-    ConflictingFile {
-        destination: PathBuf,
-        group: Option<String>,
-        #[label("also written here")]
-        at: SourceSpan,
-    },
-
-    #[error("target `{name}` is declared more than once")]
-    #[diagnostic(
-        code(mcman::duplicate_target),
-        help("Target names key the lockfile, so each must name exactly one output.")
-    )]
-    DuplicateTarget {
-        name: String,
-        #[label("declared again here")]
-        at: SourceSpan,
-    },
-}
-
-fn describe(group: &Option<String>) -> String {
-    match group {
-        Some(label) => format!("group `{label}`"),
-        None => String::from("the manifest root"),
-    }
 }
 
 pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {
@@ -103,6 +50,7 @@ pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {
 
 #[derive(Clone, Default)]
 struct Scope {
+    platform: Option<Platform>,
     runtimes: Vec<Preset>,
     directories: Vec<Directory>,
     written_paths: HashSet<PathBuf>,
@@ -111,6 +59,19 @@ struct Scope {
 impl Scope {
     fn extend(&mut self, group: &Group) -> Result<(), PlanError> {
         let label = || group.label.clone();
+
+        for platform in &group.platforms {
+            if let Some(first) = &self.platform {
+                return Err(PlanError::RedeclaredPlatform {
+                    name: platform.name().to_owned(),
+                    group: label(),
+                    at: platform.span(),
+                    first: first.span(),
+                });
+            }
+
+            self.platform = Some(platform.clone());
+        }
 
         for runtime in &group.runtimes {
             if !insert_unique(&mut self.runtimes, runtime, |preset| &preset.identifier) {
@@ -213,6 +174,7 @@ fn walk(group: &Group, inherited: &Scope, plan: &mut Plan) -> Result<(), PlanErr
     for target in &group.targets {
         plan.targets.push(TargetPlan {
             target: target.clone(),
+            platform: scope.platform.clone(),
             runtimes: scope.runtimes.clone(),
             directories: scope.directories.clone(),
         });

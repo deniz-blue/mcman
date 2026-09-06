@@ -5,6 +5,7 @@ expression: "parse(\"dir-scoped-files\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [
             Directory {

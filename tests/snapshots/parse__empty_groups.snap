@@ -5,6 +5,7 @@ expression: "parse(\"empty-groups\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [],
         targets: [
@@ -19,6 +20,7 @@ Manifest {
                 label: Some(
                     "empty-group",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [],
                 targets: [],
@@ -28,6 +30,7 @@ Manifest {
                 label: Some(
                     "group-with-empty-dir",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [
                     Directory {

@@ -5,6 +5,7 @@ expression: "parse(\"runtime-and-files\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [
             Preset {
                 identifier: "adoptium:jdk",

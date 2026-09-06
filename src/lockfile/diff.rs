@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{lockfile::Lockfile, plan::Plan};
+use crate::{lockfile::Lockfile, manifest::PlatformContext, plan::Plan};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LockChange {
@@ -10,6 +10,11 @@ pub enum LockChange {
         target: String,
         locked: PathBuf,
         wanted: PathBuf,
+    },
+    PlatformChanged {
+        target: String,
+        locked: Option<String>,
+        wanted: Option<String>,
     },
     RuntimeAdded {
         target: String,
@@ -38,8 +43,9 @@ pub enum LockChange {
 }
 
 impl Lockfile {
-    /// Membership only. Locked versions are resolved values, so comparing one to a
-    /// manifest `version=` needs a provider.
+    /// Membership and platform name only. Locked versions are resolved values, so
+    /// comparing one to a manifest `version=` needs a provider, and so does deciding
+    /// which platform properties resolve.
     pub fn changes_needed_for(&self, plan: &Plan) -> Vec<LockChange> {
         let mut changes = Vec::new();
 
@@ -62,6 +68,20 @@ impl Lockfile {
                     target: name.clone(),
                     locked: locked.path.clone(),
                     wanted: wanted_path,
+                });
+            }
+
+            let locked_platform = locked
+                .platform
+                .as_ref()
+                .map(|platform| platform.name.as_str());
+            let wanted_platform = planned.platform.as_ref().map(PlatformContext::name);
+
+            if locked_platform != wanted_platform {
+                changes.push(LockChange::PlatformChanged {
+                    target: name.clone(),
+                    locked: locked_platform.map(str::to_owned),
+                    wanted: wanted_platform.map(str::to_owned),
                 });
             }
 

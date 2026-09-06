@@ -5,6 +5,7 @@ expression: "parse(\"multiple-targets\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [],
         directories: [],
         targets: [],
@@ -13,6 +14,7 @@ Manifest {
                 label: Some(
                     "proxy",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [
                     Directory {
@@ -47,6 +49,7 @@ Manifest {
                 label: Some(
                     "lobby",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [
                     Directory {
@@ -81,6 +84,7 @@ Manifest {
                 label: Some(
                     "smp",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [
                     Directory {

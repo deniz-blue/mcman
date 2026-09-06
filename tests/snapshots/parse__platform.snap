@@ -1,0 +1,91 @@
+---
+source: tests/parse.rs
+expression: "parse(\"platform\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        platforms: [],
+        runtimes: [],
+        directories: [],
+        targets: [
+            Target {
+                name: "plain",
+                path: Some(
+                    "./run/plain",
+                ),
+                kind: None,
+            },
+        ],
+        subgroups: [
+            Group {
+                label: Some(
+                    "proxy",
+                ),
+                platforms: [
+                    Velocity(
+                        VelocityPlatform,
+                    ),
+                ],
+                runtimes: [],
+                directories: [],
+                targets: [
+                    Target {
+                        name: "proxy",
+                        path: Some(
+                            "./run/proxy",
+                        ),
+                        kind: Server,
+                    },
+                ],
+                subgroups: [],
+            },
+            Group {
+                label: Some(
+                    "survival",
+                ),
+                platforms: [
+                    Fabric(
+                        FabricPlatform {
+                            minecraft: "1.21.1",
+                            loader: Some(
+                                "0.16.5",
+                            ),
+                        },
+                    ),
+                ],
+                runtimes: [],
+                directories: [],
+                targets: [
+                    Target {
+                        name: "smp-pack",
+                        path: Some(
+                            "./run/smp-packwiz",
+                        ),
+                        kind: Packwiz,
+                    },
+                ],
+                subgroups: [
+                    Group {
+                        label: Some(
+                            "smp-server",
+                        ),
+                        platforms: [],
+                        runtimes: [],
+                        directories: [],
+                        targets: [
+                            Target {
+                                name: "smp",
+                                path: Some(
+                                    "./run/smp",
+                                ),
+                                kind: Server,
+                            },
+                        ],
+                        subgroups: [],
+                    },
+                ],
+            },
+        ],
+    },
+}

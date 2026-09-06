@@ -1,12 +1,20 @@
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
 use kdl::{KdlDocument, KdlNode};
-use miette::{miette, Result};
+use miette::Result;
 
 use crate::{
     core::kdl::{child_nodes, debug_without_span, reject_node, Errors, Reader},
     package::Package,
 };
+
+mod fs;
+mod platform;
+mod target;
+
+pub use fs::{CopyFile, SymlinkFile};
+pub use platform::{FabricPlatform, PaperPlatform, Platform, PlatformContext, VelocityPlatform};
+pub use target::{Target, TargetType};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Manifest {
@@ -27,11 +35,13 @@ impl Manifest {
     }
 }
 
-const GROUP_NODES: &str = "group, dir, target, use, package, runtime, fs:copy, fs:symlink";
+const GROUP_NODES: &str =
+    "group, dir, target, use, package, runtime, platform, fs:copy, fs:symlink";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Group {
     pub label: Option<String>,
+    pub platforms: Vec<Platform>,
     pub runtimes: Vec<Preset>,
     pub directories: Vec<Directory>,
     pub targets: Vec<Target>,
@@ -69,6 +79,7 @@ impl Group {
                 "target" => group.targets.push(Target::read(node, errors)),
                 "group" => group.subgroups.push(Group::read_node(node, errors)),
                 "runtime" => group.runtimes.push(Preset::read(node, errors)),
+                "platform" => group.platforms.extend(Platform::read(node, errors)),
                 "use" => target_root.presets.push(Preset::read(node, errors)),
                 "package" => target_root.packages.push(Package::read(node, errors)),
                 "fs:copy" => target_root.copies.push(CopyFile::read(node, errors)),
@@ -129,72 +140,6 @@ impl Directory {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct Target {
-    pub name: String,
-    pub path: Option<PathBuf>,
-    pub kind: TargetType,
-    pub span: miette::SourceSpan,
-}
-
-debug_without_span!(Target { name, path, kind });
-
-impl Target {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let span = reader.span();
-        let name = reader.required_argument("target name");
-        let path = reader.path_property("path");
-        let kind = reader.property("type");
-        reader.reject_unread();
-
-        let kind = match kind {
-            Some(kind) => match TargetType::from_str(&kind) {
-                Ok(kind) => kind,
-                Err(error) => {
-                    errors.push(span, error.to_string());
-                    TargetType::None
-                }
-            },
-            None => TargetType::None,
-        };
-
-        Self {
-            name,
-            path,
-            kind,
-            span,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub enum TargetType {
-    #[default]
-    None,
-    Client,
-    Server,
-    Packwiz,
-    Mrpack,
-    Unsup,
-}
-
-impl FromStr for TargetType {
-    type Err = miette::Report;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "none" | "" => Ok(TargetType::None),
-            "client" => Ok(TargetType::Client),
-            "server" => Ok(TargetType::Server),
-            "packwiz" => Ok(TargetType::Packwiz),
-            "mrpack" => Ok(TargetType::Mrpack),
-            "unsup" => Ok(TargetType::Unsup),
-            _ => Err(miette!("Invalid target type: {}", s)),
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq)]
 pub struct Preset {
     pub identifier: String,
     pub version: Option<String>,
@@ -207,7 +152,7 @@ debug_without_span!(Preset {
 });
 
 impl Preset {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+    pub(super) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
         let identifier = reader.required_argument("preset identifier");
@@ -219,58 +164,5 @@ impl Preset {
             version,
             span,
         }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq)]
-pub struct CopyFile {
-    pub from: PathBuf,
-    pub to: PathBuf,
-    pub overwrite: bool,
-    pub span: miette::SourceSpan,
-}
-
-debug_without_span!(CopyFile {
-    from,
-    to,
-    overwrite
-});
-
-impl CopyFile {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let span = reader.span();
-        let from = reader.required_path_argument("source path");
-        let to = reader.required_path_argument("destination path");
-        let overwrite = reader.flag_property("overwrite");
-        reader.reject_unread();
-
-        Self {
-            from,
-            to,
-            overwrite,
-            span,
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq)]
-pub struct SymlinkFile {
-    pub from: PathBuf,
-    pub to: PathBuf,
-    pub span: miette::SourceSpan,
-}
-
-debug_without_span!(SymlinkFile { from, to });
-
-impl SymlinkFile {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let span = reader.span();
-        let from = reader.required_path_argument("source path");
-        let to = reader.required_path_argument("destination path");
-        reader.reject_unread();
-
-        Self { from, to, span }
     }
 }

@@ -100,6 +100,25 @@ fn a_moved_target_is_reported() {
 }
 
 #[test]
+fn a_changed_platform_is_reported() {
+    let mut lock = lockfile("lock-diff");
+    lock.targets[0]
+        .platform
+        .as_mut()
+        .expect("lock-diff locks a platform")
+        .name = "fabric".into();
+
+    assert_eq!(
+        lock.changes_needed_for(&plan("lock-diff-manifest")),
+        [LockChange::PlatformChanged {
+            target: "smp".into(),
+            locked: Some("fabric".into()),
+            wanted: Some("paper".into()),
+        }]
+    );
+}
+
+#[test]
 fn a_numeric_hash_survives_the_round_trip() {
     let mut lock = lockfile("lock-full");
     lock.targets[0].presets[0].artifacts[0].hash = "123456".into();

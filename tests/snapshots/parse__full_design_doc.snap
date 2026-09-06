@@ -5,6 +5,7 @@ expression: "parse(\"full-mcman\")"
 Manifest {
     root: Group {
         label: None,
+        platforms: [],
         runtimes: [
             Preset {
                 identifier: "adoptium:jdk",
@@ -20,6 +21,11 @@ Manifest {
                 label: Some(
                     "proxy",
                 ),
+                platforms: [
+                    Velocity(
+                        VelocityPlatform,
+                    ),
+                ],
                 runtimes: [],
                 directories: [
                     Directory {
@@ -74,6 +80,7 @@ Manifest {
                 label: Some(
                     "game-servers",
                 ),
+                platforms: [],
                 runtimes: [],
                 directories: [
                     Directory {
@@ -105,6 +112,13 @@ Manifest {
                         label: Some(
                             "lobby",
                         ),
+                        platforms: [
+                            Paper(
+                                PaperPlatform {
+                                    minecraft: "1.21.1",
+                                },
+                            ),
+                        ],
                         runtimes: [],
                         directories: [
                             Directory {
@@ -116,20 +130,6 @@ Manifest {
                                         identifier: "modrinth:fastasyncworldedit",
                                         version: Some(
                                             "latest",
-                                        ),
-                                    },
-                                ],
-                                packages: [],
-                                copies: [],
-                                symlinks: [],
-                            },
-                            Directory {
-                                path: None,
-                                presets: [
-                                    Preset {
-                                        identifier: "papermc:paper",
-                                        version: Some(
-                                            "1.21.1",
                                         ),
                                     },
                                 ],
@@ -163,13 +163,23 @@ Manifest {
                                         artifacts: [
                                             PackageArtifact {
                                                 from: "build/libs/customplugin.jar",
-                                                to: Some(
-                                                    "plugins/customplugin.jar",
-                                                ),
+                                                to: None,
                                             },
                                         ],
                                     },
                                 ],
+                                copies: [],
+                                symlinks: [],
+                            },
+                            Directory {
+                                path: None,
+                                presets: [
+                                    Preset {
+                                        identifier: "papermc:paper",
+                                        version: None,
+                                    },
+                                ],
+                                packages: [],
                                 copies: [],
                                 symlinks: [],
                             },
@@ -189,6 +199,16 @@ Manifest {
                         label: Some(
                             "smp",
                         ),
+                        platforms: [
+                            Fabric(
+                                FabricPlatform {
+                                    minecraft: "1.21.1",
+                                    loader: Some(
+                                        "latest",
+                                    ),
+                                },
+                            ),
+                        ],
                         runtimes: [],
                         directories: [
                             Directory {
@@ -207,29 +227,8 @@ Manifest {
                                 copies: [],
                                 symlinks: [],
                             },
-                            Directory {
-                                path: None,
-                                presets: [
-                                    Preset {
-                                        identifier: "fabric:fabric",
-                                        version: Some(
-                                            "1.21.1",
-                                        ),
-                                    },
-                                ],
-                                packages: [],
-                                copies: [],
-                                symlinks: [],
-                            },
                         ],
                         targets: [
-                            Target {
-                                name: "smp-server",
-                                path: Some(
-                                    "./run/smp",
-                                ),
-                                kind: Server,
-                            },
                             Target {
                                 name: "smp-pack",
                                 path: Some(
@@ -238,7 +237,39 @@ Manifest {
                                 kind: Packwiz,
                             },
                         ],
-                        subgroups: [],
+                        subgroups: [
+                            Group {
+                                label: Some(
+                                    "smp-server",
+                                ),
+                                platforms: [],
+                                runtimes: [],
+                                directories: [
+                                    Directory {
+                                        path: None,
+                                        presets: [
+                                            Preset {
+                                                identifier: "fabric:fabric",
+                                                version: None,
+                                            },
+                                        ],
+                                        packages: [],
+                                        copies: [],
+                                        symlinks: [],
+                                    },
+                                ],
+                                targets: [
+                                    Target {
+                                        name: "smp-server",
+                                        path: Some(
+                                            "./run/smp",
+                                        ),
+                                        kind: Server,
+                                    },
+                                ],
+                                subgroups: [],
+                            },
+                        ],
                     },
                 ],
             },
