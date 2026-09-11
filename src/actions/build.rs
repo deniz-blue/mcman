@@ -3,8 +3,9 @@ use std::path::Path;
 use miette::{IntoDiagnostic, Result};
 
 use crate::{
+    addons::Addon,
     core::AppContext,
-    manifest::{Manifest, Preset},
+    manifest::Manifest,
     package::{source::PackageSource, Package},
     plan::{self, PlanWarning, TargetPlan},
 };
@@ -52,8 +53,8 @@ pub async fn build_manifest_target(
             build_package(ctx, &dir_path, package).await?;
         }
 
-        for preset in &directory.presets {
-            build_preset(ctx, &dir_path, preset).await?;
+        for addon in &directory.addons {
+            build_addon(ctx, &dir_path, addon).await?;
         }
     }
 
@@ -92,7 +93,13 @@ pub async fn build_package_complex(
         match source {
             PackageSource::Download(download) => {
                 let key = download.run(ctx).await?;
-                tokio::fs::copy(ctx.store.object_path(&key), &build_dir)
+                let destination = build_dir.join(download.destination());
+
+                if let Some(parent) = destination.parent() {
+                    tokio::fs::create_dir_all(parent).await.into_diagnostic()?;
+                }
+
+                tokio::fs::copy(ctx.store.object_path(&key), destination)
                     .await
                     .into_diagnostic()?;
             }
@@ -103,6 +110,6 @@ pub async fn build_package_complex(
     Ok(())
 }
 
-pub async fn build_preset(_ctx: &AppContext, _path: &Path, _preset: &Preset) -> Result<()> {
+pub async fn build_addon(_ctx: &AppContext, _path: &Path, _addon: &Addon) -> Result<()> {
     Ok(())
 }

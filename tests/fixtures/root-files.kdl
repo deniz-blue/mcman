@@ -1,5 +1,4 @@
-// Runtime dependency plus source-directory file placement
-runtime "adoptium:jdk" version="21"
+// Files declared at the root reach every target
 
 target "smp" path="./run/smp" type="server"
 

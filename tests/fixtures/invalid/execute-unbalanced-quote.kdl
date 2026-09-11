@@ -1,0 +1,6 @@
+package "viaversion" {
+    build {
+        execute "gradlew -Pmsg='hello"
+    }
+    artifact "build/libs/viaversion.jar"
+}

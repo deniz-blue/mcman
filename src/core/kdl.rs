@@ -1,8 +1,42 @@
-use std::{collections::BTreeMap, path::PathBuf};
+use std::{collections::BTreeMap, fmt, ops::Deref, path::PathBuf};
 
 use kdl::{KdlDocument, KdlEntry, KdlNode, KdlValue};
 use miette::{Diagnostic, NamedSource, SourceSpan};
 use thiserror::Error;
+
+#[derive(Clone, Copy)]
+pub struct Spanned<T> {
+    pub value: T,
+    pub span: SourceSpan,
+}
+
+impl<T> Spanned<T> {
+    pub fn new(value: T, span: SourceSpan) -> Self {
+        Self { value, span }
+    }
+}
+
+impl<T> Deref for Spanned<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for Spanned<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.value.fmt(f)
+    }
+}
+
+impl<T: PartialEq> PartialEq for Spanned<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl<T: Eq> Eq for Spanned<T> {}
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("{message}")]
@@ -63,6 +97,11 @@ impl<'a> Reader<'a> {
 
     pub fn span(&self) -> SourceSpan {
         self.node.span()
+    }
+
+    pub fn reject(&mut self, message: String) {
+        let span = self.node.span();
+        self.errors.push(span, message);
     }
 
     pub fn argument(&mut self) -> Option<String> {
@@ -136,14 +175,27 @@ impl<'a> Reader<'a> {
         self.property(name).map(PathBuf::from)
     }
 
-    pub fn integer_property(&mut self, name: &'static str) -> Option<i128> {
+    pub fn unsigned_property(&mut self, name: &'static str) -> Option<u64> {
         self.properties_read.push(name);
         let entry = self.node.entry(name)?;
-        match entry.value().as_integer() {
-            Some(value) => Some(value),
-            None => {
+
+        let Some(value) = entry.value().as_integer() else {
+            self.errors
+                .push(entry.span(), format!("`{name}` must be a number"));
+            return None;
+        };
+
+        if value < 0 {
+            self.errors
+                .push(entry.span(), format!("`{name}` cannot be negative"));
+            return None;
+        }
+
+        match u64::try_from(value) {
+            Ok(value) => Some(value),
+            Err(_) => {
                 self.errors
-                    .push(entry.span(), format!("`{name}` must be a number"));
+                    .push(entry.span(), format!("`{name}` is too large"));
                 None
             }
         }
@@ -231,19 +283,3 @@ pub fn reject_node(node: &KdlNode, errors: &mut Errors, allowed: &str) {
         format!("unexpected node `{name}`, expected one of: {allowed}"),
     );
 }
-
-/// Spans exist for diagnostics only. Omitting them from `Debug` keeps snapshots
-/// structural, so editing one fixture does not shift every byte offset below it.
-macro_rules! debug_without_span {
-    ($type:ident { $($field:ident),* $(,)? }) => {
-        impl std::fmt::Debug for $type {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.debug_struct(stringify!($type))
-                    $(.field(stringify!($field), &self.$field))*
-                    .finish()
-            }
-        }
-    };
-}
-
-pub(crate) use debug_without_span;

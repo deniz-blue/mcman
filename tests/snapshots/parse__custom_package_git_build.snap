@@ -10,7 +10,7 @@ Manifest {
         directories: [
             Directory {
                 path: None,
-                presets: [],
+                addons: [],
                 packages: [
                     Package {
                         label: Some(
@@ -29,7 +29,10 @@ Manifest {
                                 tasks: [
                                     Execute(
                                         ExecuteTask {
-                                            command: "gradlew build",
+                                            program: "gradlew",
+                                            arguments: [
+                                                "build",
+                                            ],
                                             directory: Some(
                                                 ".",
                                             ),

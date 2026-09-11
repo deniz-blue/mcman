@@ -1,4 +1,4 @@
 target "main" type="server"
 dir "plugins" {
-    runtime "adoptium:jdk" version="21"
+    runtime "papermc:paper"
 }

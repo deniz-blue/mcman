@@ -1,5 +1,4 @@
-// Full realistic manifest matching the design doc example
-runtime "adoptium:jdk" version="21"
+// Full realistic manifest from the design doc
 
 group "proxy" {
     platform "velocity"

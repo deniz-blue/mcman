@@ -44,6 +44,26 @@ fn version_reads_dependencies() {
 }
 
 #[test]
+fn an_unrecognised_enum_value_reads_as_unknown() {
+    fn read<T: serde::de::DeserializeOwned>(value: &str) -> T {
+        serde_json::from_str(&format!("\"{value}\"")).expect(value)
+    }
+
+    assert_eq!(
+        read::<ModrinthSideSupport>("client_and_server"),
+        ModrinthSideSupport::Unknown
+    );
+    assert_eq!(
+        read::<ModrinthDependencyType>("conflicts_with"),
+        ModrinthDependencyType::Unknown
+    );
+    assert_eq!(
+        read::<ModrinthVersionType>("nightly"),
+        ModrinthVersionType::Unknown
+    );
+}
+
+#[test]
 fn query_encodes_arrays_as_json() {
     let query = ModrinthVersionQuery {
         loaders: vec!["paper".to_owned()],

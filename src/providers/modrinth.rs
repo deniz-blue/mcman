@@ -6,13 +6,18 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 pub const MODRINTH_API: &str = "https://api.modrinth.com";
 
-/// Modrinth takes a slug wherever it takes an id, so `modrinth:luckperms` can ask for
-/// versions without looking the project up first.
+/// Modrinth accepts a slug wherever it accepts an id, so `modrinth:luckperms` needs no lookup.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ModrinthProjectId(pub String);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ModrinthVersionId(pub String);
+
+impl ModrinthProjectId {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
 
 impl Display for ModrinthProjectId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -82,6 +87,8 @@ pub enum ModrinthVersionType {
     Release,
     Beta,
     Alpha,
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
@@ -91,6 +98,8 @@ pub enum ModrinthDependencyType {
     Optional,
     Incompatible,
     Embedded,
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
@@ -99,6 +108,7 @@ pub enum ModrinthSideSupport {
     Required,
     Optional,
     Unsupported,
+    #[serde(other)]
     Unknown,
 }
 

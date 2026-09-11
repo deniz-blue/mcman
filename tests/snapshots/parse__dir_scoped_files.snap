@@ -12,7 +12,7 @@ Manifest {
                 path: Some(
                     "plugins/LuckPerms",
                 ),
-                presets: [],
+                addons: [],
                 packages: [],
                 copies: [
                     CopyFile {
@@ -27,7 +27,7 @@ Manifest {
                 path: Some(
                     "plugins/spark",
                 ),
-                presets: [],
+                addons: [],
                 packages: [],
                 copies: [
                     CopyFile {

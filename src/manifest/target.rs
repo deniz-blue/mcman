@@ -3,20 +3,17 @@ use std::{path::PathBuf, str::FromStr};
 use kdl::KdlNode;
 use miette::{miette, Result};
 
-use crate::core::kdl::{debug_without_span, Errors, Reader};
+use crate::core::kdl::{Errors, Reader, Spanned};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Target {
     pub name: String,
     pub path: Option<PathBuf>,
     pub kind: TargetType,
-    pub span: miette::SourceSpan,
 }
 
-debug_without_span!(Target { name, path, kind });
-
 impl Target {
-    pub(super) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+    pub(super) fn read(node: &KdlNode, errors: &mut Errors) -> Spanned<Self> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
         let name = reader.required_argument("target name");
@@ -35,12 +32,7 @@ impl Target {
             None => TargetType::None,
         };
 
-        Self {
-            name,
-            path,
-            kind,
-            span,
-        }
+        Spanned::new(Self { name, path, kind }, span)
     }
 }
 

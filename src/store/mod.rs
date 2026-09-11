@@ -53,6 +53,10 @@ pub fn epoch_millis() -> u128 {
 }
 
 impl Store {
+    pub fn http_cache_path(&self) -> PathBuf {
+        self.path.join("http")
+    }
+
     pub fn object_path(&self, key: &ObjectKey) -> PathBuf {
         let hash = key.0.to_hex().to_string();
         self.path.join("objects").join(&hash[0..2]).join(hash)

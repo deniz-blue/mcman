@@ -12,19 +12,27 @@ Manifest {
                 path: Some(
                     "mods",
                 ),
-                presets: [
-                    Preset {
-                        identifier: "modrinth:fabric-api",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
-                    Preset {
-                        identifier: "modrinth:sodium",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
+                addons: [
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "fabric-api",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "sodium",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
                 ],
                 packages: [],
                 copies: [],
@@ -34,13 +42,17 @@ Manifest {
                 path: Some(
                     "config",
                 ),
-                presets: [
-                    Preset {
-                        identifier: "modrinth:cloth-config",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
+                addons: [
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "cloth-config",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
                 ],
                 packages: [],
                 copies: [],
@@ -50,13 +62,17 @@ Manifest {
                 path: Some(
                     "plugins",
                 ),
-                presets: [
-                    Preset {
-                        identifier: "modrinth:spark",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
+                addons: [
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "spark",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
                 ],
                 packages: [],
                 copies: [],

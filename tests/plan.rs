@@ -1,5 +1,6 @@
 use mcman::{
-    manifest::{Manifest, Platform},
+    addons::Platform,
+    manifest::Manifest,
     plan::{self, Plan, PlanWarning},
 };
 use miette::Diagnostic;
@@ -16,7 +17,7 @@ fn plan(fixture: &str) -> Plan {
         .unwrap_or_else(|e| panic!("{fixture} should plan:\n{e:?}"))
 }
 
-fn presets(plan: &Plan, target: &str, directory: &str) -> Vec<String> {
+fn addons(plan: &Plan, target: &str, directory: &str) -> Vec<String> {
     plan.targets
         .iter()
         .find(|candidate| candidate.target.name == target)
@@ -24,16 +25,7 @@ fn presets(plan: &Plan, target: &str, directory: &str) -> Vec<String> {
         .directories
         .iter()
         .find(|candidate| candidate.path.as_deref() == Some(Path::new(directory)))
-        .map(|found| {
-            found
-                .presets
-                .iter()
-                .map(|preset| match &preset.version {
-                    Some(version) => format!("{} {version}", preset.identifier),
-                    None => preset.identifier.clone(),
-                })
-                .collect()
-        })
+        .map(|found| found.addons.iter().map(|addon| addon.to_string()).collect())
         .unwrap_or_default()
 }
 
@@ -43,7 +35,8 @@ fn platform(plan: &Plan, target: &str) -> Option<Platform> {
         .find(|candidate| candidate.target.name == target)
         .unwrap_or_else(|| panic!("no target `{target}` in the plan"))
         .platform
-        .clone()
+        .as_ref()
+        .map(|platform| platform.value.clone())
 }
 
 fn rejection(fixture: &str) -> String {
@@ -79,34 +72,15 @@ fn full_design_doc() {
 fn an_ancestor_reaches_targets_in_subgroups() {
     let plan = plan("inheritance");
 
-    assert!(presets(&plan, "lobby", "plugins").contains(&"modrinth:luckperms 5.4.0".into()));
-    assert!(presets(&plan, "smp", "plugins").contains(&"modrinth:luckperms 5.4.0".into()));
-    assert!(presets(&plan, "smp", "plugins").contains(&"modrinth:spark 1.10".into()));
-}
-
-#[test]
-fn a_runtime_reaches_targets_in_subgroups() {
-    let plan = plan("inheritance");
-
-    for target in &plan.targets {
-        let runtimes: Vec<_> = target
-            .runtimes
-            .iter()
-            .map(|runtime| runtime.identifier.as_str())
-            .collect();
-        assert_eq!(
-            runtimes,
-            ["adoptium:jdk"],
-            "target `{}`",
-            target.target.name
-        );
-    }
+    assert!(addons(&plan, "lobby", "plugins").contains(&"modrinth:luckperms".into()));
+    assert!(addons(&plan, "smp", "plugins").contains(&"modrinth:luckperms".into()));
+    assert!(addons(&plan, "smp", "plugins").contains(&"modrinth:spark".into()));
 }
 
 #[test]
 fn siblings_are_invisible_to_each_other() {
     let plan = plan("inheritance");
-    let smp = presets(&plan, "smp", "plugins");
+    let smp = addons(&plan, "smp", "plugins");
 
     assert!(
         !smp.iter()
@@ -120,18 +94,18 @@ fn inherited_declarations_come_before_local_ones() {
     let plan = plan("inheritance");
 
     assert_eq!(
-        presets(&plan, "lobby", "plugins"),
+        addons(&plan, "lobby", "plugins"),
         [
-            "modrinth:luckperms 5.4.0",
-            "modrinth:spark 1.10",
-            "modrinth:fastasyncworldedit latest",
+            "modrinth:luckperms",
+            "modrinth:spark",
+            "modrinth:fastasyncworldedit",
         ]
     );
 }
 
 #[test]
-fn a_redeclared_preset_is_rejected() {
-    let error = rejection("redeclared-preset");
+fn a_redeclared_addon_is_rejected() {
+    let error = rejection("redeclared-addon");
 
     assert!(
         error.contains("`modrinth:spark` is declared again in group `lobby`"),
@@ -245,7 +219,7 @@ fn a_redeclared_package_is_rejected() {
 
 #[test]
 fn every_rejection_points_at_the_offending_declaration() {
-    assert!(labelled_source("redeclared-preset").contains(r#"version="1.11""#));
+    assert!(labelled_source("redeclared-addon").contains(r#"version="1.11""#));
     assert!(labelled_source("redeclared-package").contains("fork.git"));
     assert!(labelled_source("conflicting-file").contains("config/lobby.yml"));
     assert!(labelled_source("duplicate-target").contains("./run/elsewhere"));

@@ -5,7 +5,11 @@ use std::{
 
 use miette::SourceSpan;
 
-use crate::manifest::{Directory, Group, Manifest, Platform, PlatformContext, Preset, Target};
+use crate::{
+    addons::{Addon, Platform},
+    core::kdl::Spanned,
+    manifest::{Directory, Group, Manifest, Target},
+};
 
 mod error;
 
@@ -19,15 +23,14 @@ pub struct Plan {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TargetPlan {
-    pub target: Target,
-    pub platform: Option<Platform>,
-    pub runtimes: Vec<Preset>,
+    pub target: Spanned<Target>,
+    pub platform: Option<Spanned<Platform>>,
+    pub runtimes: Vec<Spanned<Addon>>,
     pub directories: Vec<Directory>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PlanWarning {
-    /// `label` is `None` for the manifest root.
     GroupWithoutTarget { label: Option<String> },
 }
 
@@ -50,8 +53,8 @@ pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {
 
 #[derive(Clone, Default)]
 struct Scope {
-    platform: Option<Platform>,
-    runtimes: Vec<Preset>,
+    platform: Option<Spanned<Platform>>,
+    runtimes: Vec<Spanned<Addon>>,
     directories: Vec<Directory>,
     written_paths: HashSet<PathBuf>,
 }
@@ -63,10 +66,10 @@ impl Scope {
         for platform in &group.platforms {
             if let Some(first) = &self.platform {
                 return Err(PlanError::RedeclaredPlatform {
-                    name: platform.name().to_owned(),
+                    name: platform.type_name().to_owned(),
                     group: label(),
-                    at: platform.span(),
-                    first: first.span(),
+                    at: platform.span,
+                    first: first.span,
                 });
             }
 
@@ -74,9 +77,9 @@ impl Scope {
         }
 
         for runtime in &group.runtimes {
-            if !insert_unique(&mut self.runtimes, runtime, |preset| &preset.identifier) {
-                return Err(PlanError::RedeclaredPreset {
-                    identifier: runtime.identifier.clone(),
+            if !insert_unique(&mut self.runtimes, runtime, same_addon) {
+                return Err(PlanError::RedeclaredAddon {
+                    addon: runtime.to_string(),
                     group: label(),
                     at: runtime.span,
                 });
@@ -98,12 +101,12 @@ impl Scope {
 
             let merged = self.directory(path);
 
-            for preset in &directory.presets {
-                if !insert_unique(&mut merged.presets, preset, |preset| &preset.identifier) {
-                    return Err(PlanError::RedeclaredPreset {
-                        identifier: preset.identifier.clone(),
+            for addon in &directory.addons {
+                if !insert_unique(&mut merged.addons, addon, same_addon) {
+                    return Err(PlanError::RedeclaredAddon {
+                        addon: addon.to_string(),
                         group: label(),
-                        at: preset.span,
+                        at: addon.span,
                     });
                 }
             }
@@ -114,7 +117,7 @@ impl Scope {
                     continue;
                 };
 
-                if !insert_unique(&mut merged.packages, package, |package| &package.label) {
+                if !insert_unique(&mut merged.packages, package, |a, b| a.label == b.label) {
                     return Err(PlanError::RedeclaredPackage {
                         label: existing.clone(),
                         group: label(),
@@ -200,7 +203,6 @@ fn written_path(directory: Option<&Path>, destination: &Path) -> PathBuf {
     }
 }
 
-/// `dir "."` and a bare `use` both address the target root.
 fn canonical_directory_path(path: Option<&Path>) -> Option<PathBuf> {
     match path {
         Some(path) if path != Path::new(".") => Some(path.to_path_buf()),
@@ -208,12 +210,16 @@ fn canonical_directory_path(path: Option<&Path>) -> Option<PathBuf> {
     }
 }
 
-fn insert_unique<T: Clone, K: PartialEq>(
+fn same_addon(one: &Spanned<Addon>, other: &Spanned<Addon>) -> bool {
+    one.to_string() == other.to_string()
+}
+
+fn insert_unique<T: Clone>(
     items: &mut Vec<T>,
     incoming: &T,
-    key: impl Fn(&T) -> &K,
+    same: impl Fn(&T, &T) -> bool,
 ) -> bool {
-    if items.iter().any(|item| key(item) == key(incoming)) {
+    if items.iter().any(|item| same(item, incoming)) {
         return false;
     }
 

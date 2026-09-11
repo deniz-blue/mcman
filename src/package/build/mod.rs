@@ -1,7 +1,7 @@
 use kdl::KdlNode;
 
 use crate::{
-    core::kdl::{child_nodes, reject_node, Errors},
+    core::kdl::{child_nodes, reject_node, Errors, Reader},
     package::build::tasks::{BuildTask, BuildTaskRunner},
 };
 
@@ -16,6 +16,8 @@ pub struct PackageBuild {
 
 impl PackageBuild {
     pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+        Reader::new(node, errors).reject_unread();
+
         let mut build = Self::default();
 
         for child in child_nodes(node) {

@@ -17,32 +17,33 @@ Plan {
                     VelocityPlatform,
                 ),
             ),
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
+            runtimes: [],
             directories: [
                 Directory {
                     path: Some(
                         "plugins",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:velocity-viasneak",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "luckperms",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "velocity-viasneak",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -50,13 +51,15 @@ Plan {
                 },
                 Directory {
                     path: None,
-                    presets: [
-                        Preset {
-                            identifier: "papermc:velocity",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        PaperMc(
+                            PaperMcAddon {
+                                project: "velocity",
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -79,38 +82,43 @@ Plan {
                     },
                 ),
             ),
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
+            runtimes: [],
             directories: [
                 Directory {
                     path: Some(
                         "plugins",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:spark",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:fastasyncworldedit",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "luckperms",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "spark",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "fastasyncworldedit",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [
                         Package {
@@ -130,7 +138,10 @@ Plan {
                                     tasks: [
                                         Execute(
                                             ExecuteTask {
-                                                command: "gradlew build",
+                                                program: "gradlew",
+                                                arguments: [
+                                                    "build",
+                                                ],
                                                 directory: Some(
                                                     ".",
                                                 ),
@@ -152,11 +163,13 @@ Plan {
                 },
                 Directory {
                     path: None,
-                    presets: [
-                        Preset {
-                            identifier: "papermc:paper",
-                            version: None,
-                        },
+                    addons: [
+                        PaperMc(
+                            PaperMcAddon {
+                                project: "paper",
+                                version: None,
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -182,32 +195,33 @@ Plan {
                     },
                 ),
             ),
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
+            runtimes: [],
             directories: [
                 Directory {
                     path: Some(
                         "plugins",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:spark",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "luckperms",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "spark",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -217,13 +231,17 @@ Plan {
                     path: Some(
                         "mods",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:create",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "create",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -249,32 +267,33 @@ Plan {
                     },
                 ),
             ),
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
+            runtimes: [],
             directories: [
                 Directory {
                     path: Some(
                         "plugins",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:spark",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "luckperms",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "spark",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -284,13 +303,17 @@ Plan {
                     path: Some(
                         "mods",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:create",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "create",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -298,11 +321,13 @@ Plan {
                 },
                 Directory {
                     path: None,
-                    presets: [
-                        Preset {
-                            identifier: "fabric:fabric",
-                            version: None,
-                        },
+                    addons: [
+                        Fabric(
+                            FabricAddon {
+                                name: "fabric",
+                                version: None,
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],

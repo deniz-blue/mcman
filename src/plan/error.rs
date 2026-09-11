@@ -5,13 +5,13 @@ use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum PlanError {
-    #[error("`{identifier}` is declared again in {}", describe(.group))]
+    #[error("`{addon}` is declared again in {}", describe(.group))]
     #[diagnostic(
-        code(mcman::redeclared_preset),
-        help("A package may be declared once on the path from the root to a target. To give some targets a different version, move the package into a group that only those targets are under.")
+        code(mcman::redeclared_addon),
+        help("An addon may be declared once on the path from the root to a target. To give some targets a different version, move it into a group that only those targets are under.")
     )]
-    RedeclaredPreset {
-        identifier: String,
+    RedeclaredAddon {
+        addon: String,
         group: Option<String>,
         #[label("declared again here")]
         at: SourceSpan,

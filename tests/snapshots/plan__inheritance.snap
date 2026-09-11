@@ -13,38 +13,47 @@ Plan {
                 kind: Server,
             },
             platform: None,
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
+            runtimes: [],
             directories: [
                 Directory {
                     path: Some(
                         "plugins",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "5.4.0",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:spark",
-                            version: Some(
-                                "1.10",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:fastasyncworldedit",
-                            version: Some(
-                                "latest",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "luckperms",
+                                ),
+                                version: Some(
+                                    Exact(
+                                        "5.4.0",
+                                    ),
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "spark",
+                                ),
+                                version: Some(
+                                    Exact(
+                                        "1.10",
+                                    ),
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "fastasyncworldedit",
+                                ),
+                                version: Some(
+                                    Latest,
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],
@@ -61,32 +70,37 @@ Plan {
                 kind: Server,
             },
             platform: None,
-            runtimes: [
-                Preset {
-                    identifier: "adoptium:jdk",
-                    version: Some(
-                        "21",
-                    ),
-                },
-            ],
+            runtimes: [],
             directories: [
                 Directory {
                     path: Some(
                         "plugins",
                     ),
-                    presets: [
-                        Preset {
-                            identifier: "modrinth:luckperms",
-                            version: Some(
-                                "5.4.0",
-                            ),
-                        },
-                        Preset {
-                            identifier: "modrinth:spark",
-                            version: Some(
-                                "1.10",
-                            ),
-                        },
+                    addons: [
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "luckperms",
+                                ),
+                                version: Some(
+                                    Exact(
+                                        "5.4.0",
+                                    ),
+                                ),
+                            },
+                        ),
+                        Modrinth(
+                            ModrinthAddon {
+                                project: ModrinthProjectId(
+                                    "spark",
+                                ),
+                                version: Some(
+                                    Exact(
+                                        "1.10",
+                                    ),
+                                ),
+                            },
+                        ),
                     ],
                     packages: [],
                     copies: [],

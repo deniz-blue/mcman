@@ -39,13 +39,17 @@ Manifest {
                                         path: Some(
                                             "plugins",
                                         ),
-                                        presets: [
-                                            Preset {
-                                                identifier: "modrinth:luckperms",
-                                                version: Some(
-                                                    "latest",
-                                                ),
-                                            },
+                                        addons: [
+                                            Modrinth(
+                                                ModrinthAddon {
+                                                    project: ModrinthProjectId(
+                                                        "luckperms",
+                                                    ),
+                                                    version: Some(
+                                                        Latest,
+                                                    ),
+                                                },
+                                            ),
                                         ],
                                         packages: [],
                                         copies: [],

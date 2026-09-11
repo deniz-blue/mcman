@@ -1,0 +1,10 @@
+// A download the provider gave two digests for
+target "server" type="server"
+
+package "viaversion" {
+    download "https://example.com/viaversion.jar" \
+        sha1="3702badb047b0586c4e634f6cea2671c09e3e6a5" \
+        sha512="727c12d5b0f616e99edb4127f128a33b8255670adae5459c6b5fccc1dc1eee05c7d2f4d95607b05d1a7c4402c5fb7fc44e2715896f228c7ae5a783d3a6fa4a61" \
+        size=9
+    artifact "viaversion.jar" "plugins/viaversion.jar"
+}

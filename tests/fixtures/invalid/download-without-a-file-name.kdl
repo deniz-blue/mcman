@@ -1,0 +1,4 @@
+package "viaversion" {
+    download "https://example.com/"
+    artifact "viaversion.jar" "plugins/viaversion.jar"
+}

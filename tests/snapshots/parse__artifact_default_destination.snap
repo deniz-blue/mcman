@@ -12,7 +12,7 @@ Manifest {
                 path: Some(
                     "plugins",
                 ),
-                presets: [],
+                addons: [],
                 packages: [
                     Package {
                         label: Some(
@@ -23,6 +23,10 @@ Manifest {
                                 Download {
                                     url: "https://example.com/custom.jar",
                                     path: None,
+                                    checksums: Checksums(
+                                        {},
+                                    ),
+                                    size: None,
                                 },
                             ),
                         ],

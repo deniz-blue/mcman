@@ -72,11 +72,11 @@ impl Lockfile {
                 node.ensure_children().nodes_mut().push(child);
             }
 
-            for preset in &target.presets {
+            for addon in &target.addons {
                 let mut child = KdlNode::new("use");
-                child.push(preset.identifier.as_str());
-                child.push(("version", preset.version.as_str()));
-                push_artifacts(&mut child, &preset.artifacts);
+                child.push(addon.identifier.as_str());
+                child.push(("version", addon.version.as_str()));
+                push_artifacts(&mut child, &addon.artifacts);
                 node.ensure_children().nodes_mut().push(child);
             }
 
@@ -112,14 +112,14 @@ fn display(path: &Path) -> String {
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct LockfileMeta {
-    pub version: u8,
+    pub version: u64,
     pub generated: String,
 }
 
 impl LockfileMeta {
     fn read(node: &KdlNode, errors: &mut Errors) -> Self {
         let mut reader = Reader::new(node, errors);
-        let version = reader.integer_property("version").unwrap_or_default() as u8;
+        let version = reader.unsigned_property("version").unwrap_or_default();
         let generated = reader.required_property("generated");
         reader.reject_unread();
 
@@ -133,7 +133,7 @@ pub struct LockedTarget {
     pub path: PathBuf,
     pub platform: Option<LockedPlatform>,
     pub runtimes: Vec<LockedRuntime>,
-    pub presets: Vec<LockedPreset>,
+    pub addons: Vec<LockedAddon>,
     pub packages: Vec<LockedPackage>,
 }
 
@@ -159,7 +159,7 @@ impl LockedTarget {
                     target.platform = Some(LockedPlatform::read(child, errors));
                 }
                 "runtime" => target.runtimes.push(LockedRuntime::read(child, errors)),
-                "use" => target.presets.push(LockedPreset::read(child, errors)),
+                "use" => target.addons.push(LockedAddon::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),
                 _ => reject_node(child, errors, TARGET_NODES),
             }
@@ -207,16 +207,16 @@ impl LockedRuntime {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct LockedPreset {
+pub struct LockedAddon {
     pub identifier: String,
     pub version: String,
     pub artifacts: Vec<Artifact>,
 }
 
-impl LockedPreset {
+impl LockedAddon {
     fn read(node: &KdlNode, errors: &mut Errors) -> Self {
         let mut reader = Reader::new(node, errors);
-        let identifier = reader.required_argument("preset identifier");
+        let identifier = reader.required_argument("addon identifier");
         let version = reader.required_property("version");
         reader.reject_unread();
 
@@ -262,7 +262,7 @@ impl Artifact {
         let mut reader = Reader::new(node, errors);
         let path = reader.required_path_argument("artifact path");
         let hash = reader.required_property("hash");
-        let size = reader.integer_property("size").unwrap_or_default() as u64;
+        let size = reader.unsigned_property("size").unwrap_or_default();
         reader.reject_unread();
 
         Self { path, hash, size }

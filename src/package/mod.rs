@@ -1,8 +1,8 @@
 use kdl::KdlNode;
-use miette::{Result, SourceSpan};
+use miette::Result;
 
 use crate::{
-    core::kdl::{child_nodes, debug_without_span, reject_node, Errors, Reader},
+    core::kdl::{child_nodes, reject_node, Errors, Reader, Spanned},
     package::{artifact::PackageArtifact, build::PackageBuild, source::PackageSource},
 };
 
@@ -12,24 +12,16 @@ pub mod source;
 
 const PACKAGE_NODES: &str = "git, download, build, artifact";
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Package {
     pub label: Option<String>,
     pub sources: Vec<PackageSource>,
     pub build: Option<PackageBuild>,
     pub artifacts: Vec<PackageArtifact>,
-    pub span: SourceSpan,
 }
 
-debug_without_span!(Package {
-    label,
-    sources,
-    build,
-    artifacts,
-});
-
 impl Package {
-    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Spanned<Self> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
         let label = reader.argument();
@@ -41,7 +33,6 @@ impl Package {
             sources: Vec::new(),
             build: None,
             artifacts: Vec::new(),
-            span,
         };
 
         for child in child_nodes(node) {
@@ -67,7 +58,7 @@ impl Package {
             }
         }
 
-        package
+        Spanned::new(package, span)
     }
 
     pub async fn build(&self) -> Result<()> {

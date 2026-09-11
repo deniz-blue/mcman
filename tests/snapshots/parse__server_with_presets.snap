@@ -12,25 +12,37 @@ Manifest {
                 path: Some(
                     "plugins",
                 ),
-                presets: [
-                    Preset {
-                        identifier: "modrinth:luckperms",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
-                    Preset {
-                        identifier: "modrinth:spark",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
-                    Preset {
-                        identifier: "modrinth:essentialsx",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
+                addons: [
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "luckperms",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "spark",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "essentialsx",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
                 ],
                 packages: [],
                 copies: [],
@@ -40,13 +52,17 @@ Manifest {
                 path: Some(
                     "mods",
                 ),
-                presets: [
-                    Preset {
-                        identifier: "modrinth:fabric-api",
-                        version: Some(
-                            "latest",
-                        ),
-                    },
+                addons: [
+                    Modrinth(
+                        ModrinthAddon {
+                            project: ModrinthProjectId(
+                                "fabric-api",
+                            ),
+                            version: Some(
+                                Latest,
+                            ),
+                        },
+                    ),
                 ],
                 packages: [],
                 copies: [],

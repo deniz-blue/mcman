@@ -1,0 +1,6 @@
+package "viaversion" {
+    build {
+        execute ""
+    }
+    artifact "build/libs/viaversion.jar"
+}

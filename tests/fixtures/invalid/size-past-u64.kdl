@@ -1,0 +1,4 @@
+package "viaversion" {
+    download "https://example.com/viaversion.jar" size=18446744073709551616
+    artifact "viaversion.jar" "plugins/viaversion.jar"
+}

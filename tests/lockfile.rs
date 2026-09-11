@@ -25,10 +25,10 @@ fn artifacts_carry_path_hash_and_size() {
     let lock = lockfile("lock-artifacts");
     let target = &lock.targets[0];
 
-    let preset = &target.presets[0].artifacts[0];
-    assert_eq!(preset.path, Path::new("velocity-3.4.0.jar"));
-    assert_eq!(preset.hash, "abcdef");
-    assert_eq!(preset.size, 123_456);
+    let addon = &target.addons[0].artifacts[0];
+    assert_eq!(addon.path, Path::new("velocity-3.4.0.jar"));
+    assert_eq!(addon.hash, "abcdef");
+    assert_eq!(addon.size, 123_456);
 
     let package = &target.packages[0].artifacts[0];
     assert_eq!(package.path, Path::new("plugins/customplugin.jar"));
@@ -121,7 +121,7 @@ fn a_changed_platform_is_reported() {
 #[test]
 fn a_numeric_hash_survives_the_round_trip() {
     let mut lock = lockfile("lock-full");
-    lock.targets[0].presets[0].artifacts[0].hash = "123456".into();
+    lock.targets[0].addons[0].artifacts[0].hash = "123456".into();
     lock.targets[0].name = "12345".into();
 
     assert_eq!(

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{lockfile::Lockfile, manifest::PlatformContext, plan::Plan};
+use crate::{lockfile::Lockfile, plan::Plan};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LockChange {
@@ -24,13 +24,13 @@ pub enum LockChange {
         target: String,
         identifier: String,
     },
-    PresetAdded {
+    AddonAdded {
         target: String,
-        identifier: String,
+        addon: String,
     },
-    PresetRemoved {
+    AddonRemoved {
         target: String,
-        identifier: String,
+        addon: String,
     },
     PackageAdded {
         target: String,
@@ -43,9 +43,6 @@ pub enum LockChange {
 }
 
 impl Lockfile {
-    /// Membership and platform name only. Locked versions are resolved values, so
-    /// comparing one to a manifest `version=` needs a provider, and so does deciding
-    /// which platform properties resolve.
     pub fn changes_needed_for(&self, plan: &Plan) -> Vec<LockChange> {
         let mut changes = Vec::new();
 
@@ -75,7 +72,10 @@ impl Lockfile {
                 .platform
                 .as_ref()
                 .map(|platform| platform.name.as_str());
-            let wanted_platform = planned.platform.as_ref().map(PlatformContext::name);
+            let wanted_platform = planned
+                .platform
+                .as_ref()
+                .map(|platform| platform.type_name());
 
             if locked_platform != wanted_platform {
                 changes.push(LockChange::PlatformChanged {
@@ -85,15 +85,15 @@ impl Lockfile {
                 });
             }
 
-            let wanted: Vec<&str> = planned
+            let wanted: Vec<String> = planned
                 .runtimes
                 .iter()
-                .map(|runtime| runtime.identifier.as_str())
+                .map(|addon| addon.to_string())
                 .collect();
-            let held: Vec<&str> = locked
+            let held: Vec<String> = locked
                 .runtimes
                 .iter()
-                .map(|runtime| runtime.identifier.as_str())
+                .map(|runtime| runtime.identifier.clone())
                 .collect();
             changes.extend(membership_changes(
                 &wanted,
@@ -108,40 +108,40 @@ impl Lockfile {
                 },
             ));
 
-            let wanted: Vec<&str> = planned
+            let wanted: Vec<String> = planned
                 .directories
                 .iter()
-                .flat_map(|directory| &directory.presets)
-                .map(|preset| preset.identifier.as_str())
+                .flat_map(|directory| &directory.addons)
+                .map(|addon| addon.to_string())
                 .collect();
-            let held: Vec<&str> = locked
-                .presets
+            let held: Vec<String> = locked
+                .addons
                 .iter()
-                .map(|preset| preset.identifier.as_str())
+                .map(|addon| addon.identifier.clone())
                 .collect();
             changes.extend(membership_changes(
                 &wanted,
                 &held,
-                |identifier| LockChange::PresetAdded {
+                |addon| LockChange::AddonAdded {
                     target: name.clone(),
-                    identifier: identifier.to_owned(),
+                    addon: addon.to_owned(),
                 },
-                |identifier| LockChange::PresetRemoved {
+                |addon| LockChange::AddonRemoved {
                     target: name.clone(),
-                    identifier: identifier.to_owned(),
+                    addon: addon.to_owned(),
                 },
             ));
 
-            let wanted: Vec<&str> = planned
+            let wanted: Vec<String> = planned
                 .directories
                 .iter()
                 .flat_map(|directory| &directory.packages)
-                .filter_map(|package| package.label.as_deref())
+                .filter_map(|package| package.label.clone())
                 .collect();
-            let held: Vec<&str> = locked
+            let held: Vec<String> = locked
                 .packages
                 .iter()
-                .map(|package| package.name.as_str())
+                .map(|package| package.name.clone())
                 .collect();
             changes.extend(membership_changes(
                 &wanted,
@@ -172,18 +172,18 @@ impl Lockfile {
 }
 
 fn membership_changes(
-    wanted: &[&str],
-    locked: &[&str],
+    wanted: &[String],
+    locked: &[String],
     added: impl Fn(&str) -> LockChange,
     removed: impl Fn(&str) -> LockChange,
 ) -> Vec<LockChange> {
     let missing = wanted
         .iter()
-        .filter(|name| !locked.contains(*name))
+        .filter(|name| !locked.contains(name))
         .map(|name| added(name));
     let stale = locked
         .iter()
-        .filter(|name| !wanted.contains(*name))
+        .filter(|name| !wanted.contains(name))
         .map(|name| removed(name));
 
     missing.chain(stale).collect()

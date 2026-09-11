@@ -7,8 +7,6 @@ fn parse(fixture: &str) -> Manifest {
     Manifest::parse(&path, &text).unwrap_or_else(|e| panic!("{path} should parse:\n{e:?}"))
 }
 
-/// Messages only — the rendered form embeds source lines, so matching against it
-/// would pass on any error reported near them.
 fn rejection(fixture: &str) -> String {
     let path = format!("tests/fixtures/invalid/{fixture}.kdl");
     let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
@@ -62,6 +60,39 @@ fn a_one_argument_artifact_takes_the_source_file_name() {
     );
 }
 
+#[test]
+fn the_same_declaration_at_two_offsets_is_equal() {
+    let declaration = "use \"modrinth:luckperms\" version=\"latest\"\n";
+    let one = Manifest::parse("one.kdl", declaration).expect("should parse");
+    let two = Manifest::parse("two.kdl", &format!("\n\n{declaration}")).expect("should parse");
+
+    assert_eq!(one, two);
+}
+
+#[test]
+fn an_addon_writes_back_the_identifier_it_was_read_from() {
+    let manifest = parse("addon");
+    let written: Vec<String> = manifest
+        .root
+        .directories
+        .iter()
+        .flat_map(|dir| &dir.addons)
+        .map(|addon| addon.to_string())
+        .collect();
+
+    assert_eq!(
+        written,
+        [
+            "modrinth:luckperms",
+            "fabric:fabric",
+            "modrinth:create",
+            "modrinth:sodium",
+            "modrinth:a:b",
+            "papermc:paper",
+        ]
+    );
+}
+
 parses! {
     minimal: "minimal",
     server_with_presets: "server-with-presets",
@@ -75,10 +106,12 @@ parses! {
     full_design_doc: "full-mcman",
     package_with_path: "package-with-path",
     multiple_artifacts: "multiple-artifacts",
-    runtime_and_files: "runtime-and-files",
+    root_files: "root-files",
     dir_scoped_files: "dir-scoped-files",
     artifact_default_destination: "artifact-default-destination",
     platform: "platform",
+    addon: "addon",
+    download_checksums: "download-checksums",
 }
 
 rejects! {
@@ -97,4 +130,14 @@ rejects! {
     unknown_platform: "unknown-platform" => "unknown platform `papr`, expected one of: paper, velocity, fabric",
     platform_without_minecraft: "platform-without-minecraft" => "property `minecraft` is required",
     platform_with_unknown_property: "platform-with-unknown-property" => "unexpected property `minecarft`",
+    addon_unqualified: "addon-unqualified" => "`luckperms` is not written as `<type>:<name>`",
+    addon_unknown_type: "addon-unknown-type" => "unknown addon type `modrnth`, expected one of: modrinth, papermc, fabric",
+    addon_without_a_name: "addon-without-a-name" => "`modrinth:` has no addon name after the `:`",
+    checksum_wrong_length: "checksum-wrong-length" => "`sha512` is 128 hex characters, found 6",
+    build_with_entries: "build-with-entries" => "unexpected property `bogus`",
+    negative_size: "negative-size" => "`size` cannot be negative",
+    size_past_u64: "size-past-u64" => "`size` is too large",
+    download_without_a_file_name: "download-without-a-file-name" => "`download` needs a `path` when its url has no file name",
+    execute_unbalanced_quote: "execute-unbalanced-quote" => "has an unbalanced quote",
+    execute_without_a_command: "execute-without-a-command" => "`execute` needs a command to run",
 }

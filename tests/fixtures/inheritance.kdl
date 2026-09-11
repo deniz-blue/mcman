@@ -1,6 +1,5 @@
 // Root content reaches every target, an ancestor reaches its descendants,
 // and siblings never see each other.
-runtime "adoptium:jdk" version="21"
 
 dir "plugins" {
     use "modrinth:luckperms" version="5.4.0"

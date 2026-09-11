@@ -1,0 +1,6 @@
+package "viaversion" {
+    build bogus=1 {
+        execute "gradlew"
+    }
+    artifact "x.jar"
+}

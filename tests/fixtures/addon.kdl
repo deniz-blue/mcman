@@ -1,0 +1,16 @@
+// Every addon type, with and without a version
+
+use "papermc:paper"
+
+dir "plugins" {
+    use "modrinth:luckperms" version="latest"
+}
+
+dir "mods" {
+    use "fabric:fabric" version="0.16.5"
+    use "modrinth:create" version="beta"
+    use "modrinth:sodium" version="alpha"
+    use "modrinth:a:b"
+}
+
+target "smp" path="./run/smp" type="server"

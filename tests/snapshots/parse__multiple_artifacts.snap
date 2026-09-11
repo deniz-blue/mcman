@@ -10,7 +10,7 @@ Manifest {
         directories: [
             Directory {
                 path: None,
-                presets: [],
+                addons: [],
                 packages: [
                     Package {
                         label: Some(
@@ -21,6 +21,10 @@ Manifest {
                                 Download {
                                     url: "https://example.com/big-plugin-2.0.jar",
                                     path: None,
+                                    checksums: Checksums(
+                                        {},
+                                    ),
+                                    size: None,
                                 },
                             ),
                         ],

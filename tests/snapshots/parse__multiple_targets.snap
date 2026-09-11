@@ -21,13 +21,17 @@ Manifest {
                         path: Some(
                             "plugins",
                         ),
-                        presets: [
-                            Preset {
-                                identifier: "modrinth:luckperms",
-                                version: Some(
-                                    "latest",
-                                ),
-                            },
+                        addons: [
+                            Modrinth(
+                                ModrinthAddon {
+                                    project: ModrinthProjectId(
+                                        "luckperms",
+                                    ),
+                                    version: Some(
+                                        Latest,
+                                    ),
+                                },
+                            ),
                         ],
                         packages: [],
                         copies: [],
@@ -56,13 +60,17 @@ Manifest {
                         path: Some(
                             "plugins",
                         ),
-                        presets: [
-                            Preset {
-                                identifier: "modrinth:spark",
-                                version: Some(
-                                    "latest",
-                                ),
-                            },
+                        addons: [
+                            Modrinth(
+                                ModrinthAddon {
+                                    project: ModrinthProjectId(
+                                        "spark",
+                                    ),
+                                    version: Some(
+                                        Latest,
+                                    ),
+                                },
+                            ),
                         ],
                         packages: [],
                         copies: [],
@@ -91,13 +99,17 @@ Manifest {
                         path: Some(
                             "mods",
                         ),
-                        presets: [
-                            Preset {
-                                identifier: "modrinth:create",
-                                version: Some(
-                                    "latest",
-                                ),
-                            },
+                        addons: [
+                            Modrinth(
+                                ModrinthAddon {
+                                    project: ModrinthProjectId(
+                                        "create",
+                                    ),
+                                    version: Some(
+                                        Latest,
+                                    ),
+                                },
+                            ),
                         ],
                         packages: [],
                         copies: [],

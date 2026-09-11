@@ -1,5 +1,4 @@
 // Manifest paired with lock-diff.kdl
-runtime "adoptium:jdk" version="21"
 platform "paper" minecraft="1.21.1"
 
 target "smp" path="./run/smp" type="server"
