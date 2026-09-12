@@ -1,6 +1,10 @@
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 
-use crate::{addons::Addon, lockfile::Lockfile, plan::Plan};
+use crate::{
+    addons::{Addon, Platform},
+    lockfile::Lockfile,
+    plan::Plan,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LockChange {
@@ -13,24 +17,24 @@ pub enum LockChange {
     },
     PlatformChanged {
         target: String,
-        locked: Option<String>,
-        wanted: Option<String>,
+        locked: Option<Platform>,
+        wanted: Option<Platform>,
     },
     RuntimeAdded {
         target: String,
-        identifier: String,
+        runtime: Addon,
     },
     RuntimeRemoved {
         target: String,
-        identifier: String,
+        runtime: Addon,
     },
     AddonAdded {
         target: String,
-        addon: String,
+        addon: Addon,
     },
     AddonRemoved {
         target: String,
-        addon: String,
+        addon: Addon,
     },
     PackageAdded {
         target: String,
@@ -40,6 +44,58 @@ pub enum LockChange {
         target: String,
         label: String,
     },
+}
+
+impl Display for LockChange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TargetAdded(target) => write!(f, "target `{target}` added"),
+            Self::TargetRemoved(target) => write!(f, "target `{target}` removed"),
+            Self::TargetPathChanged {
+                target,
+                locked,
+                wanted,
+            } => write!(
+                f,
+                "target `{target}` moved from `{}` to `{}`",
+                locked.display(),
+                wanted.display()
+            ),
+            Self::PlatformChanged {
+                target,
+                locked,
+                wanted,
+            } => write!(
+                f,
+                "target `{target}` platform changed from {} to {}",
+                describe(locked.as_ref()),
+                describe(wanted.as_ref())
+            ),
+            Self::RuntimeAdded { target, runtime } => {
+                write!(f, "target `{target}` runtime `{runtime}` added")
+            }
+            Self::RuntimeRemoved { target, runtime } => {
+                write!(f, "target `{target}` runtime `{runtime}` removed")
+            }
+            Self::AddonAdded { target, addon } => write!(f, "target `{target}` `{addon}` added"),
+            Self::AddonRemoved { target, addon } => {
+                write!(f, "target `{target}` `{addon}` removed")
+            }
+            Self::PackageAdded { target, label } => {
+                write!(f, "target `{target}` package `{label}` added")
+            }
+            Self::PackageRemoved { target, label } => {
+                write!(f, "target `{target}` package `{label}` removed")
+            }
+        }
+    }
+}
+
+fn describe(platform: Option<&Platform>) -> String {
+    match platform {
+        Some(platform) => format!("`{platform}`"),
+        None => "none".to_owned(),
+    }
 }
 
 impl Lockfile {
@@ -68,43 +124,38 @@ impl Lockfile {
                 });
             }
 
-            let locked_platform = locked
-                .platform
-                .as_ref()
-                .map(|platform| platform.name.as_str());
-            let wanted_platform = planned
-                .platform
-                .as_ref()
-                .map(|platform| platform.type_name());
+            let wanted_platform = planned.platform.as_ref().map(|platform| &platform.value);
+
+            let locked_platform = locked.platform.as_ref().map(|platform| &platform.requested);
 
             if locked_platform != wanted_platform {
                 changes.push(LockChange::PlatformChanged {
                     target: name.clone(),
-                    locked: locked_platform.map(str::to_owned),
-                    wanted: wanted_platform.map(str::to_owned),
+                    locked: locked_platform.cloned(),
+                    wanted: wanted_platform.cloned(),
                 });
             }
 
-            let wanted: Vec<String> = planned
+            let wanted: Vec<Addon> = planned
                 .runtimes
                 .iter()
-                .map(|addon| addon.to_string())
+                .map(|runtime| runtime.value.clone())
                 .collect();
-            let held: Vec<String> = locked
+            let held: Vec<Addon> = locked
                 .runtimes
                 .iter()
-                .map(|runtime| runtime.identifier.clone())
+                .map(|runtime| runtime.requested.clone())
                 .collect();
             changes.extend(membership_changes(
                 &wanted,
                 &held,
-                |identifier| LockChange::RuntimeAdded {
+                |runtime| LockChange::RuntimeAdded {
                     target: name.clone(),
-                    identifier: identifier.to_owned(),
+                    runtime: runtime.clone(),
                 },
-                |identifier| LockChange::RuntimeRemoved {
+                |runtime| LockChange::RuntimeRemoved {
                     target: name.clone(),
-                    identifier: identifier.to_owned(),
+                    runtime: runtime.clone(),
                 },
             ));
 
@@ -117,18 +168,18 @@ impl Lockfile {
             let held: Vec<Addon> = locked
                 .addons
                 .iter()
-                .map(|addon| addon.addon.clone())
+                .map(|addon| addon.requested.clone())
                 .collect();
             changes.extend(membership_changes(
                 &wanted,
                 &held,
                 |addon| LockChange::AddonAdded {
                     target: name.clone(),
-                    addon: addon.to_string(),
+                    addon: addon.clone(),
                 },
                 |addon| LockChange::AddonRemoved {
                     target: name.clone(),
-                    addon: addon.to_string(),
+                    addon: addon.clone(),
                 },
             ));
 

@@ -1,8 +1,10 @@
+use std::fmt::Display;
+
 use kdl::KdlNode;
 
 use crate::{
     addons::platform::{fabric::FabricPlatform, paper::PaperPlatform, velocity::VelocityPlatform},
-    core::kdl::{Errors, Reader, Spanned},
+    core::kdl::{write_entries, Errors, Reader, Spanned},
 };
 
 pub mod fabric;
@@ -21,6 +23,8 @@ pub trait PlatformType: Sized {
     const TYPE_NAME: &'static str;
 
     fn read(reader: &mut Reader) -> Self;
+
+    fn write(&self, node: &mut KdlNode);
 
     fn minecraft_version(&self) -> Option<&str> {
         None
@@ -53,6 +57,16 @@ impl Platform {
         }
     }
 
+    pub fn write(&self, node: &mut KdlNode) {
+        node.push(self.type_name());
+
+        match self {
+            Self::Paper(platform) => platform.write(node),
+            Self::Velocity(platform) => platform.write(node),
+            Self::Fabric(platform) => platform.write(node),
+        }
+    }
+
     pub fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
@@ -76,5 +90,13 @@ impl Platform {
 
         reader.reject_unread();
         Some(Spanned::new(platform, span))
+    }
+}
+
+impl Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut node = KdlNode::new("platform");
+        self.write(&mut node);
+        write_entries(&node, f)
     }
 }

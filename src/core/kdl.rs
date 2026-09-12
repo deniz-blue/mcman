@@ -305,6 +305,17 @@ impl<'a> Reader<'a> {
     }
 }
 
+pub fn write_entries(node: &KdlNode, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    for (index, entry) in node.entries().iter().enumerate() {
+        if index > 0 {
+            f.write_str(" ")?;
+        }
+        write!(f, "{entry}")?;
+    }
+
+    Ok(())
+}
+
 pub fn child_nodes(node: &KdlNode) -> &[KdlNode] {
     node.children().map(KdlDocument::nodes).unwrap_or_default()
 }

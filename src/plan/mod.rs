@@ -3,6 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use std::fmt::Display;
+
 use miette::SourceSpan;
 
 use crate::{
@@ -32,6 +34,19 @@ pub struct TargetPlan {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PlanWarning {
     GroupWithoutTarget { label: Option<String> },
+}
+
+impl Display for PlanWarning {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::GroupWithoutTarget { label: Some(label) } => {
+                write!(f, "group `{label}` reaches no target")
+            }
+            Self::GroupWithoutTarget { label: None } => {
+                f.write_str("the manifest declares no targets")
+            }
+        }
+    }
 }
 
 pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {

@@ -1,8 +1,12 @@
 meta version=1 generated="2024-06-01T12:00:00Z"
 
 target "proxy" path="./run/proxy" {
-    runtime "adoptium:jdk" version="21.0.4+7"
-    use papermc velocity version="latest" resolved="3.4.0" {
+    runtime github "adoptium/temurin21-binaries" asset="OpenJDK21U-jdk_x64_linux_hotspot_*.tar.gz" {
+        resolved github "adoptium/temurin21-binaries" tag="jdk-21.0.4+7" asset="OpenJDK21U-jdk_x64_linux_hotspot_21.0.4_7.tar.gz"
+        artifact "jdk/release" hash="abcdef" size=1
+    }
+    use papermc velocity version="latest" {
+        resolved papermc velocity version="3.4.0" build="463"
         artifact "velocity-3.4.0.jar" hash="abcdef" size=123456
     }
     package "customplugin" identity="fedcba" {

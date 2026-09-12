@@ -72,9 +72,15 @@ fn full_design_doc() {
 fn an_ancestor_reaches_targets_in_subgroups() {
     let plan = plan("inheritance");
 
-    assert!(addons(&plan, "lobby", "plugins").iter().any(|addon| addon.starts_with("modrinth luckperms")));
-    assert!(addons(&plan, "smp", "plugins").iter().any(|addon| addon.starts_with("modrinth luckperms")));
-    assert!(addons(&plan, "smp", "plugins").iter().any(|addon| addon.starts_with("modrinth spark")));
+    assert!(addons(&plan, "lobby", "plugins")
+        .iter()
+        .any(|addon| addon.starts_with("modrinth luckperms")));
+    assert!(addons(&plan, "smp", "plugins")
+        .iter()
+        .any(|addon| addon.starts_with("modrinth luckperms")));
+    assert!(addons(&plan, "smp", "plugins")
+        .iter()
+        .any(|addon| addon.starts_with("modrinth spark")));
 }
 
 #[test]
@@ -102,7 +108,6 @@ fn inherited_declarations_come_before_local_ones() {
         ]
     );
 }
-
 
 #[test]
 fn two_declarations_writing_one_file_are_rejected() {

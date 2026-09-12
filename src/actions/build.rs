@@ -7,21 +7,14 @@ use crate::{
     core::AppContext,
     manifest::Manifest,
     package::{source::PackageSource, Package},
-    plan::{self, PlanWarning, TargetPlan},
+    plan::{self, TargetPlan},
 };
 
 pub async fn build_manifest_all(ctx: &AppContext, path: &Path, manifest: &Manifest) -> Result<()> {
     let plan = plan::from_manifest(manifest)?;
 
     for warning in &plan.warnings {
-        match warning {
-            PlanWarning::GroupWithoutTarget { label: Some(label) } => {
-                eprintln!("warning: group `{label}` reaches no target")
-            }
-            PlanWarning::GroupWithoutTarget { label: None } => {
-                eprintln!("warning: the manifest declares no targets")
-            }
-        }
+        eprintln!("warning: {warning}");
     }
 
     for target in &plan.targets {

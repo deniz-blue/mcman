@@ -1,3 +1,5 @@
+use kdl::KdlNode;
+
 use crate::{addons::platform::PlatformType, core::kdl::Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -13,6 +15,15 @@ impl PlatformType for VelocityPlatform {
         Self {
             version: reader.property("version"),
             build: reader.property("build"),
+        }
+    }
+
+    fn write(&self, node: &mut KdlNode) {
+        if let Some(version) = &self.version {
+            node.push(("version", version.as_str()));
+        }
+        if let Some(build) = &self.build {
+            node.push(("build", build.as_str()));
         }
     }
 }

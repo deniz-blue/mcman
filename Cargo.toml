@@ -26,7 +26,7 @@ lto = "thin"
 
 [dependencies]
 cached = "0.47"
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.4", features = ["derive", "env"] }
 clap_complete = { version = "4.5", optional = true }
 confique = { version = "0.2", default-features = false, features = ["toml"] }
 console = "0.16"

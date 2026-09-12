@@ -40,11 +40,16 @@ async fn the_same_bytes_put_twice_leave_one_object() {
     assert_eq!(first, second);
     let object = store.object_path(&first);
     assert!(
-        fs::metadata(&object).expect("the object exists").permissions().readonly(),
+        fs::metadata(&object)
+            .expect("the object exists")
+            .permissions()
+            .readonly(),
         "an object should be read-only"
     );
     assert_eq!(
-        fs::read_dir(object.parent().expect("a shard")).expect("reads").count(),
+        fs::read_dir(object.parent().expect("a shard"))
+            .expect("reads")
+            .count(),
         1
     );
 }
@@ -70,7 +75,9 @@ async fn a_build_in_tmp_survives_another_store_opening() {
     let build = store.tmp().expect("a build directory");
     fs::write(build.path().join("server.jar"), b"in progress").expect("writes");
 
-    Store::open(root.path()).await.expect("a second store opens");
+    Store::open(root.path())
+        .await
+        .expect("a second store opens");
 
     assert!(
         build.path().join("server.jar").exists(),

@@ -1,3 +1,5 @@
+use kdl::KdlNode;
+
 use crate::{addons::platform::PlatformType, core::kdl::Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -13,6 +15,15 @@ impl PlatformType for FabricPlatform {
         Self {
             minecraft: reader.property("minecraft"),
             loader: reader.property("loader"),
+        }
+    }
+
+    fn write(&self, node: &mut KdlNode) {
+        if let Some(minecraft) = &self.minecraft {
+            node.push(("minecraft", minecraft.as_str()));
+        }
+        if let Some(loader) = &self.loader {
+            node.push(("loader", loader.as_str()));
         }
     }
 

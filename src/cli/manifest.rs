@@ -1,0 +1,243 @@
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+
+use clap::Args;
+use miette::{bail, Diagnostic, IntoDiagnostic, NamedSource, Result, WrapErr};
+use thiserror::Error;
+
+use crate::{
+    actions,
+    cli::ManifestArgs,
+    config::Config,
+    core::AppContext,
+    lockfile::Lockfile,
+    manifest::Manifest,
+    plan::{self, Plan},
+    store::Store,
+};
+
+const MANIFEST_NAME: &str = "mcman.kdl";
+const LOCKFILE_NAME: &str = "mcman.lock";
+
+const INIT_TEMPLATE: &str = r#"target smp
+
+platform paper minecraft="1.21.1"
+
+dir plugins {
+    use modrinth luckperms
+}
+"#;
+
+#[derive(Debug, Error, Diagnostic)]
+pub enum ManifestLookupError {
+    #[error("no `{MANIFEST_NAME}` found in `{}` or any directory above it", .from.display())]
+    #[diagnostic(
+        code(mcman::no_manifest),
+        help("Run `mcman init` to create one, or name it with `-f`.")
+    )]
+    NotFound { from: PathBuf },
+
+    #[error("`{}` already exists", .path.display())]
+    #[diagnostic(code(mcman::manifest_exists))]
+    AlreadyExists { path: PathBuf },
+}
+
+pub fn find_manifest(explicit: Option<&Path>) -> Result<PathBuf> {
+    if let Some(path) = explicit {
+        return Ok(path.to_owned());
+    }
+
+    let from = std::env::current_dir().into_diagnostic()?;
+
+    for directory in from.ancestors() {
+        let candidate = directory.join(MANIFEST_NAME);
+        if candidate.is_file() {
+            return Ok(candidate);
+        }
+    }
+
+    Err(ManifestLookupError::NotFound { from }.into())
+}
+
+struct Loaded {
+    path: PathBuf,
+    plan: Plan,
+}
+
+async fn load(args: &ManifestArgs) -> Result<Loaded> {
+    let path = find_manifest(args.manifest.as_deref())?;
+    let text = tokio::fs::read_to_string(&path)
+        .await
+        .into_diagnostic()
+        .wrap_err_with(|| format!("reading manifest {}", path.display()))?;
+
+    let name = path.to_string_lossy();
+    let manifest = Manifest::parse(&name, &text)?;
+    let plan = plan::from_manifest(&manifest).map_err(|error| {
+        miette::Report::new(error).with_source_code(NamedSource::new(name, text))
+    })?;
+
+    Ok(Loaded { path, plan })
+}
+
+async fn load_lockfile(manifest: &Path) -> Result<Lockfile> {
+    let path = manifest.with_file_name(LOCKFILE_NAME);
+
+    match tokio::fs::read_to_string(&path).await {
+        Ok(text) => Lockfile::parse(&path.to_string_lossy(), &text),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Lockfile::default()),
+        Err(error) => Err(error)
+            .into_diagnostic()
+            .wrap_err_with(|| format!("reading lockfile {}", path.display())),
+    }
+}
+
+#[derive(Debug, Args)]
+pub struct BuildArgs {
+    #[command(flatten)]
+    pub manifest: ManifestArgs,
+    #[arg(long)]
+    pub dry_run: bool,
+    #[arg(long)]
+    pub locked: bool,
+    #[arg(long)]
+    pub offline: bool,
+    #[arg(long)]
+    pub force: bool,
+    pub targets: Vec<String>,
+}
+
+impl BuildArgs {
+    pub async fn run(self, store: Option<&Path>) -> Result<()> {
+        let loaded = load(&self.manifest).await?;
+
+        for warning in &loaded.plan.warnings {
+            eprintln!("warning: {warning}");
+        }
+
+        let lockfile = load_lockfile(&loaded.path).await?;
+        let changes = lockfile.changes_needed_for(&loaded.plan);
+
+        if self.locked && !changes.is_empty() {
+            for change in &changes {
+                eprintln!("  {change}");
+            }
+            bail!("the lockfile does not cover the manifest, and `--locked` was given");
+        }
+
+        if self.dry_run {
+            for change in &changes {
+                println!("{change}");
+            }
+            return Ok(());
+        }
+
+        let config = Config::load()?;
+        let store = Store::open(config.store_path(store)?).await?;
+        let ctx = AppContext::new(Arc::new(store));
+
+        let manifest_dir = loaded.path.parent().unwrap_or(Path::new("."));
+
+        for target in &loaded.plan.targets {
+            if !self.targets.is_empty() && !self.targets.contains(&target.target.name) {
+                continue;
+            }
+
+            actions::build::build_manifest_target(&ctx, manifest_dir, target).await?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Args)]
+pub struct UpdateArgs {
+    #[command(flatten)]
+    pub manifest: ManifestArgs,
+    pub packages: Vec<String>,
+}
+
+impl UpdateArgs {
+    pub async fn run(self) -> Result<()> {
+        load(&self.manifest).await?;
+        bail!("`update` needs resolution, which is not implemented yet");
+    }
+}
+
+#[derive(Debug, Args)]
+pub struct ExplainArgs {
+    #[command(flatten)]
+    pub manifest: ManifestArgs,
+    pub targets: Vec<String>,
+}
+
+impl ExplainArgs {
+    pub async fn run(self) -> Result<()> {
+        let loaded = load(&self.manifest).await?;
+
+        for target in &loaded.plan.targets {
+            if !self.targets.is_empty() && !self.targets.contains(&target.target.name) {
+                continue;
+            }
+
+            println!("target {}", target.target.name);
+
+            if let Some(platform) = &target.platform {
+                println!("  platform {}", platform.value);
+            }
+
+            for runtime in &target.runtimes {
+                println!("  runtime {}", runtime.value);
+            }
+
+            for directory in &target.directories {
+                match &directory.path {
+                    Some(path) => println!("  dir {}", path.display()),
+                    None => println!("  dir ."),
+                }
+
+                for addon in &directory.addons {
+                    println!("    use {}", addon.value);
+                }
+
+                for package in &directory.packages {
+                    match &package.label {
+                        Some(label) => println!("    package {label}"),
+                        None => println!("    package"),
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Args)]
+pub struct InitArgs {
+    pub path: Option<PathBuf>,
+}
+
+impl InitArgs {
+    pub async fn run(self) -> Result<()> {
+        let path = match self.path {
+            Some(path) if path.is_dir() => path.join(MANIFEST_NAME),
+            Some(path) => path,
+            None => PathBuf::from(MANIFEST_NAME),
+        };
+
+        if path.exists() {
+            return Err(ManifestLookupError::AlreadyExists { path }.into());
+        }
+
+        tokio::fs::write(&path, INIT_TEMPLATE)
+            .await
+            .into_diagnostic()
+            .wrap_err_with(|| format!("writing {}", path.display()))?;
+
+        println!("wrote {}", path.display());
+        Ok(())
+    }
+}

@@ -7,7 +7,8 @@ fn reports_a_missing_manifest() {
     Command::cargo_bin("mcman")
         .unwrap()
         .current_dir(dir.path())
+        .arg("explain")
         .assert()
         .failure()
-        .stderr(predicates::str::contains("reading manifest"));
+        .stderr(predicates::str::contains("no `mcman.kdl` found"));
 }

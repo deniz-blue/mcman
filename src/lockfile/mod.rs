@@ -1,13 +1,10 @@
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use kdl::{KdlDocument, KdlNode};
 use miette::Result;
 
 use crate::{
-    addons::Addon,
+    addons::{Addon, Platform},
     core::kdl::{child_nodes, reject_node, Errors, Reader},
 };
 
@@ -15,6 +12,8 @@ pub mod diff;
 
 const LOCKFILE_NODES: &str = "meta, target";
 const TARGET_NODES: &str = "platform, runtime, use, package";
+const PLATFORM_NODES: &str = "resolved";
+const ADDON_NODES: &str = "resolved, artifact";
 const ENTRY_NODES: &str = "artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -58,29 +57,17 @@ impl Lockfile {
             node.push(("path", display(&target.path)));
 
             if let Some(platform) = &target.platform {
-                let mut child = KdlNode::new("platform");
-                child.push(platform.name.as_str());
-
-                for (property, value) in &platform.properties {
-                    child.push((property.as_str(), value.as_str()));
-                }
-
-                node.ensure_children().nodes_mut().push(child);
+                node.ensure_children().nodes_mut().push(platform.to_kdl());
             }
 
             for runtime in &target.runtimes {
-                let mut child = KdlNode::new("runtime");
-                child.push(runtime.identifier.as_str());
-                child.push(("version", runtime.version.as_str()));
-                node.ensure_children().nodes_mut().push(child);
+                node.ensure_children()
+                    .nodes_mut()
+                    .push(runtime.to_kdl("runtime"));
             }
 
             for addon in &target.addons {
-                let mut child = KdlNode::new("use");
-                addon.addon.write(&mut child);
-                child.push(("resolved", addon.resolved.as_str()));
-                push_artifacts(&mut child, &addon.artifacts);
-                node.ensure_children().nodes_mut().push(child);
+                node.ensure_children().nodes_mut().push(addon.to_kdl("use"));
             }
 
             for package in &target.packages {
@@ -135,7 +122,7 @@ pub struct LockedTarget {
     pub name: String,
     pub path: PathBuf,
     pub platform: Option<LockedPlatform>,
-    pub runtimes: Vec<LockedRuntime>,
+    pub runtimes: Vec<LockedAddon>,
     pub addons: Vec<LockedAddon>,
     pub packages: Vec<LockedPackage>,
 }
@@ -159,9 +146,9 @@ impl LockedTarget {
                     if target.platform.is_some() {
                         errors.push(child.span(), "a target has one `platform`");
                     }
-                    target.platform = Some(LockedPlatform::read(child, errors));
+                    target.platform = LockedPlatform::read(child, errors);
                 }
-                "runtime" => target.runtimes.push(LockedRuntime::read(child, errors)),
+                "runtime" => target.runtimes.extend(LockedAddon::read(child, errors)),
                 "use" => target.addons.extend(LockedAddon::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),
                 _ => reject_node(child, errors, TARGET_NODES),
@@ -172,62 +159,105 @@ impl LockedTarget {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LockedPlatform {
-    pub name: String,
-    pub properties: BTreeMap<String, String>,
+    pub requested: Platform,
+    pub resolved: Platform,
 }
 
 impl LockedPlatform {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let name = reader.required_argument("platform name");
-        let properties = reader.properties();
-        reader.reject_unread();
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
+        let requested = Platform::read(node, errors)?.value;
+        let mut resolved = None;
 
-        Self { name, properties }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct LockedRuntime {
-    pub identifier: String,
-    pub version: String,
-}
-
-impl LockedRuntime {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let identifier = reader.required_argument("runtime identifier");
-        let version = reader.required_property("version");
-        reader.reject_unread();
-
-        Self {
-            identifier,
-            version,
+        for child in child_nodes(node) {
+            match child.name().value() {
+                "resolved" => {
+                    if resolved.is_some() {
+                        errors.push(child.span(), "a locked `platform` has one `resolved`");
+                    }
+                    resolved = Platform::read(child, errors).map(|platform| platform.value);
+                }
+                _ => reject_node(child, errors, PLATFORM_NODES),
+            }
         }
+
+        let Some(resolved) = resolved else {
+            errors.push(node.span(), "a locked `platform` needs a `resolved` child");
+            return None;
+        };
+
+        Some(Self {
+            requested,
+            resolved,
+        })
+    }
+
+    fn to_kdl(&self) -> KdlNode {
+        let mut node = KdlNode::new("platform");
+        self.requested.write(&mut node);
+
+        let mut resolved = KdlNode::new("resolved");
+        self.resolved.write(&mut resolved);
+        node.ensure_children().nodes_mut().push(resolved);
+
+        node
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LockedAddon {
-    pub addon: Addon,
-    pub resolved: String,
+    pub requested: Addon,
+    pub resolved: Addon,
     pub artifacts: Vec<Artifact>,
 }
 
 impl LockedAddon {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
-        let addon = Addon::read(&mut reader)?;
-        let resolved = reader.required_property("resolved");
+        let requested = Addon::read(&mut reader)?;
         reader.reject_unread();
 
+        let mut resolved = None;
+        let mut artifacts = Vec::new();
+
+        for child in child_nodes(node) {
+            match child.name().value() {
+                "resolved" => {
+                    if resolved.is_some() {
+                        errors.push(child.span(), "a locked addon has one `resolved`");
+                    }
+                    let mut reader = Reader::new(child, errors);
+                    resolved = Addon::read(&mut reader);
+                    reader.reject_unread();
+                }
+                "artifact" => artifacts.push(Artifact::read(child, errors)),
+                _ => reject_node(child, errors, ADDON_NODES),
+            }
+        }
+
+        let Some(resolved) = resolved else {
+            errors.push(node.span(), "a locked addon needs a `resolved` child");
+            return None;
+        };
+
         Some(Self {
-            addon,
+            requested,
             resolved,
-            artifacts: read_artifacts(node, errors),
+            artifacts,
         })
+    }
+
+    fn to_kdl(&self, name: &str) -> KdlNode {
+        let mut node = KdlNode::new(name);
+        self.requested.write(&mut node);
+
+        let mut resolved = KdlNode::new("resolved");
+        self.resolved.write(&mut resolved);
+        node.ensure_children().nodes_mut().push(resolved);
+
+        push_artifacts(&mut node, &self.artifacts);
+        node
     }
 }
 

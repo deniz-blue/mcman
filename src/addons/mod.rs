@@ -7,7 +7,7 @@ use crate::{
         curseforge::CurseForgeAddon, fabric::FabricLoaderAddon, github::GitHubAddon,
         hangar::HangarAddon, maven::MavenAddon, modrinth::ModrinthAddon, papermc::PaperMcAddon,
     },
-    core::kdl::Reader,
+    core::kdl::{write_entries, Reader},
 };
 
 pub mod curseforge;
@@ -109,14 +109,6 @@ impl Display for Addon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut node = KdlNode::new("use");
         self.write(&mut node);
-
-        for (index, entry) in node.entries().iter().enumerate() {
-            if index > 0 {
-                f.write_str(" ")?;
-            }
-            write!(f, "{entry}")?;
-        }
-
-        Ok(())
+        write_entries(&node, f)
     }
 }
