@@ -5,37 +5,32 @@ use kdl::KdlNode;
 use crate::{addons::AddonType, core::kdl::Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ModrinthAddon {
-    pub id: String,
+pub struct HangarAddon {
+    pub project: String,
     pub version: Option<String>,
-    pub files: Vec<String>,
 }
 
-impl AddonType for ModrinthAddon {
-    const TYPE_NAME: &'static str = "modrinth";
+impl AddonType for HangarAddon {
+    const TYPE_NAME: &'static str = "hangar";
 
 
     fn read(reader: &mut Reader) -> Self {
         Self {
-            id: reader.required_argument_or_property("id"),
+            project: reader.required_argument_or_property("project"),
             version: reader.property("version"),
-            files: reader.list_property("files"),
         }
     }
 
     fn write(&self, node: &mut KdlNode) {
-        node.push(self.id.as_str());
+        node.push(self.project.as_str());
         if let Some(version) = &self.version {
             node.push(("version", version.as_str()));
-        }
-        if !self.files.is_empty() {
-            node.push(("files", self.files.join(" ")));
         }
     }
 }
 
-impl Display for ModrinthAddon {
+impl Display for HangarAddon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", Self::TYPE_NAME, self.id)
+        write!(f, "{}:{}", Self::TYPE_NAME, self.project)
     }
 }

@@ -1,3 +1,0 @@
-group "lobby" path="./run/lobby" {
-    target "lobby" type="server"
-}

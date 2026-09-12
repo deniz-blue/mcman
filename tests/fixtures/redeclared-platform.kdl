@@ -1,8 +1,8 @@
 // Two platforms on the path from the root to `smp`
-platform "paper" minecraft="1.21.1"
+platform paper minecraft="1.21.1"
 
 group "smp" {
-    platform "fabric" minecraft="1.21.1"
+    platform fabric minecraft="1.21.1"
 
     target "smp" path="./run/smp" type="server"
 }

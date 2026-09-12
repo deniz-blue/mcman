@@ -7,5 +7,5 @@ fs:copy "config/bukkit.yml" "bukkit.yml"
 fs:symlink "config/permissions.yml" "plugins/LuckPerms/permissions.yml"
 
 dir "plugins" {
-    use "modrinth:luckperms" version="latest"
+    use modrinth luckperms version="latest"
 }

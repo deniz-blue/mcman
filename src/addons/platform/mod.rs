@@ -56,12 +56,12 @@ impl Platform {
     pub fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
-        let type_name = reader.required_argument("platform name");
+        let type_name = reader.required_argument("platform type");
 
         let platform = match type_name.as_str() {
-            PaperPlatform::TYPE_NAME => Self::Paper(PaperPlatform::read(&mut reader)),
-            VelocityPlatform::TYPE_NAME => Self::Velocity(VelocityPlatform::read(&mut reader)),
-            FabricPlatform::TYPE_NAME => Self::Fabric(FabricPlatform::read(&mut reader)),
+            PaperPlatform::TYPE_NAME => Self::Paper(PlatformType::read(&mut reader)),
+            VelocityPlatform::TYPE_NAME => Self::Velocity(PlatformType::read(&mut reader)),
+            FabricPlatform::TYPE_NAME => Self::Fabric(PlatformType::read(&mut reader)),
             _ => {
                 errors.push(
                     span,

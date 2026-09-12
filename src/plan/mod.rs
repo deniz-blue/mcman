@@ -76,15 +76,7 @@ impl Scope {
             self.platform = Some(platform.clone());
         }
 
-        for runtime in &group.runtimes {
-            if !insert_unique(&mut self.runtimes, runtime, same_addon) {
-                return Err(PlanError::RedeclaredAddon {
-                    addon: runtime.to_string(),
-                    group: label(),
-                    at: runtime.span,
-                });
-            }
-        }
+        self.runtimes.extend(group.runtimes.iter().cloned());
 
         for directory in &group.directories {
             let path = canonical_directory_path(directory.path.as_deref());
@@ -101,15 +93,7 @@ impl Scope {
 
             let merged = self.directory(path);
 
-            for addon in &directory.addons {
-                if !insert_unique(&mut merged.addons, addon, same_addon) {
-                    return Err(PlanError::RedeclaredAddon {
-                        addon: addon.to_string(),
-                        group: label(),
-                        at: addon.span,
-                    });
-                }
-            }
+            merged.addons.extend(directory.addons.iter().cloned());
 
             for package in &directory.packages {
                 let Some(existing) = package.label.as_ref() else {
@@ -208,10 +192,6 @@ fn canonical_directory_path(path: Option<&Path>) -> Option<PathBuf> {
         Some(path) if path != Path::new(".") => Some(path.to_path_buf()),
         _ => None,
     }
-}
-
-fn same_addon(one: &Spanned<Addon>, other: &Spanned<Addon>) -> bool {
-    one.to_string() == other.to_string()
 }
 
 fn insert_unique<T: Clone>(

@@ -1,4 +1,0 @@
-target "main" type="server"
-dir "plugins" {
-    runtime "papermc:paper"
-}

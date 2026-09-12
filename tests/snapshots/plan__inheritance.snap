@@ -22,36 +22,29 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "luckperms",
-                                ),
+                                id: "luckperms",
                                 version: Some(
-                                    Exact(
-                                        "5.4.0",
-                                    ),
+                                    "5.4.0",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "spark",
-                                ),
+                                id: "spark",
                                 version: Some(
-                                    Exact(
-                                        "1.10",
-                                    ),
+                                    "1.10",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "fastasyncworldedit",
-                                ),
+                                id: "fastasyncworldedit",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -79,26 +72,20 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "luckperms",
-                                ),
+                                id: "luckperms",
                                 version: Some(
-                                    Exact(
-                                        "5.4.0",
-                                    ),
+                                    "5.4.0",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "spark",
-                                ),
+                                id: "spark",
                                 version: Some(
-                                    Exact(
-                                        "1.10",
-                                    ),
+                                    "1.10",
                                 ),
+                                files: [],
                             },
                         ),
                     ],

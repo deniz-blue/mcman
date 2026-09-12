@@ -2,19 +2,19 @@
 // and siblings never see each other.
 
 dir "plugins" {
-    use "modrinth:luckperms" version="5.4.0"
+    use modrinth luckperms version="5.4.0"
 }
 
 group "servers" {
     dir "plugins" {
-        use "modrinth:spark" version="1.10"
+        use modrinth spark version="1.10"
     }
 
     group "lobby" {
         target "lobby" path="./run/lobby" type="server"
 
         dir "plugins" {
-            use "modrinth:fastasyncworldedit" version="latest"
+            use modrinth fastasyncworldedit version="latest"
         }
     }
 
@@ -25,6 +25,6 @@ group "servers" {
 
 group "unreachable" {
     dir "mods" {
-        use "modrinth:sodium" version="latest"
+        use modrinth sodium version="latest"
     }
 }

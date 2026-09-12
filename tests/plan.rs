@@ -103,15 +103,6 @@ fn inherited_declarations_come_before_local_ones() {
     );
 }
 
-#[test]
-fn a_redeclared_addon_is_rejected() {
-    let error = rejection("redeclared-addon");
-
-    assert!(
-        error.contains("`modrinth:spark` is declared again in group `lobby`"),
-        "unexpected error: {error}"
-    );
-}
 
 #[test]
 fn two_declarations_writing_one_file_are_rejected() {
@@ -168,7 +159,7 @@ fn a_platform_reaches_targets_in_subgroups() {
     let Some(Platform::Fabric(fabric)) = platform(&plan, "smp") else {
         panic!("`smp` should inherit the fabric platform of its parent group");
     };
-    assert_eq!(fabric.minecraft, "1.21.1");
+    assert_eq!(fabric.minecraft.as_deref(), Some("1.21.1"));
     assert_eq!(fabric.loader.as_deref(), Some("0.16.5"));
 }
 
@@ -194,8 +185,8 @@ fn a_redeclared_platform_points_at_both_declarations() {
     assert_eq!(
         sources,
         [
-            "platform \"fabric\" minecraft=\"1.21.1\"",
-            "platform \"paper\" minecraft=\"1.21.1\"",
+            "platform fabric minecraft=\"1.21.1\"",
+            "platform paper minecraft=\"1.21.1\"",
         ]
     );
 }
@@ -219,7 +210,6 @@ fn a_redeclared_package_is_rejected() {
 
 #[test]
 fn every_rejection_points_at_the_offending_declaration() {
-    assert!(labelled_source("redeclared-addon").contains(r#"version="1.11""#));
     assert!(labelled_source("redeclared-package").contains("fork.git"));
     assert!(labelled_source("conflicting-file").contains("config/lobby.yml"));
     assert!(labelled_source("duplicate-target").contains("./run/elsewhere"));

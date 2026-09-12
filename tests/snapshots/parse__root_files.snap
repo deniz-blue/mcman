@@ -15,12 +15,11 @@ Manifest {
                 addons: [
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "luckperms",
-                            ),
+                            id: "luckperms",
                             version: Some(
-                                Latest,
+                                "latest",
                             ),
+                            files: [],
                         },
                     ),
                 ],

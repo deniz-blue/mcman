@@ -1,5 +1,0 @@
-target "main" type="server"
-package "custom" {
-    download "https://example.com/custom.jar"
-    fs:symlink "custom.jar" "plugins/custom.jar"
-}

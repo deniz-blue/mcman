@@ -1,4 +1,0 @@
-target "main" type="server"
-dir "plugins" {
-    download "https://example.com/spark.jar"
-}

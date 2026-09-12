@@ -2,14 +2,14 @@
 target "modded" path="./run/modded" type="server"
 
 dir "mods" {
-    use "modrinth:fabric-api" version="latest"
-    use "modrinth:sodium" version="latest"
+    use modrinth fabric-api version="latest"
+    use modrinth sodium version="latest"
 }
 
 dir "config" {
-    use "modrinth:cloth-config" version="latest"
+    use modrinth cloth-config version="latest"
 }
 
 dir "plugins" {
-    use "modrinth:spark" version="latest"
+    use modrinth spark version="latest"
 }

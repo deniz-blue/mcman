@@ -1,12 +1,12 @@
 // A platform reaches subgroups, siblings never see each other's, and a target may have none
 group "proxy" {
-    platform "velocity"
+    platform velocity
 
     target "proxy" path="./run/proxy" type="server"
 }
 
 group "survival" {
-    platform "fabric" minecraft="1.21.1" loader="0.16.5"
+    platform fabric minecraft="1.21.1" loader="0.16.5"
 
     target "smp-pack" path="./run/smp-packwiz" type="packwiz"
 

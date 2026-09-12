@@ -6,7 +6,10 @@ use std::{
 use kdl::{KdlDocument, KdlNode};
 use miette::Result;
 
-use crate::core::kdl::{child_nodes, reject_node, Errors, Reader};
+use crate::{
+    addons::Addon,
+    core::kdl::{child_nodes, reject_node, Errors, Reader},
+};
 
 pub mod diff;
 
@@ -74,8 +77,8 @@ impl Lockfile {
 
             for addon in &target.addons {
                 let mut child = KdlNode::new("use");
-                child.push(addon.identifier.as_str());
-                child.push(("version", addon.version.as_str()));
+                addon.addon.write(&mut child);
+                child.push(("resolved", addon.resolved.as_str()));
                 push_artifacts(&mut child, &addon.artifacts);
                 node.ensure_children().nodes_mut().push(child);
             }
@@ -159,7 +162,7 @@ impl LockedTarget {
                     target.platform = Some(LockedPlatform::read(child, errors));
                 }
                 "runtime" => target.runtimes.push(LockedRuntime::read(child, errors)),
-                "use" => target.addons.push(LockedAddon::read(child, errors)),
+                "use" => target.addons.extend(LockedAddon::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),
                 _ => reject_node(child, errors, TARGET_NODES),
             }
@@ -206,25 +209,25 @@ impl LockedRuntime {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LockedAddon {
-    pub identifier: String,
-    pub version: String,
+    pub addon: Addon,
+    pub resolved: String,
     pub artifacts: Vec<Artifact>,
 }
 
 impl LockedAddon {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
-        let identifier = reader.required_argument("addon identifier");
-        let version = reader.required_property("version");
+        let addon = Addon::read(&mut reader)?;
+        let resolved = reader.required_property("resolved");
         reader.reject_unread();
 
-        Self {
-            identifier,
-            version,
+        Some(Self {
+            addon,
+            resolved,
             artifacts: read_artifacts(node, errors),
-        }
+        })
     }
 }
 

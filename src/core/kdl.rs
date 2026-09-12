@@ -139,6 +139,39 @@ impl<'a> Reader<'a> {
         self.string(entry)
     }
 
+    pub fn argument_or_property(&mut self, name: &'static str) -> Option<String> {
+        self.properties_read.push(name);
+        let positional = self.arguments().nth(self.arguments_read);
+        self.arguments_read += 1;
+
+        match (self.node.entry(name), positional) {
+            (Some(named), Some(repeat)) => {
+                self.errors
+                    .push(repeat.span(), format!("`{name}` is given twice"));
+                self.string(named)
+            }
+            (Some(entry), None) | (None, Some(entry)) => self.string(entry),
+            (None, None) => None,
+        }
+    }
+
+    pub fn required_argument_or_property(&mut self, name: &'static str) -> String {
+        match self.argument_or_property(name) {
+            Some(value) => value,
+            None => {
+                let span = self.node.span();
+                self.errors.push(span, format!("`{name}` is required"));
+                String::new()
+            }
+        }
+    }
+
+    pub fn list_property(&mut self, name: &'static str) -> Vec<String> {
+        self.property(name)
+            .map(|value| value.split_whitespace().map(str::to_owned).collect())
+            .unwrap_or_default()
+    }
+
     pub fn required_property(&mut self, name: &'static str) -> String {
         let written = self.node.entry(name).is_some();
 

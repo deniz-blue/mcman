@@ -2,7 +2,8 @@ use crate::{addons::platform::PlatformType, core::kdl::Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PaperPlatform {
-    pub minecraft: String,
+    pub minecraft: Option<String>,
+    pub build: Option<String>,
 }
 
 impl PlatformType for PaperPlatform {
@@ -10,11 +11,12 @@ impl PlatformType for PaperPlatform {
 
     fn read(reader: &mut Reader) -> Self {
         Self {
-            minecraft: reader.required_property("minecraft"),
+            minecraft: reader.property("minecraft"),
+            build: reader.property("build"),
         }
     }
 
     fn minecraft_version(&self) -> Option<&str> {
-        Some(&self.minecraft)
+        self.minecraft.as_deref()
     }
 }

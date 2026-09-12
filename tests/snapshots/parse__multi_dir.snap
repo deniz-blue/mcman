@@ -15,22 +15,20 @@ Manifest {
                 addons: [
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "fabric-api",
-                            ),
+                            id: "fabric-api",
                             version: Some(
-                                Latest,
+                                "latest",
                             ),
+                            files: [],
                         },
                     ),
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "sodium",
-                            ),
+                            id: "sodium",
                             version: Some(
-                                Latest,
+                                "latest",
                             ),
+                            files: [],
                         },
                     ),
                 ],
@@ -45,12 +43,11 @@ Manifest {
                 addons: [
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "cloth-config",
-                            ),
+                            id: "cloth-config",
                             version: Some(
-                                Latest,
+                                "latest",
                             ),
+                            files: [],
                         },
                     ),
                 ],
@@ -65,12 +62,11 @@ Manifest {
                 addons: [
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "spark",
-                            ),
+                            id: "spark",
                             version: Some(
-                                Latest,
+                                "latest",
                             ),
+                            files: [],
                         },
                     ),
                 ],

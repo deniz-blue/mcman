@@ -14,7 +14,10 @@ Plan {
             },
             platform: Some(
                 Velocity(
-                    VelocityPlatform,
+                    VelocityPlatform {
+                        version: None,
+                        build: None,
+                    },
                 ),
             ),
             runtimes: [],
@@ -26,22 +29,20 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "luckperms",
-                                ),
+                                id: "luckperms",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "velocity-viasneak",
-                                ),
+                                id: "velocity-viasneak",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -56,8 +57,9 @@ Plan {
                             PaperMcAddon {
                                 project: "velocity",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                build: None,
                             },
                         ),
                     ],
@@ -78,7 +80,10 @@ Plan {
             platform: Some(
                 Paper(
                     PaperPlatform {
-                        minecraft: "1.21.1",
+                        minecraft: Some(
+                            "1.21.1",
+                        ),
+                        build: None,
                     },
                 ),
             ),
@@ -91,32 +96,29 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "luckperms",
-                                ),
+                                id: "luckperms",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "spark",
-                                ),
+                                id: "spark",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "fastasyncworldedit",
-                                ),
+                                id: "fastasyncworldedit",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -168,6 +170,7 @@ Plan {
                             PaperMcAddon {
                                 project: "paper",
                                 version: None,
+                                build: None,
                             },
                         ),
                     ],
@@ -188,7 +191,9 @@ Plan {
             platform: Some(
                 Fabric(
                     FabricPlatform {
-                        minecraft: "1.21.1",
+                        minecraft: Some(
+                            "1.21.1",
+                        ),
                         loader: Some(
                             "latest",
                         ),
@@ -204,22 +209,20 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "luckperms",
-                                ),
+                                id: "luckperms",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "spark",
-                                ),
+                                id: "spark",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -234,12 +237,11 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "create",
-                                ),
+                                id: "create",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -260,7 +262,9 @@ Plan {
             platform: Some(
                 Fabric(
                     FabricPlatform {
-                        minecraft: "1.21.1",
+                        minecraft: Some(
+                            "1.21.1",
+                        ),
                         loader: Some(
                             "latest",
                         ),
@@ -276,22 +280,20 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "luckperms",
-                                ),
+                                id: "luckperms",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "spark",
-                                ),
+                                id: "spark",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -306,12 +308,11 @@ Plan {
                     addons: [
                         Modrinth(
                             ModrinthAddon {
-                                project: ModrinthProjectId(
-                                    "create",
-                                ),
+                                id: "create",
                                 version: Some(
-                                    Latest,
+                                    "latest",
                                 ),
+                                files: [],
                             },
                         ),
                     ],
@@ -322,10 +323,10 @@ Plan {
                 Directory {
                     path: None,
                     addons: [
-                        Fabric(
-                            FabricAddon {
-                                name: "fabric",
-                                version: None,
+                        FabricLoader(
+                            FabricLoaderAddon {
+                                loader: None,
+                                installer: None,
                             },
                         ),
                     ],

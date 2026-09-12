@@ -1,13 +1,13 @@
 // Full realistic manifest from the design doc
 
 group "proxy" {
-    platform "velocity"
+    platform velocity
 
-    use "papermc:velocity" version="latest"
+    use papermc velocity version="latest"
 
     dir "plugins" {
-        use "modrinth:luckperms" version="latest"
-        use "modrinth:velocity-viasneak" version="latest"
+        use modrinth luckperms version="latest"
+        use modrinth velocity-viasneak version="latest"
     }
 
     target "proxy" path="./run/proxy" type="server"
@@ -15,18 +15,18 @@ group "proxy" {
 
 group "game-servers" {
     dir "plugins" {
-        use "modrinth:luckperms" version="latest" // Resolves Bukkit/Spigot jar
-        use "modrinth:spark" version="latest"
+        use modrinth luckperms version="latest" // Resolves Bukkit/Spigot jar
+        use modrinth spark version="latest"
     }
 
     group "lobby" {
         target "lobby" path="./run/lobby" type="server"
 
-        platform "paper" minecraft="1.21.1"
-        use "papermc:paper"
+        platform paper minecraft="1.21.1"
+        use papermc paper
 
         dir "plugins" {
-            use "modrinth:fastasyncworldedit" version="latest"
+            use modrinth fastasyncworldedit version="latest"
 
             package "customplugin" {
                 git "https://github.com/example/customplugin.git"
@@ -39,10 +39,10 @@ group "game-servers" {
     }
 
     group "smp" {
-        platform "fabric" minecraft="1.21.1" loader="latest"
+        platform fabric minecraft="1.21.1" loader="latest"
 
         dir "mods" {
-            use "modrinth:create" version="latest"
+            use modrinth create version="latest"
         }
 
         target "smp-pack" path="./run/smp-packwiz" type="packwiz"
@@ -50,7 +50,7 @@ group "game-servers" {
         group "smp-server" {
             target "smp-server" path="./run/smp" type="server"
 
-            use "fabric:fabric"
+            use fabric
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{lockfile::Lockfile, plan::Plan};
+use crate::{addons::Addon, lockfile::Lockfile, plan::Plan};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LockChange {
@@ -108,27 +108,27 @@ impl Lockfile {
                 },
             ));
 
-            let wanted: Vec<String> = planned
+            let wanted: Vec<Addon> = planned
                 .directories
                 .iter()
                 .flat_map(|directory| &directory.addons)
-                .map(|addon| addon.to_string())
+                .map(|addon| addon.value.clone())
                 .collect();
-            let held: Vec<String> = locked
+            let held: Vec<Addon> = locked
                 .addons
                 .iter()
-                .map(|addon| addon.identifier.clone())
+                .map(|addon| addon.addon.clone())
                 .collect();
             changes.extend(membership_changes(
                 &wanted,
                 &held,
                 |addon| LockChange::AddonAdded {
                     target: name.clone(),
-                    addon: addon.to_owned(),
+                    addon: addon.to_string(),
                 },
                 |addon| LockChange::AddonRemoved {
                     target: name.clone(),
-                    addon: addon.to_owned(),
+                    addon: addon.to_string(),
                 },
             ));
 
@@ -171,20 +171,20 @@ impl Lockfile {
     }
 }
 
-fn membership_changes(
-    wanted: &[String],
-    locked: &[String],
-    added: impl Fn(&str) -> LockChange,
-    removed: impl Fn(&str) -> LockChange,
+fn membership_changes<T: PartialEq>(
+    wanted: &[T],
+    locked: &[T],
+    added: impl Fn(&T) -> LockChange,
+    removed: impl Fn(&T) -> LockChange,
 ) -> Vec<LockChange> {
     let missing = wanted
         .iter()
         .filter(|name| !locked.contains(name))
-        .map(|name| added(name));
+        .map(added);
     let stale = locked
         .iter()
         .filter(|name| !wanted.contains(name))
-        .map(|name| removed(name));
+        .map(removed);
 
     missing.chain(stale).collect()
 }

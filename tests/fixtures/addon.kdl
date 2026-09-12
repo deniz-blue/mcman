@@ -1,16 +1,20 @@
-// Every addon type, with and without a version
+// Every addon type, positionally and by name
 
-use "papermc:paper"
+use papermc paper version="1.21.1" build="132"
 
 dir "plugins" {
-    use "modrinth:luckperms" version="latest"
+    use modrinth luckperms version="latest" files="luckperms.jar"
+    use modrinth id=spark
+    use hangar ViaVersion version="latest"
+    use curseforge "238222"
+    use github "PaperMC/Velocity" tag="latest" asset="velocity-*.jar"
+    use maven com.example mylib version="1.0-SNAPSHOT" classifier="all"
 }
 
 dir "mods" {
-    use "fabric:fabric" version="0.16.5"
-    use "modrinth:create" version="beta"
-    use "modrinth:sodium" version="alpha"
-    use "modrinth:a:b"
+    use fabric loader="0.16.5" installer="1.0.1"
+    use modrinth create version="beta"
+    use modrinth a:b
 }
 
 target "smp" path="./run/smp" type="server"

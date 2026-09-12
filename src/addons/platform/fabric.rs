@@ -2,7 +2,7 @@ use crate::{addons::platform::PlatformType, core::kdl::Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FabricPlatform {
-    pub minecraft: String,
+    pub minecraft: Option<String>,
     pub loader: Option<String>,
 }
 
@@ -11,12 +11,12 @@ impl PlatformType for FabricPlatform {
 
     fn read(reader: &mut Reader) -> Self {
         Self {
-            minecraft: reader.required_property("minecraft"),
+            minecraft: reader.property("minecraft"),
             loader: reader.property("loader"),
         }
     }
 
     fn minecraft_version(&self) -> Option<&str> {
-        Some(&self.minecraft)
+        self.minecraft.as_deref()
     }
 }

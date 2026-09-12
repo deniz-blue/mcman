@@ -1,10 +1,10 @@
 // Manifest paired with lock-diff.kdl
-platform "paper" minecraft="1.21.1"
+platform paper minecraft="1.21.1"
 
 target "smp" path="./run/smp" type="server"
 
 dir "plugins" {
-    use "modrinth:luckperms" version="latest"
+    use modrinth luckperms version="latest"
 
     package "customplugin" {
         download "https://example.com/custom.jar"

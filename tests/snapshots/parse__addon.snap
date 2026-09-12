@@ -15,12 +15,59 @@ Manifest {
                 addons: [
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "luckperms",
-                            ),
+                            id: "luckperms",
                             version: Some(
-                                Latest,
+                                "latest",
                             ),
+                            files: [
+                                "luckperms.jar",
+                            ],
+                        },
+                    ),
+                    Modrinth(
+                        ModrinthAddon {
+                            id: "spark",
+                            version: None,
+                            files: [],
+                        },
+                    ),
+                    Hangar(
+                        HangarAddon {
+                            project: "ViaVersion",
+                            version: Some(
+                                "latest",
+                            ),
+                        },
+                    ),
+                    CurseForge(
+                        CurseForgeAddon {
+                            project: "238222",
+                            version: None,
+                        },
+                    ),
+                    GitHub(
+                        GitHubAddon {
+                            repository: "PaperMC/Velocity",
+                            tag: Some(
+                                "latest",
+                            ),
+                            asset: Some(
+                                "velocity-*.jar",
+                            ),
+                        },
+                    ),
+                    Maven(
+                        MavenAddon {
+                            group: "com.example",
+                            artifact: "mylib",
+                            repository: None,
+                            version: Some(
+                                "1.0-SNAPSHOT",
+                            ),
+                            classifier: Some(
+                                "all",
+                            ),
+                            extension: None,
                         },
                     ),
                 ],
@@ -33,42 +80,30 @@ Manifest {
                     "mods",
                 ),
                 addons: [
-                    Fabric(
-                        FabricAddon {
-                            name: "fabric",
-                            version: Some(
-                                Exact(
-                                    "0.16.5",
-                                ),
+                    FabricLoader(
+                        FabricLoaderAddon {
+                            loader: Some(
+                                "0.16.5",
+                            ),
+                            installer: Some(
+                                "1.0.1",
                             ),
                         },
                     ),
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "create",
-                            ),
+                            id: "create",
                             version: Some(
-                                Beta,
+                                "beta",
                             ),
+                            files: [],
                         },
                     ),
                     Modrinth(
                         ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "sodium",
-                            ),
-                            version: Some(
-                                Alpha,
-                            ),
-                        },
-                    ),
-                    Modrinth(
-                        ModrinthAddon {
-                            project: ModrinthProjectId(
-                                "a:b",
-                            ),
+                            id: "a:b",
                             version: None,
+                            files: [],
                         },
                     ),
                 ],
@@ -82,7 +117,12 @@ Manifest {
                     PaperMc(
                         PaperMcAddon {
                             project: "paper",
-                            version: None,
+                            version: Some(
+                                "1.21.1",
+                            ),
+                            build: Some(
+                                "132",
+                            ),
                         },
                     ),
                 ],

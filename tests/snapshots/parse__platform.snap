@@ -24,7 +24,10 @@ Manifest {
                 ),
                 platforms: [
                     Velocity(
-                        VelocityPlatform,
+                        VelocityPlatform {
+                            version: None,
+                            build: None,
+                        },
                     ),
                 ],
                 runtimes: [],
@@ -47,7 +50,9 @@ Manifest {
                 platforms: [
                     Fabric(
                         FabricPlatform {
-                            minecraft: "1.21.1",
+                            minecraft: Some(
+                                "1.21.1",
+                            ),
                             loader: Some(
                                 "0.16.5",
                             ),

@@ -79,7 +79,7 @@ impl Store {
     pub async fn temp_file(&self) -> Result<PathBuf> {
         // NOTE: Needs rework!
 
-        let temp_dir = self.path.join("temp");
+        let temp_dir = self.path.join("tmp");
         tokio::fs::create_dir_all(&temp_dir)
             .await
             .into_diagnostic()?;
@@ -91,7 +91,7 @@ impl Store {
     }
 
     pub async fn temp_dir(&self) -> Result<PathBuf> {
-        let temp_dir = self.path.join("temp").join(epoch_millis().to_string());
+        let temp_dir = self.path.join("tmp").join(epoch_millis().to_string());
         tokio::fs::create_dir_all(&temp_dir)
             .await
             .into_diagnostic()?;
