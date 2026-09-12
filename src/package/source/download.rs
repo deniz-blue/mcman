@@ -3,7 +3,6 @@ use std::path::{Path, PathBuf};
 use kdl::KdlNode;
 use miette::{bail, IntoDiagnostic, Result};
 use serde::{Deserialize, Serialize};
-use tokio::io::AsyncWriteExt;
 use tokio_stream::StreamExt;
 
 use crate::{
@@ -94,24 +93,17 @@ impl Download {
 
         let mut stream = response.bytes_stream();
 
-        let file_path = ctx.store.temp_file().await?;
-        let mut file = tokio::fs::File::create(&file_path)
-            .await
-            .into_diagnostic()?;
-        let mut hasher = blake3::Hasher::new();
+        let mut object = ctx.store.write_object().await?;
         let declared = self.checksums.strongest();
         let mut declared_hasher = declared.map(|(algorithm, _)| algorithm.hasher());
         let mut downloaded = 0u64;
 
         while let Some(chunk) = stream.try_next().await.into_diagnostic()? {
-            hasher.update(&chunk);
             if let Some(declared_hasher) = &mut declared_hasher {
                 declared_hasher.update(&chunk);
             }
             downloaded += chunk.len() as u64;
-            tokio::io::copy(&mut chunk.as_ref(), &mut file)
-                .await
-                .into_diagnostic()?;
+            object.write(&chunk).await?;
         }
 
         if let Some(expected) = self.size {
@@ -131,12 +123,7 @@ impl Download {
             }
         }
 
-        let key = ObjectKey::from(hasher.finalize());
-
-        file.flush().await.into_diagnostic()?;
-        drop(file);
-
-        ctx.store.move_to_object_store(&file_path, &key).await?;
+        let key = object.finish().await?;
 
         let _cached = CachedUrl {
             content_hash: key.clone(),

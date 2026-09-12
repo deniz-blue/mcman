@@ -87,13 +87,13 @@ pub async fn build_package_complex(
     _output_path: &Path,
     package: &Package,
 ) -> Result<()> {
-    let build_dir = ctx.store.temp_dir().await?;
+    let build_dir = ctx.store.tmp()?;
 
     for source in &package.sources {
         match source {
             PackageSource::Download(download) => {
                 let key = download.run(ctx).await?;
-                let destination = build_dir.join(download.destination());
+                let destination = build_dir.path().join(download.destination());
 
                 if let Some(parent) = destination.parent() {
                     tokio::fs::create_dir_all(parent).await.into_diagnostic()?;
