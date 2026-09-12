@@ -6,6 +6,11 @@ use miette::Result;
 use crate::{
     addons::{Addon, Platform},
     core::kdl::{child_nodes, reject_node, Errors, Reader},
+    package::{
+        artifact::PackageArtifact,
+        source::{download::Download, PackageSource},
+        Package,
+    },
 };
 
 pub mod diff;
@@ -13,7 +18,7 @@ pub mod diff;
 const LOCKFILE_NODES: &str = "meta, target";
 const TARGET_NODES: &str = "platform, runtime, use, package";
 const PLATFORM_NODES: &str = "resolved";
-const ADDON_NODES: &str = "resolved, artifact";
+const ADDON_NODES: &str = "resolved, download, artifact";
 const ENTRY_NODES: &str = "artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -209,6 +214,7 @@ impl LockedPlatform {
 pub struct LockedAddon {
     pub requested: Addon,
     pub resolved: Addon,
+    pub package: Package,
     pub artifacts: Vec<Artifact>,
 }
 
@@ -219,6 +225,7 @@ impl LockedAddon {
         reader.reject_unread();
 
         let mut resolved = None;
+        let mut downloads = Vec::new();
         let mut artifacts = Vec::new();
 
         for child in child_nodes(node) {
@@ -231,6 +238,7 @@ impl LockedAddon {
                     resolved = Addon::read(&mut reader);
                     reader.reject_unread();
                 }
+                "download" => downloads.push(Download::read(child, errors)),
                 "artifact" => artifacts.push(Artifact::read(child, errors)),
                 _ => reject_node(child, errors, ADDON_NODES),
             }
@@ -244,6 +252,7 @@ impl LockedAddon {
         Some(Self {
             requested,
             resolved,
+            package: package_of(downloads),
             artifacts,
         })
     }
@@ -256,6 +265,7 @@ impl LockedAddon {
         self.resolved.write(&mut resolved);
         node.ensure_children().nodes_mut().push(resolved);
 
+        self.package.write_sources(&mut node);
         push_artifacts(&mut node, &self.artifacts);
         node
     }
@@ -299,6 +309,23 @@ impl Artifact {
         reader.reject_unread();
 
         Self { path, hash, size }
+    }
+}
+
+fn package_of(downloads: Vec<Download>) -> Package {
+    let artifacts = downloads
+        .iter()
+        .map(|download| PackageArtifact {
+            from: download.destination().to_owned(),
+            to: None,
+        })
+        .collect();
+
+    Package {
+        label: None,
+        sources: downloads.into_iter().map(PackageSource::Download).collect(),
+        build: None,
+        artifacts,
     }
 }
 

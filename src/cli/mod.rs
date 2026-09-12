@@ -35,7 +35,7 @@ impl Cli {
     pub async fn run(self) -> Result<()> {
         match self.command {
             Command::Build(args) => args.run(self.store.as_deref()).await,
-            Command::Update(args) => args.run().await,
+            Command::Update(args) => args.run(self.store.as_deref()).await,
             Command::Explain(args) => args.run().await,
             Command::Init(args) => args.run().await,
         }

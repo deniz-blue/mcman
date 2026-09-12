@@ -59,6 +59,19 @@ impl Download {
         }
     }
 
+    pub fn write(&self, node: &mut KdlNode) {
+        node.push(self.url.as_str());
+        if let Some(path) = &self.path {
+            node.push(("path", path.display().to_string()));
+        }
+        for (algorithm, digest) in self.checksums.iter() {
+            node.push((algorithm.name(), digest));
+        }
+        if let Some(size) = self.size {
+            node.push(("size", i128::from(size)));
+        }
+    }
+
     pub fn destination(&self) -> &Path {
         match &self.path {
             Some(path) => path,

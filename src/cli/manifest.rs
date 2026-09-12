@@ -12,11 +12,14 @@ use crate::{
     cli::ManifestArgs,
     config::Config,
     core::AppContext,
-    lockfile::Lockfile,
+    lockfile::{Lockfile, LockfileMeta},
     manifest::Manifest,
     plan::{self, Plan},
+    resolve,
     store::Store,
 };
+
+const LOCKFILE_VERSION: u64 = 1;
 
 const MANIFEST_NAME: &str = "mcman.kdl";
 const LOCKFILE_NAME: &str = "mcman.lock";
@@ -82,8 +85,12 @@ async fn load(args: &ManifestArgs) -> Result<Loaded> {
     Ok(Loaded { path, plan })
 }
 
+fn lockfile_path(manifest: &Path) -> PathBuf {
+    manifest.with_file_name(LOCKFILE_NAME)
+}
+
 async fn load_lockfile(manifest: &Path) -> Result<Lockfile> {
-    let path = manifest.with_file_name(LOCKFILE_NAME);
+    let path = lockfile_path(manifest);
 
     match tokio::fs::read_to_string(&path).await {
         Ok(text) => Lockfile::parse(&path.to_string_lossy(), &text),
@@ -92,6 +99,43 @@ async fn load_lockfile(manifest: &Path) -> Result<Lockfile> {
             .into_diagnostic()
             .wrap_err_with(|| format!("reading lockfile {}", path.display())),
     }
+}
+
+async fn write_lockfile(manifest: &Path, lockfile: &Lockfile) -> Result<()> {
+    let path = lockfile_path(manifest);
+
+    tokio::fs::write(&path, lockfile.to_kdl())
+        .await
+        .into_diagnostic()
+        .wrap_err_with(|| format!("writing lockfile {}", path.display()))
+}
+
+async fn resolve_all(
+    ctx: &AppContext,
+    plan: &Plan,
+    held: &Lockfile,
+    reuse: impl Fn(&str) -> bool,
+) -> Result<Lockfile> {
+    let mut targets = Vec::new();
+
+    for target in &plan.targets {
+        let name = target.target.name.as_str();
+        let locked = held
+            .targets
+            .iter()
+            .find(|locked| locked.name == name)
+            .filter(|_| reuse(name));
+
+        targets.push(resolve::resolve_target(ctx, target, locked).await?);
+    }
+
+    Ok(Lockfile {
+        meta: LockfileMeta {
+            version: LOCKFILE_VERSION,
+            generated: jiff::Timestamp::now().to_string(),
+        },
+        targets,
+    })
 }
 
 #[derive(Debug, Args)]
@@ -127,16 +171,21 @@ impl BuildArgs {
             bail!("the lockfile does not cover the manifest, and `--locked` was given");
         }
 
+        let config = Config::load()?;
+        let store = Store::open(config.store_path(store)?).await?;
+        let ctx = AppContext::new(Arc::new(store));
+
+        if !changes.is_empty() {
+            let lockfile = resolve_all(&ctx, &loaded.plan, &lockfile, |_| true).await?;
+            write_lockfile(&loaded.path, &lockfile).await?;
+        }
+
         if self.dry_run {
             for change in &changes {
                 println!("{change}");
             }
             return Ok(());
         }
-
-        let config = Config::load()?;
-        let store = Store::open(config.store_path(store)?).await?;
-        let ctx = AppContext::new(Arc::new(store));
 
         let manifest_dir = loaded.path.parent().unwrap_or(Path::new("."));
 
@@ -160,9 +209,24 @@ pub struct UpdateArgs {
 }
 
 impl UpdateArgs {
-    pub async fn run(self) -> Result<()> {
-        load(&self.manifest).await?;
-        bail!("`update` needs resolution, which is not implemented yet");
+    pub async fn run(self, store: Option<&Path>) -> Result<()> {
+        let loaded = load(&self.manifest).await?;
+        let held = load_lockfile(&loaded.path).await?;
+
+        let config = Config::load()?;
+        let store = Store::open(config.store_path(store)?).await?;
+        let ctx = AppContext::new(Arc::new(store));
+
+        let keep =
+            |name: &str| !self.packages.is_empty() && !self.packages.contains(&name.to_owned());
+        let lockfile = resolve_all(&ctx, &loaded.plan, &held, keep).await?;
+        write_lockfile(&loaded.path, &lockfile).await?;
+
+        for change in held.changes_needed_for(&loaded.plan) {
+            println!("{change}");
+        }
+
+        Ok(())
     }
 }
 

@@ -85,4 +85,10 @@ impl Checksums {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = (ChecksumAlgorithm, &str)> {
+        self.0
+            .iter()
+            .map(|(algorithm, digest)| (*algorithm, digest.as_str()))
+    }
 }

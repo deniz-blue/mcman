@@ -18,10 +18,8 @@ pub mod maven;
 pub mod modrinth;
 pub mod papermc;
 pub mod platform;
-pub mod version;
 
 pub use platform::{Platform, PlatformType};
-pub use version::{RequestedVersion, Stability};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -102,6 +100,48 @@ impl Addon {
             Self::GitHub(addon) => addon.write(node),
             Self::Maven(addon) => addon.write(node),
         }
+    }
+}
+
+impl From<ModrinthAddon> for Addon {
+    fn from(addon: ModrinthAddon) -> Self {
+        Self::Modrinth(addon)
+    }
+}
+
+impl From<PaperMcAddon> for Addon {
+    fn from(addon: PaperMcAddon) -> Self {
+        Self::PaperMc(addon)
+    }
+}
+
+impl From<FabricLoaderAddon> for Addon {
+    fn from(addon: FabricLoaderAddon) -> Self {
+        Self::FabricLoader(addon)
+    }
+}
+
+impl From<HangarAddon> for Addon {
+    fn from(addon: HangarAddon) -> Self {
+        Self::Hangar(addon)
+    }
+}
+
+impl From<CurseForgeAddon> for Addon {
+    fn from(addon: CurseForgeAddon) -> Self {
+        Self::CurseForge(addon)
+    }
+}
+
+impl From<GitHubAddon> for Addon {
+    fn from(addon: GitHubAddon) -> Self {
+        Self::GitHub(addon)
+    }
+}
+
+impl From<MavenAddon> for Addon {
+    fn from(addon: MavenAddon) -> Self {
+        Self::Maven(addon)
     }
 }
 

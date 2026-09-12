@@ -1,6 +1,11 @@
-use mcman::providers::modrinth::{
-    ModrinthDependencyType, ModrinthProject, ModrinthSideSupport, ModrinthVersion,
-    ModrinthVersionQuery, ModrinthVersionType,
+use mcman::{
+    addons::{modrinth::ModrinthAddon, platform::paper::PaperPlatform, Platform},
+    package::source::PackageSource,
+    providers::modrinth::{
+        loaders_for, select_files, select_version, to_resolved, ModrinthDependencyType,
+        ModrinthProject, ModrinthSideSupport, ModrinthVersion, ModrinthVersionQuery,
+        ModrinthVersionType,
+    },
 };
 
 fn fixture<T: serde::de::DeserializeOwned>(name: &str) -> T {
@@ -83,4 +88,49 @@ fn query_encodes_arrays_as_json() {
 #[test]
 fn empty_query_sends_no_parameters() {
     assert_eq!(ModrinthVersionQuery::default().parameters(), []);
+}
+
+#[test]
+fn a_release_resolves_to_its_primary_file_and_checksums() {
+    let versions: Vec<ModrinthVersion> = fixture("versions");
+    let addon = ModrinthAddon {
+        id: "luckperms".into(),
+        version: None,
+        files: Vec::new(),
+    };
+
+    let version = select_version(&versions, None).expect("a release");
+    let files = select_files(version, &addon.files).expect("the primary file");
+    let resolved = to_resolved(&addon, version, &files);
+
+    assert_eq!(resolved.resolved.version.as_deref(), Some("v5.5.71-bukkit"));
+    assert_eq!(resolved.resolved.files, ["LuckPerms-Bukkit-5.5.71.jar"]);
+
+    let PackageSource::Download(download) = &resolved.package.sources[0] else {
+        panic!("a modrinth file is a download");
+    };
+    assert_eq!(download.size, Some(1501521));
+    assert!(!download.checksums.is_empty());
+    assert_eq!(
+        resolved.package.artifacts[0].destination().to_str(),
+        Some("LuckPerms-Bukkit-5.5.71.jar")
+    );
+}
+
+#[test]
+fn an_exact_version_that_does_not_exist_matches_nothing() {
+    let versions: Vec<ModrinthVersion> = fixture("versions");
+
+    assert!(select_version(&versions, Some("9.9.9")).is_none());
+    assert!(select_files(&versions[0], &["missing.jar".to_owned()]).is_err());
+}
+
+#[test]
+fn paper_asks_for_every_loader_a_paper_server_runs() {
+    let platform = Platform::Paper(PaperPlatform {
+        minecraft: Some("1.21.1".into()),
+        build: None,
+    });
+
+    assert_eq!(loaders_for(&platform), ["paper", "spigot", "bukkit"]);
 }

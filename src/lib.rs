@@ -10,4 +10,5 @@ pub mod manifest;
 pub mod package;
 pub mod plan;
 pub mod providers;
+pub mod resolve;
 pub mod store;

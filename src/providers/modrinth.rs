@@ -4,6 +4,17 @@ use miette::{Context, IntoDiagnostic, Result};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+use crate::{
+    addons::{modrinth::ModrinthAddon, Platform},
+    core::checksum::{ChecksumAlgorithm, Checksums},
+    package::{
+        artifact::PackageArtifact,
+        source::{download::Download, PackageSource},
+        Package,
+    },
+    providers::{AddonResolver, ProviderError, Resolved},
+};
+
 pub const MODRINTH_API: &str = "https://api.modrinth.com";
 
 /// Modrinth accepts a slug wherever it accepts an id, so `modrinth:luckperms` needs no lookup.
@@ -112,6 +123,20 @@ pub enum ModrinthSideSupport {
     Unknown,
 }
 
+impl ModrinthVersionType {
+    fn rank(self) -> u8 {
+        match self {
+            Self::Release => 2,
+            Self::Beta => 1,
+            Self::Alpha | Self::Unknown => 0,
+        }
+    }
+
+    pub fn is_at_least(self, floor: Self) -> bool {
+        self.rank() >= floor.rank()
+    }
+}
+
 impl ModrinthVersion {
     pub fn primary_file(&self) -> Option<&ModrinthFile> {
         self.files
@@ -212,5 +237,136 @@ impl Modrinth {
             .await
             .into_diagnostic()
             .wrap_err_with(|| format!("reading {url}"))
+    }
+}
+
+impl AddonResolver for Modrinth {
+    type Addon = ModrinthAddon;
+
+    async fn resolve(
+        &self,
+        addon: &ModrinthAddon,
+        platform: Option<&Platform>,
+    ) -> Result<Resolved<ModrinthAddon>, ProviderError> {
+        let platform = platform.ok_or(ProviderError::PlatformRequired)?;
+        let query = ModrinthVersionQuery {
+            loaders: loaders_for(platform),
+            game_versions: platform
+                .minecraft_version()
+                .map(str::to_owned)
+                .into_iter()
+                .collect(),
+            featured: None,
+        };
+
+        let versions = self
+            .versions(&ModrinthProjectId(addon.id.clone()), &query)
+            .await
+            .map_err(|report| ProviderError::Request(report.into()))?;
+
+        let requested = addon.version.as_deref();
+        let version =
+            select_version(&versions, requested).ok_or(ProviderError::NoMatchingVersion {
+                requested: requested.unwrap_or("latest").to_owned(),
+            })?;
+        let files = select_files(version, &addon.files)?;
+
+        Ok(to_resolved(addon, version, &files))
+    }
+}
+
+pub fn loaders_for(platform: &Platform) -> Vec<String> {
+    let loaders: &[&str] = match platform {
+        Platform::Paper(_) => &["paper", "spigot", "bukkit"],
+        Platform::Velocity(_) => &["velocity"],
+        Platform::Fabric(_) => &["fabric"],
+    };
+
+    loaders.iter().map(|loader| (*loader).to_owned()).collect()
+}
+
+pub fn select_version<'a>(
+    versions: &'a [ModrinthVersion],
+    requested: Option<&str>,
+) -> Option<&'a ModrinthVersion> {
+    let floor = match requested {
+        None | Some("latest") => ModrinthVersionType::Release,
+        Some("beta") => ModrinthVersionType::Beta,
+        Some("alpha") => ModrinthVersionType::Alpha,
+        Some(exact) => {
+            return versions
+                .iter()
+                .find(|version| version.version_number == exact)
+        }
+    };
+
+    versions
+        .iter()
+        .find(|version| version.version_type.is_at_least(floor))
+}
+
+pub fn select_files<'a>(
+    version: &'a ModrinthVersion,
+    wanted: &[String],
+) -> Result<Vec<&'a ModrinthFile>, ProviderError> {
+    if wanted.is_empty() {
+        return Ok(version.primary_file().into_iter().collect());
+    }
+
+    wanted
+        .iter()
+        .map(|name| {
+            version
+                .files
+                .iter()
+                .find(|file| &file.filename == name)
+                .ok_or_else(|| ProviderError::NoSuchFile { file: name.clone() })
+        })
+        .collect()
+}
+
+pub fn to_resolved(
+    addon: &ModrinthAddon,
+    version: &ModrinthVersion,
+    files: &[&ModrinthFile],
+) -> Resolved<ModrinthAddon> {
+    let resolved = ModrinthAddon {
+        id: addon.id.clone(),
+        version: Some(version.version_number.clone()),
+        files: files.iter().map(|file| file.filename.clone()).collect(),
+    };
+
+    let sources = files
+        .iter()
+        .map(|file| {
+            let mut checksums = Checksums::default();
+            checksums.insert(ChecksumAlgorithm::Sha1, file.hashes.sha1.clone());
+            checksums.insert(ChecksumAlgorithm::Sha512, file.hashes.sha512.clone());
+
+            PackageSource::Download(Download {
+                url: file.url.clone(),
+                path: Some(file.filename.clone().into()),
+                checksums,
+                size: Some(file.size),
+            })
+        })
+        .collect();
+
+    let artifacts = files
+        .iter()
+        .map(|file| PackageArtifact {
+            from: file.filename.clone().into(),
+            to: None,
+        })
+        .collect();
+
+    Resolved {
+        resolved,
+        package: Package {
+            label: None,
+            sources,
+            build: None,
+            artifacts,
+        },
     }
 }

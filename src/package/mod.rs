@@ -21,6 +21,19 @@ pub struct Package {
 }
 
 impl Package {
+    pub fn write_sources(&self, node: &mut KdlNode) {
+        for source in &self.sources {
+            match source {
+                PackageSource::Download(download) => {
+                    let mut child = KdlNode::new("download");
+                    download.write(&mut child);
+                    node.ensure_children().nodes_mut().push(child);
+                }
+                PackageSource::Git(_) => {}
+            }
+        }
+    }
+
     pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Spanned<Self> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
