@@ -20,28 +20,27 @@ Where `startup` is either `-jar *.jar` or some library shenanigans (NeoForge/For
     jvm_args = "-exampleidk"
     game_args = "--world abc"
 
-    aikars_flags = true # (3)
-    proxy_flags = false # (4)
+    preset_flags = "aikars" # (3)
 
-    eula_args = true # (5)
+    eula_args = true # (4)
 
-    nogui = true # (6)
+    nogui = true # (5)
 
-    memory = "2048M" # (7)
+    memory = "2048M" # (6)
 
-    # (8)
+    # (7)
     [launcher.properties]
     hello="thing"
     ```
 
+
     1. Disables generating launch scripts completely. `false` by default
     2. If needed, you can add custom arguments here. The format is `java [jvm_args] -jar server.jar [game_args]`
-    3. Use aikar's flags - these do optimizations, see [flags.sh](https://flags.sh) for more info
-    4. Like aikar's, but for proxies (bungeecord, waterfall, velocity)
-    5. Adds `-Dcom.mojang.eula.agree=true` - this flag exists in spigot/paper to ignore `eula.txt`. Writes to `eula.txt` when on fabric or quilt
-    6. Adds `--nogui` to game args, disable if its a proxy server as they dont support it
-    7. Specify `-Xmx`/`-Xms` (memory) for the server.
-    8. A table of properties. This is the same as using
+    3. Select a preset: `aikars` uses Aikar's flags for server optimizations, while `proxy` is intended for BungeeCord, Waterfall, and Velocity.
+    4. Adds `-Dcom.mojang.eula.agree=true` - this flag exists in spigot/paper to ignore `eula.txt`. Writes to `eula.txt` when on fabric or quilt
+    5. Adds `--nogui` to game args, disable if its a proxy server as they dont support it
+    6. Specify `-Xmx`/`-Xms` (memory) for the server.
+    7. A table of properties. This is the same as using
        ``` toml
        jvm_args = "-Dhello=thing"
        ```
@@ -105,4 +104,3 @@ Where `startup` is either `-jar *.jar` or some library shenanigans (NeoForge/For
     terminal.jline=false
     terminal.ansi=true
     ```
-
