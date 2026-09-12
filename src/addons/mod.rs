@@ -35,7 +35,7 @@ pub enum Addon {
     Maven(MavenAddon),
 }
 
-pub trait AddonType: Display + Sized {
+pub trait AddonType: Sized {
     const TYPE_NAME: &'static str;
 
     fn read(reader: &mut Reader) -> Self;
@@ -103,19 +103,20 @@ impl Addon {
             Self::Maven(addon) => addon.write(node),
         }
     }
-
 }
 
 impl Display for Addon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Modrinth(addon) => addon.fmt(f),
-            Self::PaperMc(addon) => addon.fmt(f),
-            Self::FabricLoader(addon) => addon.fmt(f),
-            Self::Hangar(addon) => addon.fmt(f),
-            Self::CurseForge(addon) => addon.fmt(f),
-            Self::GitHub(addon) => addon.fmt(f),
-            Self::Maven(addon) => addon.fmt(f),
+        let mut node = KdlNode::new("use");
+        self.write(&mut node);
+
+        for (index, entry) in node.entries().iter().enumerate() {
+            if index > 0 {
+                f.write_str(" ")?;
+            }
+            write!(f, "{entry}")?;
         }
+
+        Ok(())
     }
 }

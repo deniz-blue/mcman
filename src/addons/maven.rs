@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use kdl::KdlNode;
 
 use crate::{addons::AddonType, core::kdl::Reader};
@@ -16,7 +14,6 @@ pub struct MavenAddon {
 
 impl AddonType for MavenAddon {
     const TYPE_NAME: &'static str = "maven";
-
 
     fn read(reader: &mut Reader) -> Self {
         Self {
@@ -44,11 +41,5 @@ impl AddonType for MavenAddon {
         if let Some(extension) = &self.extension {
             node.push(("extension", extension.as_str()));
         }
-    }
-}
-
-impl Display for MavenAddon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", Self::TYPE_NAME, self.group, self.artifact)
     }
 }

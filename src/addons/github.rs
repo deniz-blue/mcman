@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use kdl::KdlNode;
 
 use crate::{addons::AddonType, core::kdl::Reader};
@@ -13,7 +11,6 @@ pub struct GitHubAddon {
 
 impl AddonType for GitHubAddon {
     const TYPE_NAME: &'static str = "github";
-
 
     fn read(reader: &mut Reader) -> Self {
         Self {
@@ -31,11 +28,5 @@ impl AddonType for GitHubAddon {
         if let Some(asset) = &self.asset {
             node.push(("asset", asset.as_str()));
         }
-    }
-}
-
-impl Display for GitHubAddon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", Self::TYPE_NAME, self.repository)
     }
 }

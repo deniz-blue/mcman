@@ -72,9 +72,9 @@ fn full_design_doc() {
 fn an_ancestor_reaches_targets_in_subgroups() {
     let plan = plan("inheritance");
 
-    assert!(addons(&plan, "lobby", "plugins").contains(&"modrinth:luckperms".into()));
-    assert!(addons(&plan, "smp", "plugins").contains(&"modrinth:luckperms".into()));
-    assert!(addons(&plan, "smp", "plugins").contains(&"modrinth:spark".into()));
+    assert!(addons(&plan, "lobby", "plugins").iter().any(|addon| addon.starts_with("modrinth luckperms")));
+    assert!(addons(&plan, "smp", "plugins").iter().any(|addon| addon.starts_with("modrinth luckperms")));
+    assert!(addons(&plan, "smp", "plugins").iter().any(|addon| addon.starts_with("modrinth spark")));
 }
 
 #[test]
@@ -96,9 +96,9 @@ fn inherited_declarations_come_before_local_ones() {
     assert_eq!(
         addons(&plan, "lobby", "plugins"),
         [
-            "modrinth:luckperms",
-            "modrinth:spark",
-            "modrinth:fastasyncworldedit",
+            "modrinth luckperms version=\"5.4.0\"",
+            "modrinth spark version=\"1.10\"",
+            "modrinth fastasyncworldedit version=latest",
         ]
     );
 }

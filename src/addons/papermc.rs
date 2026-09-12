@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use kdl::KdlNode;
 
 use crate::{addons::AddonType, core::kdl::Reader};
@@ -13,7 +11,6 @@ pub struct PaperMcAddon {
 
 impl AddonType for PaperMcAddon {
     const TYPE_NAME: &'static str = "papermc";
-
 
     fn read(reader: &mut Reader) -> Self {
         Self {
@@ -31,11 +28,5 @@ impl AddonType for PaperMcAddon {
         if let Some(build) = &self.build {
             node.push(("build", build.as_str()));
         }
-    }
-}
-
-impl Display for PaperMcAddon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", Self::TYPE_NAME, self.project)
     }
 }

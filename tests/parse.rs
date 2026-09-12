@@ -70,7 +70,7 @@ fn the_same_declaration_at_two_offsets_is_equal() {
 }
 
 #[test]
-fn each_addon_type_writes_its_own_label() {
+fn each_addon_displays_as_its_declaration() {
     let manifest = parse("addon");
     let written: Vec<String> = manifest
         .root
@@ -83,16 +83,16 @@ fn each_addon_type_writes_its_own_label() {
     assert_eq!(
         written,
         [
-            "modrinth:luckperms",
-            "modrinth:spark",
-            "hangar:ViaVersion",
-            "curseforge:238222",
-            "github:PaperMC/Velocity",
-            "maven:com.example:mylib",
-            "fabric",
-            "modrinth:create",
-            "modrinth:a:b",
-            "papermc:paper",
+            "modrinth luckperms version=latest files=luckperms.jar",
+            "modrinth spark",
+            "hangar ViaVersion version=latest",
+            "curseforge \"238222\"",
+            "github \"PaperMC/Velocity\" tag=latest asset=velocity-*.jar",
+            "maven com.example mylib version=\"1.0-SNAPSHOT\" classifier=all",
+            "fabric loader=\"0.16.5\" installer=\"1.0.1\"",
+            "modrinth create version=beta",
+            "modrinth a:b",
+            "papermc paper version=\"1.21.1\" build=\"132\"",
         ]
     );
 }

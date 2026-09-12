@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use kdl::KdlNode;
 
 use crate::{addons::AddonType, core::kdl::Reader};
@@ -13,7 +11,6 @@ pub struct HangarAddon {
 impl AddonType for HangarAddon {
     const TYPE_NAME: &'static str = "hangar";
 
-
     fn read(reader: &mut Reader) -> Self {
         Self {
             project: reader.required_argument_or_property("project"),
@@ -26,11 +23,5 @@ impl AddonType for HangarAddon {
         if let Some(version) = &self.version {
             node.push(("version", version.as_str()));
         }
-    }
-}
-
-impl Display for HangarAddon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", Self::TYPE_NAME, self.project)
     }
 }

@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use kdl::KdlNode;
 
 use crate::{addons::AddonType, core::kdl::Reader};
@@ -12,7 +10,6 @@ pub struct FabricLoaderAddon {
 
 impl AddonType for FabricLoaderAddon {
     const TYPE_NAME: &'static str = "fabric";
-
 
     fn read(reader: &mut Reader) -> Self {
         Self {
@@ -28,11 +25,5 @@ impl AddonType for FabricLoaderAddon {
         if let Some(installer) = &self.installer {
             node.push(("installer", installer.as_str()));
         }
-    }
-}
-
-impl Display for FabricLoaderAddon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(Self::TYPE_NAME)
     }
 }
