@@ -86,6 +86,10 @@ pub enum TestResult {
     Crashed,
 }
 
+fn should_stop_server(is_stopping: bool, has_child: bool) -> bool {
+    !is_stopping && has_child
+}
+
 // TODO
 // [x] fix stdout nesting for some reason
 // [x] commands are not being sent properly
@@ -360,6 +364,11 @@ impl DevSession<'_> {
                         self.builder.app.log_dev("Force-stopping development session...");
                         break 'l;
                     } else if !is_stopping {
+                        if !should_stop_server(is_stopping, child.is_some()) {
+                            self.builder.app.log_dev("Server offline");
+                            break 'l;
+                        }
+
                         is_session_ending = true;
                         self.builder.app.log_dev("Stopping development session...");
 
@@ -745,5 +754,18 @@ impl DevSession<'_> {
         self.handle_commands(rx, tx.clone()).await?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::should_stop_server;
+
+    #[test]
+    fn only_stops_an_active_server() {
+        assert!(should_stop_server(false, true));
+        assert!(!should_stop_server(false, false));
+        assert!(!should_stop_server(true, true));
+        assert!(!should_stop_server(true, false));
     }
 }
