@@ -7,6 +7,7 @@ Manifest {
         label: None,
         platforms: [],
         runtimes: [],
+        includes: [],
         directories: [],
         targets: [
             Target {
@@ -31,6 +32,7 @@ Manifest {
                     ),
                 ],
                 runtimes: [],
+                includes: [],
                 directories: [],
                 targets: [
                     Target {
@@ -60,6 +62,7 @@ Manifest {
                     ),
                 ],
                 runtimes: [],
+                includes: [],
                 directories: [],
                 targets: [
                     Target {
@@ -77,6 +80,7 @@ Manifest {
                         ),
                         platforms: [],
                         runtimes: [],
+                        includes: [],
                         directories: [],
                         targets: [
                             Target {

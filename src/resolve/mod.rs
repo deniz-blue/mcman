@@ -3,7 +3,7 @@ use crate::{
     core::{kdl::Spanned, AppContext},
     lockfile::{LockedAddon, LockedPlatform, LockedTarget},
     plan::TargetPlan,
-    providers::{modrinth::Modrinth, AddonResolver, ProviderError, Resolved},
+    providers::{download::Downloads, modrinth::Modrinth, AddonResolver, ProviderError, Resolved},
 };
 
 mod error;
@@ -20,6 +20,10 @@ pub async fn resolve_addon(
             .resolve(inner, platform)
             .await
             .map(|resolved| resolved.map(Addon::Modrinth)),
+        Addon::Download(inner) => Downloads
+            .resolve(inner, platform)
+            .await
+            .map(|resolved| resolved.map(Addon::Download)),
         other => Err(ProviderError::Unsupported {
             type_name: other.type_name(),
         }),
@@ -38,6 +42,16 @@ pub async fn resolve_target(
     locked: Option<&LockedTarget>,
 ) -> Result<LockedTarget, ResolveError> {
     let platform = target.platform.as_ref().map(|platform| &platform.value);
+
+    if let Some(include) = target.includes.first() {
+        return Err(ResolveError {
+            addon: include.value.to_string(),
+            at: include.span,
+            source: ProviderError::Unsupported {
+                type_name: "include",
+            },
+        });
+    }
 
     let mut runtimes = Vec::new();
     for runtime in &target.runtimes {

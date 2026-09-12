@@ -3,7 +3,11 @@ use miette::Result;
 
 use crate::{
     core::kdl::{child_nodes, reject_node, Errors, Reader, Spanned},
-    package::{artifact::PackageArtifact, build::PackageBuild, source::PackageSource},
+    package::{
+        artifact::PackageArtifact,
+        build::PackageBuild,
+        source::{download::Download, PackageSource},
+    },
 };
 
 pub mod artifact;
@@ -21,6 +25,23 @@ pub struct Package {
 }
 
 impl Package {
+    pub fn from_downloads(downloads: Vec<Download>) -> Self {
+        let artifacts = downloads
+            .iter()
+            .map(|download| PackageArtifact {
+                from: download.destination().to_owned(),
+                to: None,
+            })
+            .collect();
+
+        Self {
+            label: None,
+            sources: downloads.into_iter().map(PackageSource::Download).collect(),
+            build: None,
+            artifacts,
+        }
+    }
+
     pub fn write_sources(&self, node: &mut KdlNode) {
         for source in &self.sources {
             match source {

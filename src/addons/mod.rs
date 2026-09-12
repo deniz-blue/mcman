@@ -4,13 +4,15 @@ use kdl::KdlNode;
 
 use crate::{
     addons::{
-        curseforge::CurseForgeAddon, fabric::FabricLoaderAddon, github::GitHubAddon,
-        hangar::HangarAddon, maven::MavenAddon, modrinth::ModrinthAddon, papermc::PaperMcAddon,
+        curseforge::CurseForgeAddon, download::DownloadAddon, fabric::FabricLoaderAddon,
+        github::GitHubAddon, hangar::HangarAddon, maven::MavenAddon, modrinth::ModrinthAddon,
+        papermc::PaperMcAddon,
     },
     core::kdl::{write_entries, Reader},
 };
 
 pub mod curseforge;
+pub mod download;
 pub mod fabric;
 pub mod github;
 pub mod hangar;
@@ -31,6 +33,7 @@ pub enum Addon {
     CurseForge(CurseForgeAddon),
     GitHub(GitHubAddon),
     Maven(MavenAddon),
+    Download(DownloadAddon),
 }
 
 pub trait AddonType: Sized {
@@ -50,6 +53,7 @@ fn type_names() -> String {
         CurseForgeAddon::TYPE_NAME,
         GitHubAddon::TYPE_NAME,
         MavenAddon::TYPE_NAME,
+        DownloadAddon::TYPE_NAME,
     ]
     .join(", ")
 }
@@ -64,6 +68,7 @@ impl Addon {
             Self::CurseForge(_) => CurseForgeAddon::TYPE_NAME,
             Self::GitHub(_) => GitHubAddon::TYPE_NAME,
             Self::Maven(_) => MavenAddon::TYPE_NAME,
+            Self::Download(_) => DownloadAddon::TYPE_NAME,
         }
     }
 
@@ -78,6 +83,7 @@ impl Addon {
             CurseForgeAddon::TYPE_NAME => Self::CurseForge(AddonType::read(reader)),
             GitHubAddon::TYPE_NAME => Self::GitHub(AddonType::read(reader)),
             MavenAddon::TYPE_NAME => Self::Maven(AddonType::read(reader)),
+            DownloadAddon::TYPE_NAME => Self::Download(AddonType::read(reader)),
             _ => {
                 reader.reject(format!(
                     "unknown addon type `{type_name}`, expected one of: {}",
@@ -99,6 +105,7 @@ impl Addon {
             Self::CurseForge(addon) => addon.write(node),
             Self::GitHub(addon) => addon.write(node),
             Self::Maven(addon) => addon.write(node),
+            Self::Download(addon) => addon.write(node),
         }
     }
 }
@@ -142,6 +149,12 @@ impl From<GitHubAddon> for Addon {
 impl From<MavenAddon> for Addon {
     fn from(addon: MavenAddon) -> Self {
         Self::Maven(addon)
+    }
+}
+
+impl From<DownloadAddon> for Addon {
+    fn from(addon: DownloadAddon) -> Self {
+        Self::Download(addon)
     }
 }
 

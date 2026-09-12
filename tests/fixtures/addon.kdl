@@ -9,6 +9,7 @@ dir "plugins" {
     use curseforge "238222"
     use github "PaperMC/Velocity" tag="latest" asset="velocity-*.jar"
     use maven com.example mylib version="1.0-SNAPSHOT" classifier="all"
+    use download "https://example.com/plugins/custom.jar" sha1="fc8bb9919fa77c670b7ed5c284bcb66770ea71fc" size=1
 }
 
 dir "mods" {

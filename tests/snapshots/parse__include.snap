@@ -1,0 +1,77 @@
+---
+source: tests/parse.rs
+expression: "parse(\"include\")"
+---
+Manifest {
+    root: Group {
+        label: None,
+        platforms: [
+            Fabric(
+                FabricPlatform {
+                    minecraft: Some(
+                        "1.21.1",
+                    ),
+                    loader: Some(
+                        "0.16.5",
+                    ),
+                },
+            ),
+        ],
+        runtimes: [],
+        includes: [
+            Mrpack(
+                MrpackInclude {
+                    location: Url(
+                        "https://cdn.modrinth.com/data/abc/versions/def/Pack-1.2.mrpack",
+                    ),
+                    checksums: Checksums(
+                        {},
+                    ),
+                },
+            ),
+        ],
+        directories: [],
+        targets: [],
+        subgroups: [
+            Group {
+                label: Some(
+                    "extra",
+                ),
+                platforms: [],
+                runtimes: [],
+                includes: [
+                    Mrpack(
+                        MrpackInclude {
+                            location: Path(
+                                "./packs/base.mrpack",
+                            ),
+                            checksums: Checksums(
+                                {
+                                    Sha512: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                                },
+                            ),
+                        },
+                    ),
+                    Packwiz(
+                        PackwizInclude {
+                            location: Url(
+                                "https://example.com/pack/pack.toml",
+                            ),
+                        },
+                    ),
+                ],
+                directories: [],
+                targets: [
+                    Target {
+                        name: "smp",
+                        path: Some(
+                            "./run/smp",
+                        ),
+                        kind: None,
+                    },
+                ],
+                subgroups: [],
+            },
+        ],
+    },
+}

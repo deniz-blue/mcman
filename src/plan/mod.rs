@@ -10,7 +10,7 @@ use miette::SourceSpan;
 use crate::{
     addons::{Addon, Platform},
     core::kdl::Spanned,
-    manifest::{Directory, Group, Manifest, Target},
+    manifest::{Directory, Group, Include, Manifest, Target},
 };
 
 mod error;
@@ -28,6 +28,7 @@ pub struct TargetPlan {
     pub target: Spanned<Target>,
     pub platform: Option<Spanned<Platform>>,
     pub runtimes: Vec<Spanned<Addon>>,
+    pub includes: Vec<Spanned<Include>>,
     pub directories: Vec<Directory>,
 }
 
@@ -70,6 +71,7 @@ pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {
 struct Scope {
     platform: Option<Spanned<Platform>>,
     runtimes: Vec<Spanned<Addon>>,
+    includes: Vec<Spanned<Include>>,
     directories: Vec<Directory>,
     written_paths: HashSet<PathBuf>,
 }
@@ -92,6 +94,7 @@ impl Scope {
         }
 
         self.runtimes.extend(group.runtimes.iter().cloned());
+        self.includes.extend(group.includes.iter().cloned());
 
         for directory in &group.directories {
             let path = canonical_directory_path(directory.path.as_deref());
@@ -178,6 +181,7 @@ fn walk(group: &Group, inherited: &Scope, plan: &mut Plan) -> Result<(), PlanErr
             target: target.clone(),
             platform: scope.platform.clone(),
             runtimes: scope.runtimes.clone(),
+            includes: scope.includes.clone(),
             directories: scope.directories.clone(),
         });
     }

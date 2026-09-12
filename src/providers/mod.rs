@@ -3,6 +3,7 @@ use crate::{
     package::Package,
 };
 
+pub mod download;
 mod error;
 pub mod modrinth;
 

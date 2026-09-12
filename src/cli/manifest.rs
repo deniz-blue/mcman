@@ -256,6 +256,10 @@ impl ExplainArgs {
                 println!("  runtime {}", runtime.value);
             }
 
+            for include in &target.includes {
+                println!("  include {}", include.value);
+            }
+
             for directory in &target.directories {
                 match &directory.path {
                     Some(path) => println!("  dir {}", path.display()),

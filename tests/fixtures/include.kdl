@@ -1,0 +1,10 @@
+// A pack included at the root and one in a subgroup
+
+platform fabric minecraft="1.21.1" loader="0.16.5"
+include mrpack "https://cdn.modrinth.com/data/abc/versions/def/Pack-1.2.mrpack"
+
+group "extra" {
+    include mrpack "./packs/base.mrpack" sha512="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    include packwiz "https://example.com/pack/pack.toml"
+    target "smp" path="./run/smp"
+}

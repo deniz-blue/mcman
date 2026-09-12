@@ -6,11 +6,7 @@ use miette::Result;
 use crate::{
     addons::{Addon, Platform},
     core::kdl::{child_nodes, reject_node, Errors, Reader},
-    package::{
-        artifact::PackageArtifact,
-        source::{download::Download, PackageSource},
-        Package,
-    },
+    package::{source::download::Download, Package},
 };
 
 pub mod diff;
@@ -252,7 +248,7 @@ impl LockedAddon {
         Some(Self {
             requested,
             resolved,
-            package: package_of(downloads),
+            package: Package::from_downloads(downloads),
             artifacts,
         })
     }
@@ -309,23 +305,6 @@ impl Artifact {
         reader.reject_unread();
 
         Self { path, hash, size }
-    }
-}
-
-fn package_of(downloads: Vec<Download>) -> Package {
-    let artifacts = downloads
-        .iter()
-        .map(|download| PackageArtifact {
-            from: download.destination().to_owned(),
-            to: None,
-        })
-        .collect();
-
-    Package {
-        label: None,
-        sources: downloads.into_iter().map(PackageSource::Download).collect(),
-        build: None,
-        artifacts,
     }
 }
 

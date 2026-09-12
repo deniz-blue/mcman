@@ -10,6 +10,7 @@ use crate::{
 };
 
 mod fs;
+mod include;
 mod target;
 
 fn read_addon(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Addon>> {
@@ -22,6 +23,7 @@ fn read_addon(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Addon>> {
 }
 
 pub use fs::{CopyFile, SymlinkFile};
+pub use include::{Include, IncludeType, Location, MrpackInclude, PackwizInclude};
 pub use target::{Target, TargetType};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -44,13 +46,14 @@ impl Manifest {
 }
 
 const GROUP_NODES: &str =
-    "group, dir, target, use, package, runtime, platform, fs:copy, fs:symlink";
+    "group, dir, target, use, package, runtime, platform, include, fs:copy, fs:symlink";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Group {
     pub label: Option<String>,
     pub platforms: Vec<Spanned<Platform>>,
     pub runtimes: Vec<Spanned<Addon>>,
+    pub includes: Vec<Spanned<Include>>,
     pub directories: Vec<Directory>,
     pub targets: Vec<Spanned<Target>>,
     pub subgroups: Vec<Group>,
@@ -87,6 +90,7 @@ impl Group {
                 "group" => group.subgroups.push(Group::read_node(node, errors)),
                 "runtime" => group.runtimes.extend(read_addon(node, errors)),
                 "platform" => group.platforms.extend(Platform::read(node, errors)),
+                "include" => group.includes.extend(Include::read(node, errors)),
                 "use" => target_root.addons.extend(read_addon(node, errors)),
                 "package" => target_root.packages.push(Package::read(node, errors)),
                 "fs:copy" => target_root.copies.push(CopyFile::read(node, errors)),

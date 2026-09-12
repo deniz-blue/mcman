@@ -14,6 +14,7 @@ Plan {
             },
             platform: None,
             runtimes: [],
+            includes: [],
             directories: [
                 Directory {
                     path: Some(
@@ -64,6 +65,7 @@ Plan {
             },
             platform: None,
             runtimes: [],
+            includes: [],
             directories: [
                 Directory {
                     path: Some(

@@ -89,6 +89,7 @@ fn each_addon_displays_as_its_declaration() {
             "curseforge \"238222\"",
             "github \"PaperMC/Velocity\" tag=latest asset=velocity-*.jar",
             "maven com.example mylib version=\"1.0-SNAPSHOT\" classifier=all",
+            "download \"https://example.com/plugins/custom.jar\" sha1=fc8bb9919fa77c670b7ed5c284bcb66770ea71fc size=1",
             "fabric loader=\"0.16.5\" installer=\"1.0.1\"",
             "modrinth create version=beta",
             "modrinth a:b",
@@ -108,6 +109,7 @@ parses! {
     platform: "platform",
     addon: "addon",
     download_checksums: "download-checksums",
+    include: "include",
 }
 
 rejects! {
@@ -119,6 +121,7 @@ rejects! {
     platform_property_is_not_a_string: "platform-property-is-not-a-string" => "expected a string, found 1.21",
     unknown_platform: "unknown-platform" => "unknown platform `papr`, expected one of: paper, velocity, fabric",
     platform_with_unknown_property: "platform-with-unknown-property" => "unexpected property `minecarft`",
+    include_unknown_format: "include-unknown-format" => "unknown pack format `zip`, expected one of: mrpack, packwiz",
     addon_unknown_type: "addon-unknown-type" => "unknown addon type `modrnth`, expected one of: modrinth, papermc, fabric, hangar, curseforge, github, maven",
     addon_without_an_id: "addon-without-an-id" => "`id` is required",
     addon_id_given_twice: "addon-id-given-twice" => "`id` is given twice",

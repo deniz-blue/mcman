@@ -40,16 +40,20 @@ pub struct Download {
 impl Download {
     pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
         let mut reader = Reader::new(node, errors);
+        let download = Self::read_from(&mut reader);
+        reader.reject_unread();
+        download
+    }
+
+    pub(crate) fn read_from(reader: &mut Reader) -> Self {
         let url = reader.required_argument("url");
         let path = reader.path_property("path");
-        let checksums = Checksums::read(&mut reader);
+        let checksums = Checksums::read(reader);
         let size = reader.unsigned_property("size");
 
         if path.is_none() && file_name_in_url(&url).is_none() {
             reader.reject("`download` needs a `path` when its url has no file name".to_owned());
         }
-
-        reader.reject_unread();
 
         Self {
             url,

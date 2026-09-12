@@ -7,6 +7,7 @@ Manifest {
         label: None,
         platforms: [],
         runtimes: [],
+        includes: [],
         directories: [
             Directory {
                 path: None,

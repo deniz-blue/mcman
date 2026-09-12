@@ -7,6 +7,7 @@ Manifest {
         label: None,
         platforms: [],
         runtimes: [],
+        includes: [],
         directories: [],
         targets: [],
         subgroups: [
@@ -23,6 +24,7 @@ Manifest {
                     ),
                 ],
                 runtimes: [],
+                includes: [],
                 directories: [
                     Directory {
                         path: Some(
@@ -87,6 +89,7 @@ Manifest {
                 ),
                 platforms: [],
                 runtimes: [],
+                includes: [],
                 directories: [
                     Directory {
                         path: Some(
@@ -134,6 +137,7 @@ Manifest {
                             ),
                         ],
                         runtimes: [],
+                        includes: [],
                         directories: [
                             Directory {
                                 path: Some(
@@ -235,6 +239,7 @@ Manifest {
                             ),
                         ],
                         runtimes: [],
+                        includes: [],
                         directories: [
                             Directory {
                                 path: Some(
@@ -272,6 +277,7 @@ Manifest {
                                 ),
                                 platforms: [],
                                 runtimes: [],
+                                includes: [],
                                 directories: [
                                     Directory {
                                         path: None,

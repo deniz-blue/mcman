@@ -7,6 +7,7 @@ Manifest {
         label: None,
         platforms: [],
         runtimes: [],
+        includes: [],
         directories: [
             Directory {
                 path: Some(
@@ -69,6 +70,22 @@ Manifest {
                             ),
                             extension: None,
                         },
+                    ),
+                    Download(
+                        DownloadAddon(
+                            Download {
+                                url: "https://example.com/plugins/custom.jar",
+                                path: None,
+                                checksums: Checksums(
+                                    {
+                                        Sha1: "fc8bb9919fa77c670b7ed5c284bcb66770ea71fc",
+                                    },
+                                ),
+                                size: Some(
+                                    1,
+                                ),
+                            },
+                        ),
                     ),
                 ],
                 packages: [],

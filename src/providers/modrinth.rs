@@ -7,11 +7,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use crate::{
     addons::{modrinth::ModrinthAddon, Platform},
     core::checksum::{ChecksumAlgorithm, Checksums},
-    package::{
-        artifact::PackageArtifact,
-        source::{download::Download, PackageSource},
-        Package,
-    },
+    package::{source::download::Download, Package},
     providers::{AddonResolver, ProviderError, Resolved},
 };
 
@@ -336,37 +332,24 @@ pub fn to_resolved(
         files: files.iter().map(|file| file.filename.clone()).collect(),
     };
 
-    let sources = files
+    let downloads = files
         .iter()
         .map(|file| {
             let mut checksums = Checksums::default();
             checksums.insert(ChecksumAlgorithm::Sha1, file.hashes.sha1.clone());
             checksums.insert(ChecksumAlgorithm::Sha512, file.hashes.sha512.clone());
 
-            PackageSource::Download(Download {
+            Download {
                 url: file.url.clone(),
                 path: Some(file.filename.clone().into()),
                 checksums,
                 size: Some(file.size),
-            })
-        })
-        .collect();
-
-    let artifacts = files
-        .iter()
-        .map(|file| PackageArtifact {
-            from: file.filename.clone().into(),
-            to: None,
+            }
         })
         .collect();
 
     Resolved {
         resolved,
-        package: Package {
-            label: None,
-            sources,
-            build: None,
-            artifacts,
-        },
+        package: Package::from_downloads(downloads),
     }
 }
