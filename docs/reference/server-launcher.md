@@ -69,7 +69,7 @@ Where `startup` is either `-jar *.jar` or some library shenanigans (NeoForge/For
     java_version = "17"
     ```
 
-    See [this section](../tutorials/options.md#setting-the-java-binary) for more information.
+    See [this section](../concepts/options.md#setting-the-java-binary) for more information.
 
 `nogui`: bool
 
