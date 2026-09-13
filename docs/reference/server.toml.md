@@ -21,9 +21,9 @@ type = "purpur"
 
 :   The name field defines the name of the server. It's recommended to be alphanumeric because of the other features using this field.
 
-    For example, to [overwrite](../tutorials/options.md#overriding-server-ports-in-networks) the `SERVER_PORT` variable, you can use the `PORT_name` environment variable where `name` is the server's name.
+    For example, to [overwrite](../concepts/options.md#overriding-server-ports-in-networks) the `SERVER_PORT` variable, you can use the `PORT_name` environment variable where `name` is the server's name.
 
-    The [`SERVER_NAME` variable](../tutorials/variables.md#special-variables) can be used to access this field.
+    The [`SERVER_NAME` variable](../concepts/variables.md#special-variables) can be used to access this field.
 
 `mc_version`: string
 
