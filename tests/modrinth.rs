@@ -1,5 +1,9 @@
 use mcman::{
-    addons::{modrinth::ModrinthAddon, platform::paper::PaperPlatform, Platform},
+    addons::{
+        modrinth::ModrinthAddon,
+        platform::{fabric::FabricPlatform, minecraft::MinecraftPlatform, paper::PaperPlatform},
+        Platform,
+    },
     package::source::PackageSource,
     providers::modrinth::{
         loaders_for, select_files, select_version, to_resolved, ModrinthDependencyType,
@@ -127,10 +131,28 @@ fn an_exact_version_that_does_not_exist_matches_nothing() {
 
 #[test]
 fn paper_asks_for_every_loader_a_paper_server_runs() {
-    let platform = Platform::Paper(PaperPlatform {
-        minecraft: Some("1.21.1".into()),
-        build: None,
-    });
+    let platforms = [
+        Platform::Minecraft(MinecraftPlatform {
+            version: Some("1.21.1".into()),
+        }),
+        Platform::Paper(PaperPlatform { build: None }),
+    ];
 
-    assert_eq!(loaders_for(&platform), ["paper", "spigot", "bukkit"]);
+    assert_eq!(loaders_for(&platforms), ["paper", "spigot", "bukkit"]);
+}
+
+#[test]
+fn a_stack_asks_for_loaders_in_the_order_declared() {
+    let platforms = [
+        Platform::Minecraft(MinecraftPlatform {
+            version: Some("1.21.1".into()),
+        }),
+        Platform::Paper(PaperPlatform { build: None }),
+        Platform::Fabric(FabricPlatform { loader: None }),
+    ];
+
+    assert_eq!(
+        loaders_for(&platforms),
+        ["paper", "spigot", "bukkit", "fabric"]
+    );
 }

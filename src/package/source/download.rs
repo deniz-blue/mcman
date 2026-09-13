@@ -131,7 +131,7 @@ impl Download {
 
         if let (Some((algorithm, expected)), Some(declared_hasher)) = (declared, declared_hasher) {
             let found = hex::encode(declared_hasher.finalize());
-            if found != expected {
+            if !found.eq_ignore_ascii_case(expected) {
                 bail!(
                     "{} has {} {found}, expected {expected}",
                     self.url,

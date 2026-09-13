@@ -6,7 +6,8 @@ group "proxy" {
 }
 
 group "survival" {
-    platform fabric minecraft="1.21.1" loader="0.16.5"
+    platform minecraft version="1.21.1"
+    platform fabric loader="0.16.5"
 
     target "smp-pack" path="./run/smp-packwiz" type="packwiz"
 

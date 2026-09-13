@@ -1,5 +1,6 @@
 // Manifest paired with lock-diff.kdl
-platform paper minecraft="1.21.1"
+platform minecraft version="1.21.1"
+platform paper
 
 target "smp" path="./run/smp" type="server"
 

@@ -26,7 +26,7 @@ pub struct Plan {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TargetPlan {
     pub target: Spanned<Target>,
-    pub platform: Option<Spanned<Platform>>,
+    pub platforms: Vec<Spanned<Platform>>,
     pub runtimes: Vec<Spanned<Addon>>,
     pub includes: Vec<Spanned<Include>>,
     pub directories: Vec<Directory>,
@@ -69,7 +69,7 @@ pub fn from_manifest(manifest: &Manifest) -> Result<Plan, PlanError> {
 
 #[derive(Clone, Default)]
 struct Scope {
-    platform: Option<Spanned<Platform>>,
+    platforms: Vec<Spanned<Platform>>,
     runtimes: Vec<Spanned<Addon>>,
     includes: Vec<Spanned<Include>>,
     directories: Vec<Directory>,
@@ -81,7 +81,12 @@ impl Scope {
         let label = || group.label.clone();
 
         for platform in &group.platforms {
-            if let Some(first) = &self.platform {
+            let same_type = self
+                .platforms
+                .iter()
+                .find(|declared| declared.type_name() == platform.type_name());
+
+            if let Some(first) = same_type {
                 return Err(PlanError::RedeclaredPlatform {
                     name: platform.type_name().to_owned(),
                     group: label(),
@@ -90,7 +95,7 @@ impl Scope {
                 });
             }
 
-            self.platform = Some(platform.clone());
+            self.platforms.push(platform.clone());
         }
 
         self.runtimes.extend(group.runtimes.iter().cloned());
@@ -135,6 +140,27 @@ impl Scope {
         Ok(())
     }
 
+    fn missing_platform(&self) -> Option<PlanError> {
+        for platform in &self.platforms {
+            for required in platform.requires() {
+                let declared = self
+                    .platforms
+                    .iter()
+                    .any(|candidate| candidate.type_name() == *required);
+
+                if !declared {
+                    return Some(PlanError::MissingPlatform {
+                        name: platform.type_name().to_owned(),
+                        required: (*required).to_owned(),
+                        at: platform.span,
+                    });
+                }
+            }
+        }
+
+        None
+    }
+
     fn claim_written_path(
         &mut self,
         destination: PathBuf,
@@ -176,10 +202,16 @@ fn walk(group: &Group, inherited: &Scope, plan: &mut Plan) -> Result<(), PlanErr
 
     let targets_before = plan.targets.len();
 
+    if !group.targets.is_empty() {
+        if let Some(error) = scope.missing_platform() {
+            return Err(error);
+        }
+    }
+
     for target in &group.targets {
         plan.targets.push(TargetPlan {
             target: target.clone(),
-            platform: scope.platform.clone(),
+            platforms: scope.platforms.clone(),
             runtimes: scope.runtimes.clone(),
             includes: scope.includes.clone(),
             directories: scope.directories.clone(),

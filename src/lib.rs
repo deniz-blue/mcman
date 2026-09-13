@@ -7,6 +7,7 @@ pub mod config;
 pub mod core;
 pub mod lockfile;
 pub mod manifest;
+pub mod modpack;
 pub mod package;
 pub mod plan;
 pub mod providers;

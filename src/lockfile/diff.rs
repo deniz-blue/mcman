@@ -15,10 +15,18 @@ pub enum LockChange {
         locked: PathBuf,
         wanted: PathBuf,
     },
+    PlatformAdded {
+        target: String,
+        platform: Platform,
+    },
+    PlatformRemoved {
+        target: String,
+        platform: Platform,
+    },
     PlatformChanged {
         target: String,
-        locked: Option<Platform>,
-        wanted: Option<Platform>,
+        locked: Platform,
+        wanted: Platform,
     },
     RuntimeAdded {
         target: String,
@@ -61,15 +69,19 @@ impl Display for LockChange {
                 locked.display(),
                 wanted.display()
             ),
+            Self::PlatformAdded { target, platform } => {
+                write!(f, "target `{target}` platform `{platform}` added")
+            }
+            Self::PlatformRemoved { target, platform } => {
+                write!(f, "target `{target}` platform `{platform}` removed")
+            }
             Self::PlatformChanged {
                 target,
                 locked,
                 wanted,
             } => write!(
                 f,
-                "target `{target}` platform changed from {} to {}",
-                describe(locked.as_ref()),
-                describe(wanted.as_ref())
+                "target `{target}` platform changed from `{locked}` to `{wanted}`"
             ),
             Self::RuntimeAdded { target, runtime } => {
                 write!(f, "target `{target}` runtime `{runtime}` added")
@@ -88,13 +100,6 @@ impl Display for LockChange {
                 write!(f, "target `{target}` package `{label}` removed")
             }
         }
-    }
-}
-
-fn describe(platform: Option<&Platform>) -> String {
-    match platform {
-        Some(platform) => format!("`{platform}`"),
-        None => "none".to_owned(),
     }
 }
 
@@ -124,16 +129,39 @@ impl Lockfile {
                 });
             }
 
-            let wanted_platform = planned.platform.as_ref().map(|platform| &platform.value);
+            for wanted in planned.platforms.iter().map(|platform| &platform.value) {
+                let held = locked
+                    .platforms
+                    .iter()
+                    .map(|platform| &platform.requested)
+                    .find(|platform| platform.type_name() == wanted.type_name());
 
-            let locked_platform = locked.platform.as_ref().map(|platform| &platform.requested);
+                match held {
+                    None => changes.push(LockChange::PlatformAdded {
+                        target: name.clone(),
+                        platform: wanted.clone(),
+                    }),
+                    Some(held) if held != wanted => changes.push(LockChange::PlatformChanged {
+                        target: name.clone(),
+                        locked: held.clone(),
+                        wanted: wanted.clone(),
+                    }),
+                    Some(_) => {}
+                }
+            }
 
-            if locked_platform != wanted_platform {
-                changes.push(LockChange::PlatformChanged {
-                    target: name.clone(),
-                    locked: locked_platform.cloned(),
-                    wanted: wanted_platform.cloned(),
-                });
+            for held in locked.platforms.iter().map(|platform| &platform.requested) {
+                let still_wanted = planned
+                    .platforms
+                    .iter()
+                    .any(|platform| platform.value.type_name() == held.type_name());
+
+                if !still_wanted {
+                    changes.push(LockChange::PlatformRemoved {
+                        target: name.clone(),
+                        platform: held.clone(),
+                    });
+                }
             }
 
             let wanted: Vec<Addon> = planned

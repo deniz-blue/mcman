@@ -12,7 +12,7 @@ impl AddonResolver for Downloads {
     async fn resolve(
         &self,
         addon: &DownloadAddon,
-        _platform: Option<&Platform>,
+        _platforms: &[Platform],
     ) -> Result<Resolved<DownloadAddon>, ProviderError> {
         Ok(Resolved {
             resolved: addon.clone(),

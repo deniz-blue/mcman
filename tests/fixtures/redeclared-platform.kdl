@@ -1,8 +1,9 @@
-// Two platforms on the path from the root to `smp`
-platform paper minecraft="1.21.1"
+// Two fabric platforms on the path from the root to `smp`
+platform minecraft version="1.21.1"
+platform fabric loader="0.16.5"
 
 group "smp" {
-    platform fabric minecraft="1.21.1"
+    platform fabric loader="0.15.0"
 
     target "smp" path="./run/smp" type="server"
 }

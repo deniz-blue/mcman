@@ -1,0 +1,42 @@
+{
+  "formatVersion": 1,
+  "game": "minecraft",
+  "versionId": "1.2",
+  "name": "Example Pack",
+  "summary": "A pack with one file per side",
+  "files": [
+    {
+      "path": "mods/lithium.jar",
+      "hashes": {
+        "sha1": "fc8bb9919fa77c670b7ed5c284bcb66770ea71fc",
+        "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+      },
+      "downloads": ["https://cdn.modrinth.com/data/gvQqBUqZ/versions/abc/lithium-0.12.jar"],
+      "fileSize": 1024
+    },
+    {
+      "path": "mods/sodium.jar",
+      "hashes": {
+        "sha1": "fc8bb9919fa77c670b7ed5c284bcb66770ea71fd",
+        "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3f"
+      },
+      "env": { "client": "required", "server": "unsupported" },
+      "downloads": ["https://cdn.modrinth.com/data/AANobbMI/versions/def/sodium-0.5.jar"],
+      "fileSize": 2048
+    },
+    {
+      "path": "mods/spark.jar",
+      "hashes": {
+        "sha1": "fc8bb9919fa77c670b7ed5c284bcb66770ea71fe",
+        "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da40"
+      },
+      "env": { "client": "optional", "server": "required" },
+      "downloads": ["https://cdn.modrinth.com/data/l6YH9Als/versions/ghi/spark-1.10.jar"],
+      "fileSize": 4096
+    }
+  ],
+  "dependencies": {
+    "minecraft": "1.21.1",
+    "fabric-loader": "0.16.5"
+  }
+}

@@ -26,7 +26,8 @@ const LOCKFILE_NAME: &str = "mcman.lock";
 
 const INIT_TEMPLATE: &str = r#"target smp
 
-platform paper minecraft="1.21.1"
+platform minecraft version="1.21.1"
+platform paper
 
 dir plugins {
     use modrinth luckperms
@@ -248,7 +249,7 @@ impl ExplainArgs {
 
             println!("target {}", target.target.name);
 
-            if let Some(platform) = &target.platform {
+            for platform in &target.platforms {
                 println!("  platform {}", platform.value);
             }
 

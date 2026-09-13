@@ -3,7 +3,10 @@ use std::{path::PathBuf, str::FromStr};
 use kdl::KdlNode;
 use miette::{miette, Result};
 
-use crate::core::kdl::{Errors, Reader, Spanned};
+use crate::{
+    core::kdl::{Errors, Reader, Spanned},
+    modpack::Side,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Target {
@@ -45,6 +48,16 @@ pub enum TargetType {
     Packwiz,
     Mrpack,
     Unsup,
+}
+
+impl TargetType {
+    pub fn side(&self) -> Option<Side> {
+        match self {
+            Self::Server => Some(Side::Server),
+            Self::Client => Some(Side::Client),
+            _ => None,
+        }
+    }
 }
 
 impl FromStr for TargetType {

@@ -1,13 +1,11 @@
-use std::{
-    fmt::{Debug, Display},
-    path::PathBuf,
-};
+use std::fmt::Display;
 
 use kdl::KdlNode;
 
 use crate::core::{
     checksum::Checksums,
     kdl::{write_entries, Errors, Reader, Spanned},
+    location::Location,
 };
 
 #[non_exhaustive]
@@ -36,24 +34,18 @@ pub struct PackwizInclude {
     pub location: Location,
 }
 
-#[derive(Clone, PartialEq, Eq)]
-pub enum Location {
-    Path(PathBuf),
-    Url(reqwest::Url),
-}
-
 impl IncludeType for MrpackInclude {
     const TYPE_NAME: &'static str = "mrpack";
 
     fn read(reader: &mut Reader) -> Self {
         Self {
-            location: Location::read(reader),
+            location: Location::from(reader.required_argument("pack location")),
             checksums: Checksums::read(reader),
         }
     }
 
     fn write(&self, node: &mut KdlNode) {
-        self.location.write(node);
+        node.push(self.location.to_string());
         for (algorithm, digest) in self.checksums.iter() {
             node.push((algorithm.name(), digest));
         }
@@ -65,49 +57,12 @@ impl IncludeType for PackwizInclude {
 
     fn read(reader: &mut Reader) -> Self {
         Self {
-            location: Location::read(reader),
+            location: Location::from(reader.required_argument("pack location")),
         }
     }
 
     fn write(&self, node: &mut KdlNode) {
-        self.location.write(node);
-    }
-}
-
-impl Location {
-    fn read(reader: &mut Reader) -> Self {
-        Self::from(reader.required_argument("pack location"))
-    }
-
-    fn write(&self, node: &mut KdlNode) {
-        node.push(self.to_string());
-    }
-}
-
-impl From<String> for Location {
-    fn from(text: String) -> Self {
-        match reqwest::Url::parse(&text) {
-            Ok(url) if url.has_host() => Self::Url(url),
-            _ => Self::Path(PathBuf::from(text)),
-        }
-    }
-}
-
-impl Debug for Location {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Path(path) => f.debug_tuple("Path").field(path).finish(),
-            Self::Url(url) => f.debug_tuple("Url").field(&url.as_str()).finish(),
-        }
-    }
-}
-
-impl Display for Location {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Path(path) => f.write_str(&path.display().to_string()),
-            Self::Url(url) => f.write_str(url.as_str()),
-        }
+        node.push(self.location.to_string());
     }
 }
 

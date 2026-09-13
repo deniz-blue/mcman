@@ -12,7 +12,7 @@ Plan {
                 ),
                 kind: Server,
             },
-            platform: None,
+            platforms: [],
             runtimes: [],
             includes: [],
             directories: [
@@ -63,7 +63,7 @@ Plan {
                 ),
                 kind: Server,
             },
-            platform: None,
+            platforms: [],
             runtimes: [],
             includes: [],
             directories: [

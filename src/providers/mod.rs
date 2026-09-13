@@ -30,6 +30,6 @@ pub trait AddonResolver {
     async fn resolve(
         &self,
         addon: &Self::Addon,
-        platform: Option<&Platform>,
+        platforms: &[Platform],
     ) -> Result<Resolved<Self::Addon>, ProviderError>;
 }

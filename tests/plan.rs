@@ -29,14 +29,15 @@ fn addons(plan: &Plan, target: &str, directory: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-fn platform(plan: &Plan, target: &str) -> Option<Platform> {
+fn platforms(plan: &Plan, target: &str) -> Vec<Platform> {
     plan.targets
         .iter()
         .find(|candidate| candidate.target.name == target)
         .unwrap_or_else(|| panic!("no target `{target}` in the plan"))
-        .platform
-        .as_ref()
+        .platforms
+        .iter()
         .map(|platform| platform.value.clone())
+        .collect()
 }
 
 fn rejection(fixture: &str) -> String {
@@ -156,16 +157,25 @@ fn a_platform_reaches_targets_in_subgroups() {
     let plan = plan("platform");
 
     assert!(matches!(
-        platform(&plan, "proxy"),
-        Some(Platform::Velocity(_))
+        platforms(&plan, "proxy").as_slice(),
+        [Platform::Velocity(_)]
     ));
-    assert_eq!(platform(&plan, "plain"), None);
+    assert_eq!(platforms(&plan, "plain"), []);
 
-    let Some(Platform::Fabric(fabric)) = platform(&plan, "smp") else {
-        panic!("`smp` should inherit the fabric platform of its parent group");
+    let smp = platforms(&plan, "smp");
+    let [Platform::Minecraft(minecraft), Platform::Fabric(fabric)] = smp.as_slice() else {
+        panic!("`smp` should inherit the minecraft and fabric platforms of its parent group");
     };
-    assert_eq!(fabric.minecraft.as_deref(), Some("1.21.1"));
+    assert_eq!(minecraft.version.as_deref(), Some("1.21.1"));
     assert_eq!(fabric.loader.as_deref(), Some("0.16.5"));
+}
+
+#[test]
+fn a_platform_without_the_one_it_needs_is_rejected() {
+    assert_eq!(
+        rejection("missing-minecraft"),
+        "platform `fabric` needs a `minecraft` platform"
+    );
 }
 
 #[test]
@@ -190,8 +200,8 @@ fn a_redeclared_platform_points_at_both_declarations() {
     assert_eq!(
         sources,
         [
-            "platform fabric minecraft=\"1.21.1\"",
-            "platform paper minecraft=\"1.21.1\"",
+            "platform fabric loader=\"0.15.0\"",
+            "platform fabric loader=\"0.16.5\"",
         ]
     );
 }

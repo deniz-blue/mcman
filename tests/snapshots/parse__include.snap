@@ -6,11 +6,15 @@ Manifest {
     root: Group {
         label: None,
         platforms: [
-            Fabric(
-                FabricPlatform {
-                    minecraft: Some(
+            Minecraft(
+                MinecraftPlatform {
+                    version: Some(
                         "1.21.1",
                     ),
+                },
+            ),
+            Fabric(
+                FabricPlatform {
                     loader: Some(
                         "0.16.5",
                     ),

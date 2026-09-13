@@ -23,7 +23,7 @@ fn read_addon(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Addon>> {
 }
 
 pub use fs::{CopyFile, SymlinkFile};
-pub use include::{Include, IncludeType, Location, MrpackInclude, PackwizInclude};
+pub use include::{Include, IncludeType, MrpackInclude, PackwizInclude};
 pub use target::{Target, TargetType};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]

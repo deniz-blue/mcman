@@ -1626,6 +1626,7 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "toml 0.9.5",
+ "url",
  "walkdir",
  "zip",
 ]

@@ -13,15 +13,15 @@ pub use error::ResolveError;
 pub async fn resolve_addon(
     ctx: &AppContext,
     addon: &Spanned<Addon>,
-    platform: Option<&Platform>,
+    platforms: &[Platform],
 ) -> Result<Resolved<Addon>, ResolveError> {
     let result = match &addon.value {
         Addon::Modrinth(inner) => Modrinth::new(ctx.cached_http.clone())
-            .resolve(inner, platform)
+            .resolve(inner, platforms)
             .await
             .map(|resolved| resolved.map(Addon::Modrinth)),
         Addon::Download(inner) => Downloads
-            .resolve(inner, platform)
+            .resolve(inner, platforms)
             .await
             .map(|resolved| resolved.map(Addon::Download)),
         other => Err(ProviderError::Unsupported {
@@ -41,7 +41,11 @@ pub async fn resolve_target(
     target: &TargetPlan,
     locked: Option<&LockedTarget>,
 ) -> Result<LockedTarget, ResolveError> {
-    let platform = target.platform.as_ref().map(|platform| &platform.value);
+    let platforms: Vec<Platform> = target
+        .platforms
+        .iter()
+        .map(|platform| platform.value.clone())
+        .collect();
 
     if let Some(include) = target.includes.first() {
         return Err(ResolveError {
@@ -58,7 +62,7 @@ pub async fn resolve_target(
         let held = locked.and_then(|locked| find_locked(&locked.runtimes, &runtime.value));
         runtimes.push(match held {
             Some(held) => held.clone(),
-            None => lock_addon(ctx, runtime, platform).await?,
+            None => lock_addon(ctx, runtime, &platforms).await?,
         });
     }
 
@@ -71,7 +75,7 @@ pub async fn resolve_target(
         let held = locked.and_then(|locked| find_locked(&locked.addons, &addon.value));
         addons.push(match held {
             Some(held) => held.clone(),
-            None => lock_addon(ctx, addon, platform).await?,
+            None => lock_addon(ctx, addon, &platforms).await?,
         });
     }
 
@@ -82,10 +86,13 @@ pub async fn resolve_target(
     Ok(LockedTarget {
         name: target.target.name.clone(),
         path: target.target.path.clone().unwrap_or_else(|| ".".into()),
-        platform: platform.map(|platform| LockedPlatform {
-            requested: platform.clone(),
-            resolved: platform.clone(),
-        }),
+        platforms: platforms
+            .into_iter()
+            .map(|platform| LockedPlatform {
+                requested: platform.clone(),
+                resolved: platform,
+            })
+            .collect(),
         runtimes,
         addons,
         packages,
@@ -99,9 +106,9 @@ fn find_locked<'a>(entries: &'a [LockedAddon], requested: &Addon) -> Option<&'a 
 async fn lock_addon(
     ctx: &AppContext,
     addon: &Spanned<Addon>,
-    platform: Option<&Platform>,
+    platforms: &[Platform],
 ) -> Result<LockedAddon, ResolveError> {
-    let resolved = resolve_addon(ctx, addon, platform).await?;
+    let resolved = resolve_addon(ctx, addon, platforms).await?;
 
     Ok(LockedAddon {
         requested: addon.value.clone(),

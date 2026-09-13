@@ -1,6 +1,7 @@
 // A pack included at the root and one in a subgroup
 
-platform fabric minecraft="1.21.1" loader="0.16.5"
+platform minecraft version="1.21.1"
+platform fabric loader="0.16.5"
 include mrpack "https://cdn.modrinth.com/data/abc/versions/def/Pack-1.2.mrpack"
 
 group "extra" {

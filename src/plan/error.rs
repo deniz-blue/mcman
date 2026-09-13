@@ -32,7 +32,7 @@ pub enum PlanError {
     #[error("a second platform `{name}` is declared in {}", describe(.group))]
     #[diagnostic(
         code(mcman::redeclared_platform),
-        help("A target runs on one platform. To give some targets a different one, move it into a group that only those targets are under.")
+        help("A target declares each platform once. To give some targets a different one, move it into a group that only those targets are under.")
     )]
     RedeclaredPlatform {
         name: String,
@@ -41,6 +41,18 @@ pub enum PlanError {
         at: SourceSpan,
         #[label("already declared here")]
         first: SourceSpan,
+    },
+
+    #[error("platform `{name}` needs a `{required}` platform")]
+    #[diagnostic(
+        code(mcman::missing_platform),
+        help("Declare `platform {required}` in this group or one above it.")
+    )]
+    MissingPlatform {
+        name: String,
+        required: String,
+        #[label("declared here")]
+        at: SourceSpan,
     },
 
     #[error("target `{name}` is declared more than once")]

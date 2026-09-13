@@ -1,11 +1,13 @@
 use std::collections::BTreeMap;
 
 use digest::DynDigest;
+use serde::Deserialize;
 
 use crate::core::kdl::Reader;
 
 #[non_exhaustive]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum ChecksumAlgorithm {
     Sha1,
     Sha256,
@@ -40,7 +42,8 @@ impl ChecksumAlgorithm {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(transparent)]
 pub struct Checksums(BTreeMap<ChecksumAlgorithm, String>);
 
 impl Checksums {
@@ -62,7 +65,7 @@ impl Checksums {
                 continue;
             }
 
-            checksums.insert(algorithm, digest.to_lowercase());
+            checksums.insert(algorithm, digest);
         }
 
         checksums

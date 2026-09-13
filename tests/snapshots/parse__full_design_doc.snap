@@ -127,11 +127,15 @@ Manifest {
                             "lobby",
                         ),
                         platforms: [
-                            Paper(
-                                PaperPlatform {
-                                    minecraft: Some(
+                            Minecraft(
+                                MinecraftPlatform {
+                                    version: Some(
                                         "1.21.1",
                                     ),
+                                },
+                            ),
+                            Paper(
+                                PaperPlatform {
                                     build: None,
                                 },
                             ),
@@ -227,11 +231,15 @@ Manifest {
                             "smp",
                         ),
                         platforms: [
-                            Fabric(
-                                FabricPlatform {
-                                    minecraft: Some(
+                            Minecraft(
+                                MinecraftPlatform {
+                                    version: Some(
                                         "1.21.1",
                                     ),
+                                },
+                            ),
+                            Fabric(
+                                FabricPlatform {
                                     loader: Some(
                                         "latest",
                                     ),

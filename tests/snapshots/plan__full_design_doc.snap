@@ -12,14 +12,14 @@ Plan {
                 ),
                 kind: Server,
             },
-            platform: Some(
+            platforms: [
                 Velocity(
                     VelocityPlatform {
                         version: None,
                         build: None,
                     },
                 ),
-            ),
+            ],
             runtimes: [],
             includes: [],
             directories: [
@@ -78,16 +78,20 @@ Plan {
                 ),
                 kind: Server,
             },
-            platform: Some(
-                Paper(
-                    PaperPlatform {
-                        minecraft: Some(
+            platforms: [
+                Minecraft(
+                    MinecraftPlatform {
+                        version: Some(
                             "1.21.1",
                         ),
+                    },
+                ),
+                Paper(
+                    PaperPlatform {
                         build: None,
                     },
                 ),
-            ),
+            ],
             runtimes: [],
             includes: [],
             directories: [
@@ -190,18 +194,22 @@ Plan {
                 ),
                 kind: Packwiz,
             },
-            platform: Some(
-                Fabric(
-                    FabricPlatform {
-                        minecraft: Some(
+            platforms: [
+                Minecraft(
+                    MinecraftPlatform {
+                        version: Some(
                             "1.21.1",
                         ),
+                    },
+                ),
+                Fabric(
+                    FabricPlatform {
                         loader: Some(
                             "latest",
                         ),
                     },
                 ),
-            ),
+            ],
             runtimes: [],
             includes: [],
             directories: [
@@ -262,18 +270,22 @@ Plan {
                 ),
                 kind: Server,
             },
-            platform: Some(
-                Fabric(
-                    FabricPlatform {
-                        minecraft: Some(
+            platforms: [
+                Minecraft(
+                    MinecraftPlatform {
+                        version: Some(
                             "1.21.1",
                         ),
+                    },
+                ),
+                Fabric(
+                    FabricPlatform {
                         loader: Some(
                             "latest",
                         ),
                     },
                 ),
-            ),
+            ],
             runtimes: [],
             includes: [],
             directories: [

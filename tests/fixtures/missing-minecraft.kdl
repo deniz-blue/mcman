@@ -1,0 +1,6 @@
+// A fabric platform with no minecraft platform on its path
+group "smp" {
+    platform fabric loader="0.16.5"
+
+    target "smp" path="./run/smp" type="server"
+}

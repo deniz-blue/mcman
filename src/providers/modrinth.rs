@@ -5,7 +5,7 @@ use reqwest_middleware::ClientWithMiddleware;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::{
-    addons::{modrinth::ModrinthAddon, Platform},
+    addons::{modrinth::ModrinthAddon, platform::minecraft::MinecraftPlatform, Platform},
     core::checksum::{ChecksumAlgorithm, Checksums},
     package::{source::download::Download, Package},
     providers::{AddonResolver, ProviderError, Resolved},
@@ -242,14 +242,16 @@ impl AddonResolver for Modrinth {
     async fn resolve(
         &self,
         addon: &ModrinthAddon,
-        platform: Option<&Platform>,
+        platforms: &[Platform],
     ) -> Result<Resolved<ModrinthAddon>, ProviderError> {
-        let platform = platform.ok_or(ProviderError::PlatformRequired)?;
+        if platforms.is_empty() {
+            return Err(ProviderError::PlatformRequired);
+        }
+
         let query = ModrinthVersionQuery {
-            loaders: loaders_for(platform),
-            game_versions: platform
-                .minecraft_version()
-                .map(str::to_owned)
+            loaders: loaders_for(platforms),
+            game_versions: MinecraftPlatform::declared_in(platforms)
+                .and_then(|minecraft| minecraft.version.clone())
                 .into_iter()
                 .collect(),
             featured: None,
@@ -271,14 +273,25 @@ impl AddonResolver for Modrinth {
     }
 }
 
-pub fn loaders_for(platform: &Platform) -> Vec<String> {
-    let loaders: &[&str] = match platform {
-        Platform::Paper(_) => &["paper", "spigot", "bukkit"],
-        Platform::Velocity(_) => &["velocity"],
-        Platform::Fabric(_) => &["fabric"],
-    };
+pub fn loaders_for(platforms: &[Platform]) -> Vec<String> {
+    let mut loaders: Vec<String> = Vec::new();
 
-    loaders.iter().map(|loader| (*loader).to_owned()).collect()
+    for platform in platforms {
+        let names: &[&str] = match platform {
+            Platform::Minecraft(_) => &[],
+            Platform::Paper(_) => &["paper", "spigot", "bukkit"],
+            Platform::Velocity(_) => &["velocity"],
+            Platform::Fabric(_) => &["fabric"],
+        };
+
+        for name in names {
+            if !loaders.iter().any(|loader| loader == name) {
+                loaders.push((*name).to_owned());
+            }
+        }
+    }
+
+    loaders
 }
 
 pub fn select_version<'a>(

@@ -1,5 +1,5 @@
 use mcman::{
-    addons::{platform::paper::PaperPlatform, Platform},
+    addons::{platform::minecraft::MinecraftPlatform, Platform},
     lockfile::{diff::LockChange, Lockfile},
     manifest::Manifest,
     plan::{self, Plan},
@@ -103,22 +103,22 @@ fn a_moved_target_is_reported() {
 #[test]
 fn a_changed_requested_minecraft_version_is_reported() {
     let mut lock = lockfile("lock-diff");
-    let bumped = Platform::Paper(PaperPlatform {
-        minecraft: Some("1.21.4".into()),
-        build: None,
+    let bumped = Platform::Minecraft(MinecraftPlatform {
+        version: Some("1.21.4".into()),
     });
     let platform = lock.targets[0]
-        .platform
-        .as_mut()
-        .expect("lock-diff locks a platform");
+        .platforms
+        .iter_mut()
+        .find(|platform| matches!(platform.requested, Platform::Minecraft(_)))
+        .expect("lock-diff locks a minecraft platform");
     let locked = std::mem::replace(&mut platform.requested, bumped.clone());
 
     assert_eq!(
         lock.changes_needed_for(&plan("lock-diff-manifest")),
         [LockChange::PlatformChanged {
             target: "smp".into(),
-            locked: Some(bumped),
-            wanted: Some(locked),
+            locked: bumped,
+            wanted: locked,
         }]
     );
 }

@@ -6,7 +6,7 @@ pub enum ProviderError {
     #[error("a platform is needed to pick a compatible version")]
     #[diagnostic(
         code(mcman::platform_required),
-        help("Declare a `platform` in this group or one above it.")
+        help("Declare `platform minecraft version=\"…\"` and the server's platform in this group or one above it.")
     )]
     PlatformRequired,
 

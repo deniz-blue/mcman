@@ -2,8 +2,11 @@
 meta version=1 generated="2024-06-01T12:00:00Z"
 
 target "smp" path="./run/smp" {
-    platform "paper" minecraft="1.21.1" {
-        resolved paper minecraft="1.21.1" build="132"
+    platform minecraft version="1.21.1" {
+        resolved minecraft version="1.21.1"
+    }
+    platform paper {
+        resolved paper build="132"
     }
     use modrinth luckperms version="latest" {
         resolved modrinth luckperms version="5.4.102"

@@ -22,7 +22,8 @@ group "game-servers" {
     group "lobby" {
         target "lobby" path="./run/lobby" type="server"
 
-        platform paper minecraft="1.21.1"
+        platform minecraft version="1.21.1"
+        platform paper
         use papermc paper
 
         dir "plugins" {
@@ -39,7 +40,8 @@ group "game-servers" {
     }
 
     group "smp" {
-        platform fabric minecraft="1.21.1" loader="latest"
+        platform minecraft version="1.21.1"
+        platform fabric loader="latest"
 
         dir "mods" {
             use modrinth create version="latest"

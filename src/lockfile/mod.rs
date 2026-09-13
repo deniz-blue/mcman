@@ -57,7 +57,7 @@ impl Lockfile {
             node.push(target.name.as_str());
             node.push(("path", display(&target.path)));
 
-            if let Some(platform) = &target.platform {
+            for platform in &target.platforms {
                 node.ensure_children().nodes_mut().push(platform.to_kdl());
             }
 
@@ -122,7 +122,7 @@ impl LockfileMeta {
 pub struct LockedTarget {
     pub name: String,
     pub path: PathBuf,
-    pub platform: Option<LockedPlatform>,
+    pub platforms: Vec<LockedPlatform>,
     pub runtimes: Vec<LockedAddon>,
     pub addons: Vec<LockedAddon>,
     pub packages: Vec<LockedPackage>,
@@ -143,12 +143,7 @@ impl LockedTarget {
 
         for child in child_nodes(node) {
             match child.name().value() {
-                "platform" => {
-                    if target.platform.is_some() {
-                        errors.push(child.span(), "a target has one `platform`");
-                    }
-                    target.platform = LockedPlatform::read(child, errors);
-                }
+                "platform" => target.platforms.extend(LockedPlatform::read(child, errors)),
                 "runtime" => target.runtimes.extend(LockedAddon::read(child, errors)),
                 "use" => target.addons.extend(LockedAddon::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),

@@ -10,6 +10,7 @@ use std::sync::Arc;
 pub mod checksum;
 pub mod http;
 pub mod kdl;
+pub mod location;
 
 #[derive(Clone)]
 pub struct AppContext {
