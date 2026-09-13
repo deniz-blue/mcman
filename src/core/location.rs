@@ -22,7 +22,7 @@ pub enum Location {
 }
 
 impl Location {
-    pub fn join(&self, reference: &str) -> Result<Self, url::ParseError> {
+    pub fn join(&self, reference: &str) -> Result<Self, LocationError> {
         if let Some(absolute) = Self::absolute(reference) {
             return Ok(absolute);
         }
@@ -32,7 +32,14 @@ impl Location {
                 let base = path.parent().unwrap_or_else(|| Path::new(""));
                 Self::Path(base.join(reference))
             }
-            Self::Url(url) => Self::Url(url.join(reference)?),
+            Self::Url(url) => {
+                let joined = url.join(reference).map_err(|source| LocationError::Join {
+                    location: self.clone(),
+                    reference: reference.to_owned(),
+                    source,
+                })?;
+                Self::Url(joined)
+            }
         })
     }
 
@@ -153,6 +160,15 @@ impl Display for Location {
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum LocationError {
+    #[error("`{reference}` does not sit next to `{location}`")]
+    #[diagnostic(code(mcman::location_join))]
+    Join {
+        location: Location,
+        reference: String,
+        #[source]
+        source: url::ParseError,
+    },
+
     #[error("could not read `{location}`")]
     #[diagnostic(code(mcman::location_io))]
     Io {

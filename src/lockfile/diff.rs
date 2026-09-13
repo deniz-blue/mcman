@@ -3,6 +3,7 @@ use std::{fmt::Display, path::PathBuf};
 use crate::{
     addons::{Addon, Platform},
     lockfile::Lockfile,
+    manifest::{Include, TargetType},
     plan::Plan,
 };
 
@@ -14,6 +15,11 @@ pub enum LockChange {
         target: String,
         locked: PathBuf,
         wanted: PathBuf,
+    },
+    TargetTypeChanged {
+        target: String,
+        locked: TargetType,
+        wanted: TargetType,
     },
     PlatformAdded {
         target: String,
@@ -44,6 +50,14 @@ pub enum LockChange {
         target: String,
         addon: Addon,
     },
+    IncludeAdded {
+        target: String,
+        include: Include,
+    },
+    IncludeRemoved {
+        target: String,
+        include: Include,
+    },
     PackageAdded {
         target: String,
         label: String,
@@ -69,6 +83,14 @@ impl Display for LockChange {
                 locked.display(),
                 wanted.display()
             ),
+            Self::TargetTypeChanged {
+                target,
+                locked,
+                wanted,
+            } => write!(
+                f,
+                "target `{target}` type changed from `{locked}` to `{wanted}`"
+            ),
             Self::PlatformAdded { target, platform } => {
                 write!(f, "target `{target}` platform `{platform}` added")
             }
@@ -92,6 +114,12 @@ impl Display for LockChange {
             Self::AddonAdded { target, addon } => write!(f, "target `{target}` `{addon}` added"),
             Self::AddonRemoved { target, addon } => {
                 write!(f, "target `{target}` `{addon}` removed")
+            }
+            Self::IncludeAdded { target, include } => {
+                write!(f, "target `{target}` include `{include}` added")
+            }
+            Self::IncludeRemoved { target, include } => {
+                write!(f, "target `{target}` include `{include}` removed")
             }
             Self::PackageAdded { target, label } => {
                 write!(f, "target `{target}` package `{label}` added")
@@ -126,6 +154,14 @@ impl Lockfile {
                     target: name.clone(),
                     locked: locked.path.clone(),
                     wanted: wanted_path,
+                });
+            }
+
+            if locked.kind != planned.target.kind {
+                changes.push(LockChange::TargetTypeChanged {
+                    target: name.clone(),
+                    locked: locked.kind.clone(),
+                    wanted: planned.target.kind.clone(),
                 });
             }
 
@@ -208,6 +244,29 @@ impl Lockfile {
                 |addon| LockChange::AddonRemoved {
                     target: name.clone(),
                     addon: addon.clone(),
+                },
+            ));
+
+            let wanted: Vec<Include> = planned
+                .includes
+                .iter()
+                .map(|include| include.value.clone())
+                .collect();
+            let held: Vec<Include> = locked
+                .includes
+                .iter()
+                .map(|include| include.requested.clone())
+                .collect();
+            changes.extend(membership_changes(
+                &wanted,
+                &held,
+                |include| LockChange::IncludeAdded {
+                    target: name.clone(),
+                    include: include.clone(),
+                },
+                |include| LockChange::IncludeRemoved {
+                    target: name.clone(),
+                    include: include.clone(),
                 },
             ));
 

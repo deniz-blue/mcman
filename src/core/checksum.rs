@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use digest::DynDigest;
+use miette::Diagnostic;
 use serde::Deserialize;
+use thiserror::Error;
 
 use crate::core::kdl::Reader;
 
@@ -31,6 +33,12 @@ impl ChecksumAlgorithm {
             Self::Sha256 => 64,
             Self::Sha512 => 128,
         }
+    }
+
+    pub fn digest(self, bytes: &[u8]) -> String {
+        let mut hasher = self.hasher();
+        hasher.update(bytes);
+        hex::encode(hasher.finalize())
     }
 
     pub fn hasher(self) -> Box<dyn DynDigest> {
@@ -71,6 +79,23 @@ impl Checksums {
         checksums
     }
 
+    pub fn verify(&self, bytes: &[u8]) -> Result<(), ChecksumMismatch> {
+        let Some((algorithm, expected)) = self.strongest() else {
+            return Ok(());
+        };
+
+        let found = algorithm.digest(bytes);
+        if found.eq_ignore_ascii_case(expected) {
+            return Ok(());
+        }
+
+        Err(ChecksumMismatch {
+            algorithm,
+            expected: expected.to_owned(),
+            found,
+        })
+    }
+
     pub fn insert(&mut self, algorithm: ChecksumAlgorithm, digest: String) {
         self.0.insert(algorithm, digest);
     }
@@ -94,4 +119,13 @@ impl Checksums {
             .iter()
             .map(|(algorithm, digest)| (*algorithm, digest.as_str()))
     }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("has {} {found}, expected {expected}", .algorithm.name())]
+#[diagnostic(code(mcman::checksum_mismatch))]
+pub struct ChecksumMismatch {
+    pub algorithm: ChecksumAlgorithm,
+    pub expected: String,
+    pub found: String,
 }

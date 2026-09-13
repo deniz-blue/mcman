@@ -305,6 +305,12 @@ impl<'a> Reader<'a> {
     }
 }
 
+pub trait Declaration: Sized {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>>;
+
+    fn write(&self, node: &mut KdlNode);
+}
+
 pub fn write_entries(node: &KdlNode, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (index, entry) in node.entries().iter().enumerate() {
         if index > 0 {

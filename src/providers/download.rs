@@ -14,9 +14,9 @@ impl AddonResolver for Downloads {
         addon: &DownloadAddon,
         _platforms: &[Platform],
     ) -> Result<Resolved<DownloadAddon>, ProviderError> {
-        Ok(Resolved {
-            resolved: addon.clone(),
-            package: Package::from_downloads(vec![addon.0.clone()]),
-        })
+        Ok(Resolved::new(
+            addon.clone(),
+            Package::from_downloads(vec![addon.0.clone()]),
+        ))
     }
 }

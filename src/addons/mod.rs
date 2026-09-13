@@ -8,7 +8,7 @@ use crate::{
         github::GitHubAddon, hangar::HangarAddon, maven::MavenAddon, modrinth::ModrinthAddon,
         papermc::PaperMcAddon,
     },
-    core::kdl::{write_entries, Reader},
+    core::kdl::{write_entries, Declaration, Errors, Reader, Spanned},
 };
 
 pub mod curseforge;
@@ -72,7 +72,7 @@ impl Addon {
         }
     }
 
-    pub fn read(reader: &mut Reader) -> Option<Self> {
+    pub fn read_from(reader: &mut Reader) -> Option<Self> {
         let type_name = reader.required_argument("addon type");
 
         Some(match type_name.as_str() {
@@ -93,8 +93,19 @@ impl Addon {
             }
         })
     }
+}
 
-    pub fn write(&self, node: &mut KdlNode) {
+impl Declaration for Addon {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
+        let mut reader = Reader::new(node, errors);
+        let span = reader.span();
+        let addon = Self::read_from(&mut reader)?;
+        reader.reject_unread();
+
+        Some(Spanned::new(addon, span))
+    }
+
+    fn write(&self, node: &mut KdlNode) {
         node.push(self.type_name());
 
         match self {

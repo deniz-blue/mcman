@@ -1,7 +1,4 @@
-use std::{
-    io::{Cursor, Write},
-    path::Path,
-};
+use std::{io::Cursor, path::Path};
 
 use mcman::{
     core::checksum::ChecksumAlgorithm,
@@ -9,28 +6,13 @@ use mcman::{
     store::Store,
 };
 use tempfile::TempDir;
-use zip::{write::FileOptions, ZipArchive, ZipWriter};
+use zip::ZipArchive;
 
-const INDEX: &str = include_str!("fixtures/mrpack/index.json");
+mod common;
 
 fn pack(entries: &[(&str, &[u8])]) -> Mrpack<Cursor<Vec<u8>>> {
-    let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
-    let options = FileOptions::default();
-
-    writer
-        .start_file("modrinth.index.json", options)
-        .expect("starts the index");
-    writer
-        .write_all(INDEX.as_bytes())
-        .expect("writes the index");
-
-    for (name, bytes) in entries {
-        writer.start_file(*name, options).expect("starts an entry");
-        writer.write_all(bytes).expect("writes an entry");
-    }
-
-    let cursor = writer.finish().expect("finishes the zip");
-    let archive = ZipArchive::new(cursor).expect("the zip reads back");
+    let archive =
+        ZipArchive::new(Cursor::new(common::mrpack(entries))).expect("the zip reads back");
     Mrpack::open(archive).expect("the pack opens")
 }
 

@@ -5,22 +5,13 @@ use miette::Result;
 
 use crate::{
     addons::{Addon, Platform},
-    core::kdl::{child_nodes, reject_node, Errors, Reader, Spanned},
+    core::kdl::{child_nodes, reject_node, Declaration, Errors, Reader, Spanned},
     package::Package,
 };
 
 mod fs;
 mod include;
 mod target;
-
-fn read_addon(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Addon>> {
-    let mut reader = Reader::new(node, errors);
-    let span = reader.span();
-    let addon = Addon::read(&mut reader)?;
-    reader.reject_unread();
-
-    Some(Spanned::new(addon, span))
-}
 
 pub use fs::{CopyFile, SymlinkFile};
 pub use include::{Include, IncludeType, MrpackInclude, PackwizInclude};
@@ -88,10 +79,10 @@ impl Group {
                 "dir" => group.directories.push(Directory::read(node, errors)),
                 "target" => group.targets.push(Target::read(node, errors)),
                 "group" => group.subgroups.push(Group::read_node(node, errors)),
-                "runtime" => group.runtimes.extend(read_addon(node, errors)),
+                "runtime" => group.runtimes.extend(Addon::read(node, errors)),
                 "platform" => group.platforms.extend(Platform::read(node, errors)),
                 "include" => group.includes.extend(Include::read(node, errors)),
-                "use" => target_root.addons.extend(read_addon(node, errors)),
+                "use" => target_root.addons.extend(Addon::read(node, errors)),
                 "package" => target_root.packages.push(Package::read(node, errors)),
                 "fs:copy" => target_root.copies.push(CopyFile::read(node, errors)),
                 "fs:symlink" => target_root.symlinks.push(SymlinkFile::read(node, errors)),
@@ -138,7 +129,7 @@ impl Directory {
 
         for child in child_nodes(node) {
             match child.name().value() {
-                "use" => directory.addons.extend(read_addon(child, errors)),
+                "use" => directory.addons.extend(Addon::read(child, errors)),
                 "package" => directory.packages.push(Package::read(child, errors)),
                 "fs:copy" => directory.copies.push(CopyFile::read(child, errors)),
                 "fs:symlink" => directory.symlinks.push(SymlinkFile::read(child, errors)),

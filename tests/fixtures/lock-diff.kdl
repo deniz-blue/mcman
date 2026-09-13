@@ -1,7 +1,7 @@
 // The lock lock-diff-manifest.kdl resolves to
 meta version=1 generated="2024-06-01T12:00:00Z"
 
-target "smp" path="./run/smp" {
+target "smp" path="./run/smp" type="server" {
     platform minecraft version="1.21.1" {
         resolved minecraft version="1.21.1"
     }

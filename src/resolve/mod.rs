@@ -1,9 +1,13 @@
 use crate::{
     addons::{Addon, Platform},
-    core::{kdl::Spanned, AppContext},
-    lockfile::{LockedAddon, LockedPlatform, LockedTarget},
+    core::{kdl::Spanned, location::Location, AppContext},
+    lockfile::{Locked, LockedPlatform, LockedTarget},
+    manifest::Include,
+    modpack::Side,
     plan::TargetPlan,
-    providers::{download::Downloads, modrinth::Modrinth, AddonResolver, ProviderError, Resolved},
+    providers::{
+        download::Downloads, modrinth::Modrinth, mrpack, AddonResolver, ProviderError, Resolved,
+    },
 };
 
 mod error;
@@ -29,15 +33,30 @@ pub async fn resolve_addon(
         }),
     };
 
-    result.map_err(|source| ResolveError {
-        addon: addon.value.to_string(),
-        at: addon.span,
-        source,
-    })
+    result.map_err(|source| ResolveError::of(&addon.value, addon.span, source))
+}
+
+pub async fn resolve_include(
+    ctx: &AppContext,
+    manifest: &Location,
+    include: &Spanned<Include>,
+    side: Option<Side>,
+) -> Result<Resolved<Include>, ResolveError> {
+    let result = match &include.value {
+        Include::Mrpack(inner) => mrpack::resolve(ctx, manifest, inner, side)
+            .await
+            .map(|resolved| resolved.map(Include::Mrpack)),
+        other => Err(ProviderError::Unsupported {
+            type_name: other.type_name(),
+        }),
+    };
+
+    result.map_err(|source| ResolveError::of(&include.value, include.span, source))
 }
 
 pub async fn resolve_target(
     ctx: &AppContext,
+    manifest: &Location,
     target: &TargetPlan,
     locked: Option<&LockedTarget>,
 ) -> Result<LockedTarget, ResolveError> {
@@ -46,23 +65,17 @@ pub async fn resolve_target(
         .iter()
         .map(|platform| platform.value.clone())
         .collect();
-
-    if let Some(include) = target.includes.first() {
-        return Err(ResolveError {
-            addon: include.value.to_string(),
-            at: include.span,
-            source: ProviderError::Unsupported {
-                type_name: "include",
-            },
-        });
-    }
+    let side = target.target.kind.side();
 
     let mut runtimes = Vec::new();
     for runtime in &target.runtimes {
         let held = locked.and_then(|locked| find_locked(&locked.runtimes, &runtime.value));
         runtimes.push(match held {
             Some(held) => held.clone(),
-            None => lock_addon(ctx, runtime, &platforms).await?,
+            None => lock(
+                &runtime.value,
+                resolve_addon(ctx, runtime, &platforms).await?,
+            ),
         });
     }
 
@@ -75,7 +88,19 @@ pub async fn resolve_target(
         let held = locked.and_then(|locked| find_locked(&locked.addons, &addon.value));
         addons.push(match held {
             Some(held) => held.clone(),
-            None => lock_addon(ctx, addon, &platforms).await?,
+            None => lock(&addon.value, resolve_addon(ctx, addon, &platforms).await?),
+        });
+    }
+
+    let mut includes = Vec::new();
+    for include in &target.includes {
+        let held = locked.and_then(|locked| find_locked(&locked.includes, &include.value));
+        includes.push(match held {
+            Some(held) => held.clone(),
+            None => lock(
+                &include.value,
+                resolve_include(ctx, manifest, include, side).await?,
+            ),
         });
     }
 
@@ -86,6 +111,7 @@ pub async fn resolve_target(
     Ok(LockedTarget {
         name: target.target.name.clone(),
         path: target.target.path.clone().unwrap_or_else(|| ".".into()),
+        kind: target.target.kind.clone(),
         platforms: platforms
             .into_iter()
             .map(|platform| LockedPlatform {
@@ -95,25 +121,20 @@ pub async fn resolve_target(
             .collect(),
         runtimes,
         addons,
+        includes,
         packages,
     })
 }
 
-fn find_locked<'a>(entries: &'a [LockedAddon], requested: &Addon) -> Option<&'a LockedAddon> {
+fn find_locked<'a, D: PartialEq>(entries: &'a [Locked<D>], requested: &D) -> Option<&'a Locked<D>> {
     entries.iter().find(|entry| &entry.requested == requested)
 }
 
-async fn lock_addon(
-    ctx: &AppContext,
-    addon: &Spanned<Addon>,
-    platforms: &[Platform],
-) -> Result<LockedAddon, ResolveError> {
-    let resolved = resolve_addon(ctx, addon, platforms).await?;
-
-    Ok(LockedAddon {
-        requested: addon.value.clone(),
+fn lock<D: Clone>(requested: &D, resolved: Resolved<D>) -> Locked<D> {
+    Locked {
+        requested: requested.clone(),
         resolved: resolved.resolved,
         package: resolved.package,
-        artifacts: Vec::new(),
-    })
+        artifacts: resolved.artifacts,
+    }
 }

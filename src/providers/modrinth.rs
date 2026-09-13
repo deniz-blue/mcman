@@ -361,8 +361,5 @@ pub fn to_resolved(
         })
         .collect();
 
-    Resolved {
-        resolved,
-        package: Package::from_downloads(downloads),
-    }
+    Resolved::new(resolved, Package::from_downloads(downloads))
 }

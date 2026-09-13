@@ -5,17 +5,18 @@ use miette::Result;
 
 use crate::{
     addons::{Addon, Platform},
-    core::kdl::{child_nodes, reject_node, Errors, Reader},
+    core::kdl::{child_nodes, reject_node, Declaration, Errors, Reader},
+    manifest::{Include, TargetType},
     package::{source::download::Download, Package},
 };
 
 pub mod diff;
 
 const LOCKFILE_NODES: &str = "meta, target";
-const TARGET_NODES: &str = "platform, runtime, use, package";
+const TARGET_NODES: &str = "platform, runtime, use, include, package";
 const PLATFORM_NODES: &str = "resolved";
-const ADDON_NODES: &str = "resolved, download, artifact";
-const ENTRY_NODES: &str = "artifact";
+const LOCKED_NODES: &str = "resolved, download, artifact";
+const PACKAGE_NODES: &str = "artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Lockfile {
@@ -57,6 +58,10 @@ impl Lockfile {
             node.push(target.name.as_str());
             node.push(("path", display(&target.path)));
 
+            if target.kind != TargetType::None {
+                node.push(("type", target.kind.name()));
+            }
+
             for platform in &target.platforms {
                 node.ensure_children().nodes_mut().push(platform.to_kdl());
             }
@@ -69,6 +74,12 @@ impl Lockfile {
 
             for addon in &target.addons {
                 node.ensure_children().nodes_mut().push(addon.to_kdl("use"));
+            }
+
+            for include in &target.includes {
+                node.ensure_children()
+                    .nodes_mut()
+                    .push(include.to_kdl("include"));
             }
 
             for package in &target.packages {
@@ -122,9 +133,11 @@ impl LockfileMeta {
 pub struct LockedTarget {
     pub name: String,
     pub path: PathBuf,
+    pub kind: TargetType,
     pub platforms: Vec<LockedPlatform>,
     pub runtimes: Vec<LockedAddon>,
     pub addons: Vec<LockedAddon>,
+    pub includes: Vec<LockedInclude>,
     pub packages: Vec<LockedPackage>,
 }
 
@@ -133,11 +146,13 @@ impl LockedTarget {
         let mut reader = Reader::new(node, errors);
         let name = reader.required_argument("target name");
         let path = PathBuf::from(reader.required_property("path"));
+        let kind = TargetType::read(&mut reader);
         reader.reject_unread();
 
         let mut target = Self {
             name,
             path,
+            kind,
             ..Self::default()
         };
 
@@ -146,6 +161,7 @@ impl LockedTarget {
                 "platform" => target.platforms.extend(LockedPlatform::read(child, errors)),
                 "runtime" => target.runtimes.extend(LockedAddon::read(child, errors)),
                 "use" => target.addons.extend(LockedAddon::read(child, errors)),
+                "include" => target.includes.extend(LockedInclude::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),
                 _ => reject_node(child, errors, TARGET_NODES),
             }
@@ -202,18 +218,19 @@ impl LockedPlatform {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct LockedAddon {
-    pub requested: Addon,
-    pub resolved: Addon,
+pub struct Locked<D> {
+    pub requested: D,
+    pub resolved: D,
     pub package: Package,
     pub artifacts: Vec<Artifact>,
 }
 
-impl LockedAddon {
+pub type LockedAddon = Locked<Addon>;
+pub type LockedInclude = Locked<Include>;
+
+impl<D: Declaration> Locked<D> {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
-        let mut reader = Reader::new(node, errors);
-        let requested = Addon::read(&mut reader)?;
-        reader.reject_unread();
+        let requested = D::read(node, errors)?.value;
 
         let mut resolved = None;
         let mut downloads = Vec::new();
@@ -223,20 +240,18 @@ impl LockedAddon {
             match child.name().value() {
                 "resolved" => {
                     if resolved.is_some() {
-                        errors.push(child.span(), "a locked addon has one `resolved`");
+                        errors.push(child.span(), "a locked entry has one `resolved`");
                     }
-                    let mut reader = Reader::new(child, errors);
-                    resolved = Addon::read(&mut reader);
-                    reader.reject_unread();
+                    resolved = D::read(child, errors).map(|declaration| declaration.value);
                 }
                 "download" => downloads.push(Download::read(child, errors)),
                 "artifact" => artifacts.push(Artifact::read(child, errors)),
-                _ => reject_node(child, errors, ADDON_NODES),
+                _ => reject_node(child, errors, LOCKED_NODES),
             }
         }
 
         let Some(resolved) = resolved else {
-            errors.push(node.span(), "a locked addon needs a `resolved` child");
+            errors.push(node.span(), "a locked entry needs a `resolved` child");
             return None;
         };
 
@@ -309,7 +324,7 @@ fn read_artifacts(node: &KdlNode, errors: &mut Errors) -> Vec<Artifact> {
     for child in child_nodes(node) {
         match child.name().value() {
             "artifact" => artifacts.push(Artifact::read(child, errors)),
-            _ => reject_node(child, errors, ENTRY_NODES),
+            _ => reject_node(child, errors, PACKAGE_NODES),
         }
     }
 

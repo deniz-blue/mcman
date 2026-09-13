@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{fmt::Display, path::PathBuf, str::FromStr};
 
 use kdl::KdlNode;
 use miette::{miette, Result};
@@ -21,19 +21,8 @@ impl Target {
         let span = reader.span();
         let name = reader.required_argument("target name");
         let path = reader.path_property("path");
-        let kind = reader.property("type");
+        let kind = TargetType::read(&mut reader);
         reader.reject_unread();
-
-        let kind = match kind {
-            Some(kind) => match TargetType::from_str(&kind) {
-                Ok(kind) => kind,
-                Err(error) => {
-                    errors.push(span, error.to_string());
-                    TargetType::None
-                }
-            },
-            None => TargetType::None,
-        };
 
         Spanned::new(Self { name, path, kind }, span)
     }
@@ -51,6 +40,40 @@ pub enum TargetType {
 }
 
 impl TargetType {
+    pub const ALL: [Self; 6] = [
+        Self::None,
+        Self::Client,
+        Self::Server,
+        Self::Packwiz,
+        Self::Mrpack,
+        Self::Unsup,
+    ];
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Client => "client",
+            Self::Server => "server",
+            Self::Packwiz => "packwiz",
+            Self::Mrpack => "mrpack",
+            Self::Unsup => "unsup",
+        }
+    }
+
+    pub fn read(reader: &mut Reader) -> Self {
+        let Some(text) = reader.property("type") else {
+            return Self::None;
+        };
+
+        match Self::from_str(&text) {
+            Ok(kind) => kind,
+            Err(error) => {
+                reader.reject(error.to_string());
+                Self::None
+            }
+        }
+    }
+
     pub fn side(&self) -> Option<Side> {
         match self {
             Self::Server => Some(Side::Server),
@@ -71,7 +94,24 @@ impl FromStr for TargetType {
             "packwiz" => Ok(TargetType::Packwiz),
             "mrpack" => Ok(TargetType::Mrpack),
             "unsup" => Ok(TargetType::Unsup),
-            _ => Err(miette!("Invalid target type: {}", s)),
+            _ => Err(miette!(
+                "unknown target type `{s}`, expected one of: {}",
+                type_names()
+            )),
         }
     }
+}
+
+impl Display for TargetType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.name())
+    }
+}
+
+fn type_names() -> String {
+    TargetType::ALL
+        .iter()
+        .map(TargetType::name)
+        .collect::<Vec<_>>()
+        .join(", ")
 }

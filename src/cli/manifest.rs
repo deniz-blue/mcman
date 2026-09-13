@@ -11,7 +11,7 @@ use crate::{
     actions,
     cli::ManifestArgs,
     config::Config,
-    core::AppContext,
+    core::{location::Location, AppContext},
     lockfile::{Lockfile, LockfileMeta},
     manifest::Manifest,
     plan::{self, Plan},
@@ -113,10 +113,12 @@ async fn write_lockfile(manifest: &Path, lockfile: &Lockfile) -> Result<()> {
 
 async fn resolve_all(
     ctx: &AppContext,
+    manifest: &Path,
     plan: &Plan,
     held: &Lockfile,
     reuse: impl Fn(&str) -> bool,
 ) -> Result<Lockfile> {
+    let location = Location::Path(manifest.to_owned());
     let mut targets = Vec::new();
 
     for target in &plan.targets {
@@ -127,7 +129,7 @@ async fn resolve_all(
             .find(|locked| locked.name == name)
             .filter(|_| reuse(name));
 
-        targets.push(resolve::resolve_target(ctx, target, locked).await?);
+        targets.push(resolve::resolve_target(ctx, &location, target, locked).await?);
     }
 
     Ok(Lockfile {
@@ -177,7 +179,8 @@ impl BuildArgs {
         let ctx = AppContext::new(Arc::new(store));
 
         if !changes.is_empty() {
-            let lockfile = resolve_all(&ctx, &loaded.plan, &lockfile, |_| true).await?;
+            let lockfile =
+                resolve_all(&ctx, &loaded.path, &loaded.plan, &lockfile, |_| true).await?;
             write_lockfile(&loaded.path, &lockfile).await?;
         }
 
@@ -220,7 +223,7 @@ impl UpdateArgs {
 
         let keep =
             |name: &str| !self.packages.is_empty() && !self.packages.contains(&name.to_owned());
-        let lockfile = resolve_all(&ctx, &loaded.plan, &held, keep).await?;
+        let lockfile = resolve_all(&ctx, &loaded.path, &loaded.plan, &held, keep).await?;
         write_lockfile(&loaded.path, &lockfile).await?;
 
         for change in held.changes_needed_for(&loaded.plan) {

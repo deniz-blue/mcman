@@ -24,3 +24,11 @@ target "proxy" path="./run/proxy" {
 }
 
 target "empty" path="./run/empty"
+
+target "smp" path="./run/smp" type="server" {
+    include mrpack "https://example.com/Pack-1.2.mrpack" {
+        resolved mrpack "https://example.com/Pack-1.2.mrpack" sha512="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        download "https://cdn.modrinth.com/data/gvQqBUqZ/versions/abc/lithium-0.12.jar" path="mods/lithium.jar" sha1="fc8bb9919fa77c670b7ed5c284bcb66770ea71fc" size=1024
+        artifact "config/server.toml" hash="abcdef" size=12
+    }
+}
