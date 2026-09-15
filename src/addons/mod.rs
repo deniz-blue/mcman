@@ -36,19 +36,16 @@ pub enum Addon {
     Download(DownloadAddon),
 }
 
-fn type_names() -> String {
-    [
-        ModrinthAddon::TYPE_NAME,
-        PaperMcAddon::TYPE_NAME,
-        FabricLoaderAddon::TYPE_NAME,
-        HangarAddon::TYPE_NAME,
-        CurseForgeAddon::TYPE_NAME,
-        GitHubAddon::TYPE_NAME,
-        MavenAddon::TYPE_NAME,
-        DownloadAddon::TYPE_NAME,
-    ]
-    .join(", ")
-}
+const TYPE_NAMES: &[&str] = &[
+    ModrinthAddon::TYPE_NAME,
+    PaperMcAddon::TYPE_NAME,
+    FabricLoaderAddon::TYPE_NAME,
+    HangarAddon::TYPE_NAME,
+    CurseForgeAddon::TYPE_NAME,
+    GitHubAddon::TYPE_NAME,
+    MavenAddon::TYPE_NAME,
+    DownloadAddon::TYPE_NAME,
+];
 
 impl Addon {
     pub fn type_name(&self) -> &'static str {
@@ -77,10 +74,7 @@ impl Addon {
             MavenAddon::TYPE_NAME => Self::Maven(KdlRead::read(reader)),
             DownloadAddon::TYPE_NAME => Self::Download(KdlRead::read(reader)),
             _ => {
-                reader.reject(format!(
-                    "unknown addon type `{type_name}`, expected one of: {}",
-                    type_names()
-                ));
+                reader.unknown_type("addon type", &type_name, TYPE_NAMES);
                 return None;
             }
         })

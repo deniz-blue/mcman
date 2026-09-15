@@ -99,6 +99,13 @@ impl<'a> Reader<'a> {
         self.node.span()
     }
 
+    pub fn unknown_type(&mut self, label: &str, found: &str, expected: &[&str]) {
+        self.reject(format!(
+            "unknown {label} `{found}`, expected one of: {}",
+            expected.join(", ")
+        ));
+    }
+
     pub fn reject(&mut self, message: String) {
         let span = self.node.span();
         self.errors.push(span, message);

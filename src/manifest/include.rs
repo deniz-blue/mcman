@@ -64,9 +64,7 @@ impl KdlWrite for PackwizInclude {
     }
 }
 
-fn type_names() -> String {
-    [MrpackInclude::TYPE_NAME, PackwizInclude::TYPE_NAME].join(", ")
-}
+const TYPE_NAMES: &[&str] = &[MrpackInclude::TYPE_NAME, PackwizInclude::TYPE_NAME];
 
 impl Include {
     pub fn type_name(&self) -> &'static str {
@@ -87,20 +85,13 @@ impl Include {
 impl KdlMaybeRead for Include {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
-        let span = reader.span();
         let type_name = reader.required_argument("pack format");
 
         let include = match type_name.as_str() {
             MrpackInclude::TYPE_NAME => Self::Mrpack(KdlRead::read(&mut reader)),
             PackwizInclude::TYPE_NAME => Self::Packwiz(KdlRead::read(&mut reader)),
             _ => {
-                errors.push(
-                    span,
-                    format!(
-                        "unknown pack format `{type_name}`, expected one of: {}",
-                        type_names()
-                    ),
-                );
+                reader.unknown_type("pack format", &type_name, TYPE_NAMES);
                 return None;
             }
         };

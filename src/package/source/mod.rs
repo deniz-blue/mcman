@@ -22,12 +22,19 @@ impl PackageSource {
         }
     }
 
-    pub(crate) fn to_kdl(&self) -> KdlNode {
-        let (name, source): (&str, &dyn KdlWrite) = match self {
-            Self::Download(download) => ("download", download),
-            Self::Git(git) => ("git", git),
-        };
+    pub(crate) fn node_name(&self) -> &'static str {
+        match self {
+            Self::Download(_) => "download",
+            Self::Git(_) => "git",
+        }
+    }
+}
 
-        source.to_kdl(name)
+impl KdlWrite for PackageSource {
+    fn write(&self, node: &mut KdlNode) {
+        match self {
+            Self::Download(download) => download.write(node),
+            Self::Git(git) => git.write(node),
+        }
     }
 }

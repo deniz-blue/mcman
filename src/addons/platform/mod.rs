@@ -28,15 +28,12 @@ pub trait PlatformDependencies {
     const REQUIRES: &'static [&'static str];
 }
 
-fn type_names() -> String {
-    [
-        MinecraftPlatform::TYPE_NAME,
-        PaperPlatform::TYPE_NAME,
-        VelocityPlatform::TYPE_NAME,
-        FabricPlatform::TYPE_NAME,
-    ]
-    .join(", ")
-}
+const TYPE_NAMES: &[&str] = &[
+    MinecraftPlatform::TYPE_NAME,
+    PaperPlatform::TYPE_NAME,
+    VelocityPlatform::TYPE_NAME,
+    FabricPlatform::TYPE_NAME,
+];
 
 impl Platform {
     pub fn type_name(&self) -> &'static str {
@@ -74,7 +71,6 @@ impl KdlWrite for Platform {
 impl KdlMaybeRead for Platform {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
-        let span = reader.span();
         let type_name = reader.required_argument("platform type");
 
         let platform = match type_name.as_str() {
@@ -83,13 +79,7 @@ impl KdlMaybeRead for Platform {
             VelocityPlatform::TYPE_NAME => Self::Velocity(KdlRead::read(&mut reader)),
             FabricPlatform::TYPE_NAME => Self::Fabric(KdlRead::read(&mut reader)),
             _ => {
-                errors.push(
-                    span,
-                    format!(
-                        "unknown platform `{type_name}`, expected one of: {}",
-                        type_names()
-                    ),
-                );
+                reader.unknown_type("platform type", &type_name, TYPE_NAMES);
                 return None;
             }
         };

@@ -2,7 +2,7 @@ use kdl::KdlNode;
 use miette::Result;
 
 use crate::{
-    core::kdl::{child_nodes, reject_node, Errors, KdlRead, Reader, Spanned},
+    core::kdl::{child_nodes, reject_node, Errors, KdlRead, KdlWrite, Reader, Spanned},
     package::{
         artifact::PackageArtifact,
         build::PackageBuild,
@@ -44,7 +44,8 @@ impl Package {
 
     pub fn write_sources(&self, node: &mut KdlNode) {
         for source in &self.sources {
-            node.ensure_children().nodes_mut().push(source.to_kdl());
+            let child = source.to_kdl(source.node_name());
+            node.ensure_children().nodes_mut().push(child);
         }
     }
 

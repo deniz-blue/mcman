@@ -46,7 +46,7 @@ impl TargetType {
         Self::Unsup,
     ];
 
-    pub fn name(&self) -> &'static str {
+    pub fn type_name(&self) -> &'static str {
         match self {
             Self::None => "none",
             Self::Client => "client",
@@ -85,7 +85,7 @@ impl KdlRead for TargetType {
 impl KdlWrite for TargetType {
     fn write(&self, node: &mut KdlNode) {
         if *self != Self::None {
-            node.push(("type", self.name()));
+            node.push(("type", self.type_name()));
         }
     }
 }
@@ -111,14 +111,14 @@ impl FromStr for TargetType {
 
 impl Display for TargetType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.name())
+        f.write_str(self.type_name())
     }
 }
 
 fn type_names() -> String {
     TargetType::ALL
         .iter()
-        .map(TargetType::name)
+        .map(TargetType::type_name)
         .collect::<Vec<_>>()
         .join(", ")
 }
