@@ -307,6 +307,18 @@ impl<'a> Reader<'a> {
 
 pub trait KdlRead: Sized {
     fn read(reader: &mut Reader) -> Self;
+
+    fn read_node(node: &KdlNode, errors: &mut Errors) -> Self {
+        let mut reader = Reader::new(node, errors);
+        let value = Self::read(&mut reader);
+        reader.reject_unread();
+
+        value
+    }
+
+    fn read_spanned(node: &KdlNode, errors: &mut Errors) -> Spanned<Self> {
+        Spanned::new(Self::read_node(node, errors), node.span())
+    }
 }
 
 pub trait KdlWrite {
@@ -317,27 +329,12 @@ pub trait KdlVariant: KdlRead + KdlWrite {
     const TYPE_NAME: &'static str;
 }
 
-pub fn read_node<T: KdlRead>(node: &KdlNode, errors: &mut Errors) -> T {
-    let mut reader = Reader::new(node, errors);
-    let value = T::read(&mut reader);
-    reader.reject_unread();
+pub trait KdlMaybeRead: Sized {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self>;
 
-    value
-}
-
-pub fn read_spanned<T: KdlRead>(node: &KdlNode, errors: &mut Errors) -> Spanned<T> {
-    let mut reader = Reader::new(node, errors);
-    let span = reader.span();
-    let value = T::read(&mut reader);
-    reader.reject_unread();
-
-    Spanned::new(value, span)
-}
-
-pub trait Declaration: Sized {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>>;
-
-    fn write(&self, node: &mut KdlNode);
+    fn read_spanned(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
+        Some(Spanned::new(Self::read(node, errors)?, node.span()))
+    }
 }
 
 pub fn write_entries(node: &KdlNode, f: &mut fmt::Formatter<'_>) -> fmt::Result {

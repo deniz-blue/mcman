@@ -4,7 +4,7 @@ use kdl::KdlNode;
 
 use crate::core::{
     checksum::Checksums,
-    kdl::{write_entries, Declaration, Errors, KdlRead, KdlVariant, KdlWrite, Reader, Spanned},
+    kdl::{write_entries, Errors, KdlMaybeRead, KdlRead, KdlVariant, KdlWrite, Reader},
     location::Location,
 };
 
@@ -84,8 +84,8 @@ impl Include {
     }
 }
 
-impl Declaration for Include {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
+impl KdlMaybeRead for Include {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
         let type_name = reader.required_argument("pack format");
@@ -106,9 +106,11 @@ impl Declaration for Include {
         };
 
         reader.reject_unread();
-        Some(Spanned::new(include, span))
+        Some(include)
     }
+}
 
+impl KdlWrite for Include {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.type_name());
 

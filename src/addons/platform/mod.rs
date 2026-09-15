@@ -7,7 +7,7 @@ use crate::{
         fabric::FabricPlatform, minecraft::MinecraftPlatform, paper::PaperPlatform,
         velocity::VelocityPlatform,
     },
-    core::kdl::{write_entries, Errors, KdlRead, KdlVariant, KdlWrite, Reader, Spanned},
+    core::kdl::{write_entries, Errors, KdlMaybeRead, KdlRead, KdlVariant, KdlWrite, Reader},
 };
 
 pub mod fabric;
@@ -56,8 +56,10 @@ impl Platform {
             Self::Fabric(_) => FabricPlatform::REQUIRES,
         }
     }
+}
 
-    pub fn write(&self, node: &mut KdlNode) {
+impl KdlWrite for Platform {
+    fn write(&self, node: &mut KdlNode) {
         node.push(self.type_name());
 
         match self {
@@ -67,8 +69,10 @@ impl Platform {
             Self::Fabric(platform) => platform.write(node),
         }
     }
+}
 
-    pub fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
+impl KdlMaybeRead for Platform {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
         let type_name = reader.required_argument("platform type");
@@ -91,7 +95,7 @@ impl Platform {
         };
 
         reader.reject_unread();
-        Some(Spanned::new(platform, span))
+        Some(platform)
     }
 }
 

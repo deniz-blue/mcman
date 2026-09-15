@@ -5,11 +5,9 @@ use miette::Result;
 
 use crate::{
     addons::{Addon, Platform},
-    core::kdl::{
-        child_nodes, read_node, reject_node, Declaration, Errors, KdlRead, KdlWrite, Reader,
-    },
+    core::kdl::{child_nodes, reject_node, Errors, KdlMaybeRead, KdlRead, KdlWrite, Reader},
     manifest::{Include, TargetType},
-    package::Package,
+    package::{source::download::Download, Package},
 };
 
 pub mod diff;
@@ -35,7 +33,7 @@ impl Lockfile {
 
         for node in document.nodes() {
             match node.name().value() {
-                "meta" => lockfile.meta = read_node(node, &mut errors),
+                "meta" => lockfile.meta = LockfileMeta::read_node(node, &mut errors),
                 "target" => lockfile.targets.push(LockedTarget::read(node, &mut errors)),
                 _ => reject_node(node, &mut errors, LOCKFILE_NODES),
             }
@@ -179,9 +177,9 @@ pub struct LockedPlatform {
     pub resolved: Platform,
 }
 
-impl LockedPlatform {
+impl KdlMaybeRead for LockedPlatform {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
-        let requested = Platform::read(node, errors)?.value;
+        let requested = Platform::read(node, errors)?;
         let mut resolved = None;
 
         for child in child_nodes(node) {
@@ -190,7 +188,7 @@ impl LockedPlatform {
                     if resolved.is_some() {
                         errors.push(child.span(), "a locked `platform` has one `resolved`");
                     }
-                    resolved = Platform::read(child, errors).map(|platform| platform.value);
+                    resolved = Platform::read(child, errors);
                 }
                 _ => reject_node(child, errors, PLATFORM_NODES),
             }
@@ -206,7 +204,9 @@ impl LockedPlatform {
             resolved,
         })
     }
+}
 
+impl LockedPlatform {
     fn to_kdl(&self) -> KdlNode {
         let mut node = KdlNode::new("platform");
         self.requested.write(&mut node);
@@ -230,9 +230,9 @@ pub struct Locked<D> {
 pub type LockedAddon = Locked<Addon>;
 pub type LockedInclude = Locked<Include>;
 
-impl<D: Declaration> Locked<D> {
+impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
-        let requested = D::read(node, errors)?.value;
+        let requested = D::read(node, errors)?;
 
         let mut resolved = None;
         let mut downloads = Vec::new();
@@ -244,10 +244,10 @@ impl<D: Declaration> Locked<D> {
                     if resolved.is_some() {
                         errors.push(child.span(), "a locked entry has one `resolved`");
                     }
-                    resolved = D::read(child, errors).map(|declaration| declaration.value);
+                    resolved = D::read(child, errors);
                 }
-                "download" => downloads.push(read_node(child, errors)),
-                "artifact" => artifacts.push(read_node(child, errors)),
+                "download" => downloads.push(Download::read_node(child, errors)),
+                "artifact" => artifacts.push(Artifact::read_node(child, errors)),
                 _ => reject_node(child, errors, LOCKED_NODES),
             }
         }
@@ -264,7 +264,9 @@ impl<D: Declaration> Locked<D> {
             artifacts,
         })
     }
+}
 
+impl<D: KdlWrite> Locked<D> {
     fn to_kdl(&self, name: &str) -> KdlNode {
         let mut node = KdlNode::new(name);
         self.requested.write(&mut node);
@@ -331,7 +333,7 @@ fn read_artifacts(node: &KdlNode, errors: &mut Errors) -> Vec<Artifact> {
 
     for child in child_nodes(node) {
         match child.name().value() {
-            "artifact" => artifacts.push(read_node(child, errors)),
+            "artifact" => artifacts.push(Artifact::read_node(child, errors)),
             _ => reject_node(child, errors, PACKAGE_NODES),
         }
     }

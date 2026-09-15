@@ -1,7 +1,7 @@
 use kdl::KdlNode;
 
 use crate::{
-    core::kdl::{read_node, Errors, KdlWrite},
+    core::kdl::{Errors, KdlRead, KdlWrite},
     package::source::{download::Download, git::Git},
 };
 
@@ -17,8 +17,8 @@ pub enum PackageSource {
 impl PackageSource {
     pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
         match node.name().value() {
-            "git" => Self::Git(read_node(node, errors)),
-            _ => Self::Download(read_node(node, errors)),
+            "git" => Self::Git(Git::read_node(node, errors)),
+            _ => Self::Download(Download::read_node(node, errors)),
         }
     }
 

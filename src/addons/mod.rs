@@ -8,9 +8,7 @@ use crate::{
         github::GitHubAddon, hangar::HangarAddon, maven::MavenAddon, modrinth::ModrinthAddon,
         papermc::PaperMcAddon,
     },
-    core::kdl::{
-        write_entries, Declaration, Errors, KdlRead, KdlVariant, KdlWrite, Reader, Spanned,
-    },
+    core::kdl::{write_entries, Errors, KdlMaybeRead, KdlRead, KdlVariant, KdlWrite, Reader},
 };
 
 pub mod curseforge;
@@ -66,7 +64,7 @@ impl Addon {
         }
     }
 
-    pub fn read_from(reader: &mut Reader) -> Option<Self> {
+    fn read_type(reader: &mut Reader) -> Option<Self> {
         let type_name = reader.required_argument("addon type");
 
         Some(match type_name.as_str() {
@@ -89,16 +87,17 @@ impl Addon {
     }
 }
 
-impl Declaration for Addon {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
+impl KdlMaybeRead for Addon {
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
         let mut reader = Reader::new(node, errors);
-        let span = reader.span();
-        let addon = Self::read_from(&mut reader)?;
+        let addon = Self::read_type(&mut reader)?;
         reader.reject_unread();
 
-        Some(Spanned::new(addon, span))
+        Some(addon)
     }
+}
 
+impl KdlWrite for Addon {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.type_name());
 

@@ -2,7 +2,7 @@ use kdl::KdlNode;
 use miette::Result;
 
 use crate::{
-    core::kdl::{child_nodes, read_node, reject_node, Errors, Reader, Spanned},
+    core::kdl::{child_nodes, reject_node, Errors, KdlRead, Reader, Spanned},
     package::{
         artifact::PackageArtifact,
         build::PackageBuild,
@@ -66,7 +66,7 @@ impl Package {
             match child.name().value() {
                 "git" | "download" => package.sources.push(PackageSource::read(child, errors)),
                 "artifact" => {
-                    let artifact: PackageArtifact = read_node(child, errors);
+                    let artifact = PackageArtifact::read_node(child, errors);
                     if artifact.to.is_none() && artifact.from.file_name().is_none() {
                         errors.push(
                             child.span(),
