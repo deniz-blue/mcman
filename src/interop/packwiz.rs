@@ -8,7 +8,7 @@ use anyhow::{anyhow, Context, Result};
 use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
 use pathdiff::diff_paths;
 use rpackwiz::model::{
-    DownloadMode, HashFormat, Mod, ModDownload, ModUpdate, Pack, PackFile, PackIndex,
+    DownloadMode, HashFormat, Mod, ModDownload, ModUpdate, Pack, PackFile, PackIndex, Side,
 };
 use serde::de::DeserializeOwned;
 use tokio::{fs::File, io::AsyncWriteExt};
@@ -16,7 +16,7 @@ use walkdir::WalkDir;
 
 use crate::{
     app::{AddonType, App, CacheStrategy, Prefix, ProgressPrefix, Resolvable, ResolvedFile},
-    model::Downloadable,
+    model::{ClientSideMod, Downloadable},
     util::env::try_get_url,
 };
 
@@ -97,7 +97,16 @@ impl PackwizInterop<'_> {
                     let dl = self.dl_from_mod(&modpw).await?;
                     let dl_name = dl.to_short_string();
 
-                    self.0.add_addon(AddonType::Mod, dl)?;
+                    if modpw.side == Side::Client {
+                        self.0.server.clientsidemods.push(ClientSideMod {
+                            dl,
+                            desc: modpw.option.description.clone().unwrap_or_default(),
+                            optional: modpw.option.optional,
+                        });
+                    } else {
+                        self.0.add_addon(AddonType::Mod, dl)?;
+                    }
+
                     self.0.notify(Prefix::Imported, dl_name);
                 } else {
                     // TODO: ???
@@ -300,32 +309,57 @@ impl PackwizInterop<'_> {
             .with_prefix(ProgressPrefix::Exporting);
 
         tokio::fs::create_dir_all(output_dir.join("mods")).await?;
-        for dl in self.0.server.mods.iter().progress_with(pb.clone()) {
-            pb.set_message(dl.to_short_string());
 
-            let m = self.to_mod(dl).await?;
-
-            let filename = format!("{}.pw.toml", m.name);
-            let path = output_dir.join("mods").join(&filename);
-
-            let mut f = File::create(path).await?;
-
-            let content = toml::to_string_pretty(&m)?;
-            let hash = App::hash_sha256(&content);
-
-            f.write_all(content.as_bytes()).await?;
-
-            self.0.notify(Prefix::Exported, format!("mods/{filename}"));
-
-            files_list.push(PackFile {
-                file: format!("mods/{filename}"),
-                hash,
-                metafile: true,
-                alias: None,
-                hash_format: None,
-                preserve: false,
-            });
+        for dl in &self.0.server.mods {
+            self.write_mod_file(dl, Side::Both, false, None, output_dir, files_list, &pb)
+                .await?;
         }
+
+        for csm in &self.0.server.clientsidemods {
+            let desc = if csm.desc.is_empty() { None } else { Some(csm.desc.as_str()) };
+            self.write_mod_file(&csm.dl, Side::Client, csm.optional, desc, output_dir, files_list, &pb)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    async fn write_mod_file(
+        &self,
+        dl: &Downloadable,
+        side: Side,
+        optional: bool,
+        desc: Option<&str>,
+        output_dir: &Path,
+        files_list: &mut Vec<PackFile>,
+        pb: &ProgressBar,
+    ) -> Result<()> {
+        pb.set_message(dl.to_short_string());
+
+        let mut m = self.to_mod(dl).await?;
+        m.side = side;
+        m.option.optional = optional;
+        m.option.description = desc.map(str::to_owned);
+
+        let filename = format!("{}.pw.toml", m.name);
+        let path = output_dir.join("mods").join(&filename);
+
+        let content = toml::to_string_pretty(&m)?;
+        let hash = App::hash_sha256(&content);
+
+        File::create(path).await?.write_all(content.as_bytes()).await?;
+
+        self.0.notify(Prefix::Exported, format!("mods/{filename}"));
+
+        files_list.push(PackFile {
+            file: format!("mods/{filename}"),
+            hash,
+            metafile: true,
+            alias: None,
+            hash_format: None,
+            preserve: false,
+        });
 
         Ok(())
     }
