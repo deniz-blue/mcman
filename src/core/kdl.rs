@@ -323,6 +323,13 @@ pub trait KdlRead: Sized {
 
 pub trait KdlWrite {
     fn write(&self, node: &mut KdlNode);
+
+    fn to_kdl(&self, name: &str) -> KdlNode {
+        let mut node = KdlNode::new(name);
+        self.write(&mut node);
+
+        node
+    }
 }
 
 pub trait KdlVariant: KdlRead + KdlWrite {

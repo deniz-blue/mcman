@@ -28,9 +28,6 @@ impl PackageSource {
             Self::Git(git) => ("git", git),
         };
 
-        let mut node = KdlNode::new(name);
-        source.write(&mut node);
-
-        node
+        source.to_kdl(name)
     }
 }

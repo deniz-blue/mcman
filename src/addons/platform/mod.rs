@@ -101,8 +101,6 @@ impl KdlMaybeRead for Platform {
 
 impl Display for Platform {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut node = KdlNode::new("platform");
-        self.write(&mut node);
-        write_entries(&node, f)
+        write_entries(&self.to_kdl("platform"), f)
     }
 }

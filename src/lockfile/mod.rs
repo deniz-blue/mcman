@@ -48,46 +48,10 @@ impl Lockfile {
     pub fn to_kdl(&self) -> String {
         let mut document = KdlDocument::new();
 
-        let mut meta = KdlNode::new("meta");
-        self.meta.write(&mut meta);
-        document.nodes_mut().push(meta);
+        document.nodes_mut().push(self.meta.to_kdl("meta"));
 
         for target in &self.targets {
-            let mut node = KdlNode::new("target");
-            node.push(target.name.as_str());
-            node.push(("path", display(&target.path)));
-
-            target.kind.write(&mut node);
-
-            for platform in &target.platforms {
-                node.ensure_children().nodes_mut().push(platform.to_kdl());
-            }
-
-            for runtime in &target.runtimes {
-                node.ensure_children()
-                    .nodes_mut()
-                    .push(runtime.to_kdl("runtime"));
-            }
-
-            for addon in &target.addons {
-                node.ensure_children().nodes_mut().push(addon.to_kdl("use"));
-            }
-
-            for include in &target.includes {
-                node.ensure_children()
-                    .nodes_mut()
-                    .push(include.to_kdl("include"));
-            }
-
-            for package in &target.packages {
-                let mut child = KdlNode::new("package");
-                child.push(package.name.as_str());
-                child.push(("identity", package.identity.as_str()));
-                push_artifacts(&mut child, &package.artifacts);
-                node.ensure_children().nodes_mut().push(child);
-            }
-
-            document.nodes_mut().push(node);
+            document.nodes_mut().push(target.to_kdl("target"));
         }
 
         document.autoformat();
@@ -95,11 +59,13 @@ impl Lockfile {
     }
 }
 
+fn push_child(node: &mut KdlNode, child: KdlNode) {
+    node.ensure_children().nodes_mut().push(child);
+}
+
 fn push_artifacts(node: &mut KdlNode, artifacts: &[Artifact]) {
     for artifact in artifacts {
-        let mut child = KdlNode::new("artifact");
-        artifact.write(&mut child);
-        node.ensure_children().nodes_mut().push(child);
+        push_child(node, artifact.to_kdl("artifact"));
     }
 }
 
@@ -171,6 +137,34 @@ impl LockedTarget {
     }
 }
 
+impl KdlWrite for LockedTarget {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.name.as_str());
+        node.push(("path", display(&self.path)));
+        self.kind.write(node);
+
+        for platform in &self.platforms {
+            push_child(node, platform.to_kdl("platform"));
+        }
+
+        for runtime in &self.runtimes {
+            push_child(node, runtime.to_kdl("runtime"));
+        }
+
+        for addon in &self.addons {
+            push_child(node, addon.to_kdl("use"));
+        }
+
+        for include in &self.includes {
+            push_child(node, include.to_kdl("include"));
+        }
+
+        for package in &self.packages {
+            push_child(node, package.to_kdl("package"));
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LockedPlatform {
     pub requested: Platform,
@@ -206,16 +200,11 @@ impl KdlMaybeRead for LockedPlatform {
     }
 }
 
-impl LockedPlatform {
-    fn to_kdl(&self) -> KdlNode {
-        let mut node = KdlNode::new("platform");
-        self.requested.write(&mut node);
+impl KdlWrite for LockedPlatform {
+    fn write(&self, node: &mut KdlNode) {
+        self.requested.write(node);
 
-        let mut resolved = KdlNode::new("resolved");
-        self.resolved.write(&mut resolved);
-        node.ensure_children().nodes_mut().push(resolved);
-
-        node
+        push_child(node, self.resolved.to_kdl("resolved"));
     }
 }
 
@@ -266,18 +255,14 @@ impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
     }
 }
 
-impl<D: KdlWrite> Locked<D> {
-    fn to_kdl(&self, name: &str) -> KdlNode {
-        let mut node = KdlNode::new(name);
-        self.requested.write(&mut node);
+impl<D: KdlWrite> KdlWrite for Locked<D> {
+    fn write(&self, node: &mut KdlNode) {
+        self.requested.write(node);
 
-        let mut resolved = KdlNode::new("resolved");
-        self.resolved.write(&mut resolved);
-        node.ensure_children().nodes_mut().push(resolved);
+        push_child(node, self.resolved.to_kdl("resolved"));
 
-        self.package.write_sources(&mut node);
-        push_artifacts(&mut node, &self.artifacts);
-        node
+        self.package.write_sources(node);
+        push_artifacts(node, &self.artifacts);
     }
 }
 
@@ -300,6 +285,14 @@ impl LockedPackage {
             identity,
             artifacts: read_artifacts(node, errors),
         }
+    }
+}
+
+impl KdlWrite for LockedPackage {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.name.as_str());
+        node.push(("identity", self.identity.as_str()));
+        push_artifacts(node, &self.artifacts);
     }
 }
 
