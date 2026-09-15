@@ -71,7 +71,7 @@ Manifest {
                         path: Some(
                             "./run/smp",
                         ),
-                        kind: None,
+                        kind: Files,
                     },
                 ],
                 subgroups: [],

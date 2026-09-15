@@ -1,5 +1,5 @@
 // One target for every supported type
-target "default" type="none"
+target "default" type="files"
 target "client-pack" path="./out/client" type="client"
 target "server-jar" path="./out/server" type="server"
 target "packwiz-pack" path="./out/packwiz" type="packwiz"

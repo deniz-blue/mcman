@@ -15,7 +15,7 @@ Manifest {
                 path: Some(
                     "./run/plain",
                 ),
-                kind: None,
+                kind: Files,
             },
         ],
         subgroups: [

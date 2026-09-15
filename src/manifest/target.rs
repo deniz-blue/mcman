@@ -28,7 +28,7 @@ impl KdlRead for Target {
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum TargetType {
     #[default]
-    None,
+    Files,
     Client,
     Server,
     Packwiz,
@@ -38,7 +38,7 @@ pub enum TargetType {
 
 impl TargetType {
     pub const ALL: [Self; 6] = [
-        Self::None,
+        Self::Files,
         Self::Client,
         Self::Server,
         Self::Packwiz,
@@ -48,7 +48,7 @@ impl TargetType {
 
     pub fn type_name(&self) -> &'static str {
         match self {
-            Self::None => "none",
+            Self::Files => "files",
             Self::Client => "client",
             Self::Server => "server",
             Self::Packwiz => "packwiz",
@@ -69,14 +69,14 @@ impl TargetType {
 impl KdlRead for TargetType {
     fn read(reader: &mut Reader) -> Self {
         let Some(text) = reader.property("type") else {
-            return Self::None;
+            return Self::Files;
         };
 
         match Self::from_str(&text) {
             Ok(kind) => kind,
             Err(error) => {
                 reader.reject(error.to_string());
-                Self::None
+                Self::Files
             }
         }
     }
@@ -84,7 +84,7 @@ impl KdlRead for TargetType {
 
 impl KdlWrite for TargetType {
     fn write(&self, node: &mut KdlNode) {
-        if *self != Self::None {
+        if *self != Self::Files {
             node.push(("type", self.type_name()));
         }
     }
@@ -95,7 +95,7 @@ impl FromStr for TargetType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "none" | "" => Ok(TargetType::None),
+            "files" | "" => Ok(TargetType::Files),
             "client" => Ok(TargetType::Client),
             "server" => Ok(TargetType::Server),
             "packwiz" => Ok(TargetType::Packwiz),

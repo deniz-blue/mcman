@@ -13,7 +13,7 @@ Manifest {
             Target {
                 name: "default",
                 path: None,
-                kind: None,
+                kind: Files,
             },
             Target {
                 name: "client-pack",
