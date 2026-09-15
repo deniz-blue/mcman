@@ -130,7 +130,7 @@ pub struct ProjectVersion {
     pub downloads: HashMap<Platform, PlatformVersionDownload>,
     pub plugin_dependencies: HashMap<Platform, Vec<PluginDependency>>,
     pub platform_dependencies: HashMap<Platform, Vec<String>>,
-    pub platform_dependencies_formatted: HashMap<Platform, String>,
+    pub platform_dependencies_formatted: HashMap<Platform, Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
