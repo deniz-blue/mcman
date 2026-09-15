@@ -42,6 +42,13 @@ impl Package {
         }
     }
 
+    pub fn downloads(&self) -> impl Iterator<Item = &Download> {
+        self.sources.iter().filter_map(|source| match source {
+            PackageSource::Download(download) => Some(download),
+            PackageSource::Git(_) => None,
+        })
+    }
+
     pub fn write_sources(&self, node: &mut KdlNode) {
         for source in &self.sources {
             let child = source.to_kdl(source.node_name());

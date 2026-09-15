@@ -15,7 +15,7 @@ pub mod diff;
 const LOCKFILE_NODES: &str = "meta, target";
 const TARGET_NODES: &str = "platform, runtime, use, include, package";
 const PLATFORM_NODES: &str = "resolved";
-const LOCKED_NODES: &str = "resolved, download, artifact";
+const LOCKED_NODES: &str = "resolved, dir, download, artifact";
 const PACKAGE_NODES: &str = "artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -212,6 +212,7 @@ impl KdlWrite for LockedPlatform {
 pub struct Locked<D> {
     pub requested: D,
     pub resolved: D,
+    pub directory: PathBuf,
     pub package: Package,
     pub artifacts: Vec<Artifact>,
 }
@@ -224,6 +225,7 @@ impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
         let requested = D::read(node, errors)?;
 
         let mut resolved = None;
+        let mut directory = PathBuf::new();
         let mut downloads = Vec::new();
         let mut artifacts = Vec::new();
 
@@ -234,6 +236,11 @@ impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
                         errors.push(child.span(), "a locked entry has one `resolved`");
                     }
                     resolved = D::read(child, errors);
+                }
+                "dir" => {
+                    let mut reader = Reader::new(child, errors);
+                    directory = reader.required_path_argument("directory path");
+                    reader.reject_unread();
                 }
                 "download" => downloads.push(Download::read_node(child, errors)),
                 "artifact" => artifacts.push(Artifact::read_node(child, errors)),
@@ -249,6 +256,7 @@ impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
         Some(Self {
             requested,
             resolved,
+            directory,
             package: Package::from_downloads(downloads),
             artifacts,
         })
@@ -260,6 +268,10 @@ impl<D: KdlWrite> KdlWrite for Locked<D> {
         self.requested.write(node);
 
         push_child(node, self.resolved.to_kdl("resolved"));
+
+        if !self.directory.as_os_str().is_empty() {
+            push_child(node, self.directory.to_kdl("dir"));
+        }
 
         self.package.write_sources(node);
         push_artifacts(node, &self.artifacts);

@@ -25,7 +25,7 @@ impl KdlRead for Target {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum TargetType {
     #[default]
     Files,

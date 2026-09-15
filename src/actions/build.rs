@@ -3,56 +3,9 @@ use std::path::Path;
 use miette::{IntoDiagnostic, Result};
 
 use crate::{
-    addons::Addon,
     core::AppContext,
-    manifest::Manifest,
     package::{source::PackageSource, Package},
-    plan::{self, TargetPlan},
 };
-
-pub async fn build_manifest_all(ctx: &AppContext, path: &Path, manifest: &Manifest) -> Result<()> {
-    let plan = plan::from_manifest(manifest)?;
-
-    for warning in &plan.warnings {
-        eprintln!("warning: {warning}");
-    }
-
-    for target in &plan.targets {
-        build_manifest_target(ctx, path, target).await?;
-    }
-
-    Ok(())
-}
-
-pub async fn build_manifest_target(
-    ctx: &AppContext,
-    manifest_path: &Path,
-    plan: &TargetPlan,
-) -> Result<()> {
-    let target_path = if let Some(path) = &plan.target.path {
-        manifest_path.join(path)
-    } else {
-        manifest_path.to_path_buf()
-    };
-
-    for directory in &plan.directories {
-        let dir_path = if let Some(path) = &directory.path {
-            target_path.join(path)
-        } else {
-            target_path.to_path_buf()
-        };
-
-        for package in &directory.packages {
-            build_package(ctx, &dir_path, package).await?;
-        }
-
-        for addon in &directory.addons {
-            build_addon(ctx, &dir_path, addon).await?;
-        }
-    }
-
-    Ok(())
-}
 
 pub async fn build_package(ctx: &AppContext, output_path: &Path, package: &Package) -> Result<()> {
     if package
@@ -100,9 +53,5 @@ pub async fn build_package_complex(
         }
     }
 
-    Ok(())
-}
-
-pub async fn build_addon(_ctx: &AppContext, _path: &Path, _addon: &Addon) -> Result<()> {
     Ok(())
 }

@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use crate::{
     addons::{Addon, Platform},
     core::{kdl::Spanned, location::Location, AppContext},
@@ -67,39 +69,47 @@ pub async fn resolve_target(
         .collect();
     let side = target.target.kind.side();
 
+    let root = PathBuf::new();
+
     let mut runtimes = Vec::new();
     for runtime in &target.runtimes {
-        let held = locked.and_then(|locked| find_locked(&locked.runtimes, &runtime.value));
+        let held = locked.and_then(|locked| find_locked(&locked.runtimes, &runtime.value, &root));
         runtimes.push(match held {
             Some(held) => held.clone(),
             None => lock(
                 &runtime.value,
                 resolve_addon(ctx, runtime, &platforms).await?,
+                root.clone(),
             ),
         });
     }
 
     let mut addons = Vec::new();
-    for addon in target
-        .directories
-        .iter()
-        .flat_map(|directory| &directory.addons)
-    {
-        let held = locked.and_then(|locked| find_locked(&locked.addons, &addon.value));
-        addons.push(match held {
-            Some(held) => held.clone(),
-            None => lock(&addon.value, resolve_addon(ctx, addon, &platforms).await?),
-        });
+    for directory in &target.directories {
+        let path = directory.path.clone().unwrap_or_default();
+
+        for addon in &directory.addons {
+            let held = locked.and_then(|locked| find_locked(&locked.addons, &addon.value, &path));
+            addons.push(match held {
+                Some(held) => held.clone(),
+                None => lock(
+                    &addon.value,
+                    resolve_addon(ctx, addon, &platforms).await?,
+                    path.clone(),
+                ),
+            });
+        }
     }
 
     let mut includes = Vec::new();
     for include in &target.includes {
-        let held = locked.and_then(|locked| find_locked(&locked.includes, &include.value));
+        let held = locked.and_then(|locked| find_locked(&locked.includes, &include.value, &root));
         includes.push(match held {
             Some(held) => held.clone(),
             None => lock(
                 &include.value,
                 resolve_include(ctx, manifest, include, side).await?,
+                root.clone(),
             ),
         });
     }
@@ -111,7 +121,7 @@ pub async fn resolve_target(
     Ok(LockedTarget {
         name: target.target.name.clone(),
         path: target.target.path.clone().unwrap_or_else(|| ".".into()),
-        kind: target.target.kind.clone(),
+        kind: target.target.kind,
         platforms: platforms
             .into_iter()
             .map(|platform| LockedPlatform {
@@ -126,14 +136,21 @@ pub async fn resolve_target(
     })
 }
 
-fn find_locked<'a, D: PartialEq>(entries: &'a [Locked<D>], requested: &D) -> Option<&'a Locked<D>> {
-    entries.iter().find(|entry| &entry.requested == requested)
+fn find_locked<'a, D: PartialEq>(
+    entries: &'a [Locked<D>],
+    requested: &D,
+    directory: &Path,
+) -> Option<&'a Locked<D>> {
+    entries
+        .iter()
+        .find(|entry| &entry.requested == requested && entry.directory == directory)
 }
 
-fn lock<D: Clone>(requested: &D, resolved: Resolved<D>) -> Locked<D> {
+fn lock<D: Clone>(requested: &D, resolved: Resolved<D>, directory: PathBuf) -> Locked<D> {
     Locked {
         requested: requested.clone(),
         resolved: resolved.resolved,
+        directory,
         package: resolved.package,
         artifacts: resolved.artifacts,
     }

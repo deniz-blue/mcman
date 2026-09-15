@@ -339,6 +339,12 @@ pub trait KdlWrite {
     }
 }
 
+impl KdlWrite for PathBuf {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.display().to_string());
+    }
+}
+
 pub trait KdlVariant: KdlRead + KdlWrite {
     const TYPE_NAME: &'static str;
 }

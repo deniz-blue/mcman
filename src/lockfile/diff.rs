@@ -160,8 +160,8 @@ impl Lockfile {
             if locked.kind != planned.target.kind {
                 changes.push(LockChange::TargetTypeChanged {
                     target: name.clone(),
-                    locked: locked.kind.clone(),
-                    wanted: planned.target.kind.clone(),
+                    locked: locked.kind,
+                    wanted: planned.target.kind,
                 });
             }
 

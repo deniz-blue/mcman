@@ -17,6 +17,7 @@ target proxy path="./run/proxy" {
     }
     use modrinth luckperms version=latest {
         resolved modrinth luckperms version="5.4.102"
+        dir plugins
         download "https://cdn.modrinth.com/data/Vebnzrzj/versions/abc/LuckPerms-Velocity-5.4.102.jar" sha1=fc8bb9919fa77c670b7ed5c284bcb66770ea71fc size=123456
         artifact "plugins/luckperms-velocity-5.4.102.jar" hash=abcdef size=123456
     }

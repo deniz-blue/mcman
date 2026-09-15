@@ -164,24 +164,14 @@ impl BuildArgs {
             eprintln!("warning: {warning}");
         }
 
-        let lockfile = load_lockfile(&loaded.path).await?;
-        let changes = lockfile.changes_needed_for(&loaded.plan);
+        let held = load_lockfile(&loaded.path).await?;
+        let changes = held.changes_needed_for(&loaded.plan);
 
         if self.locked && !changes.is_empty() {
             for change in &changes {
                 eprintln!("  {change}");
             }
             bail!("the lockfile does not cover the manifest, and `--locked` was given");
-        }
-
-        let config = Config::load()?;
-        let store = Store::open(config.store_path(store)?).await?;
-        let ctx = AppContext::new(Arc::new(store));
-
-        if !changes.is_empty() {
-            let lockfile =
-                resolve_all(&ctx, &loaded.path, &loaded.plan, &lockfile, |_| true).await?;
-            write_lockfile(&loaded.path, &lockfile).await?;
         }
 
         if self.dry_run {
@@ -191,15 +181,28 @@ impl BuildArgs {
             return Ok(());
         }
 
+        let config = Config::load()?;
+        let store = Store::open(config.store_path(store)?).await?;
+        let ctx = AppContext::new(Arc::new(store));
+
+        let mut lockfile = if changes.is_empty() {
+            held
+        } else {
+            resolve_all(&ctx, &loaded.path, &loaded.plan, &held, |_| true).await?
+        };
+
         let manifest_dir = loaded.path.parent().unwrap_or(Path::new("."));
 
-        for target in &loaded.plan.targets {
-            if !self.targets.is_empty() && !self.targets.contains(&target.target.name) {
+        for target in &mut lockfile.targets {
+            if !self.targets.is_empty() && !self.targets.contains(&target.name) {
                 continue;
             }
 
-            actions::build::build_manifest_target(&ctx, manifest_dir, target).await?;
+            let root = manifest_dir.join(&target.path);
+            actions::materialize::materialize(&ctx, &root, target).await?;
         }
+
+        write_lockfile(&loaded.path, &lockfile).await?;
 
         Ok(())
     }
