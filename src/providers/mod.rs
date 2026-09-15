@@ -1,8 +1,4 @@
-use crate::{
-    addons::{AddonType, Platform},
-    lockfile::Artifact,
-    package::Package,
-};
+use crate::{addons::Platform, core::kdl::KdlVariant, lockfile::Artifact, package::Package};
 
 pub mod download;
 mod error;
@@ -37,7 +33,7 @@ impl<A> Resolved<A> {
 }
 
 pub trait AddonResolver {
-    type Addon: AddonType;
+    type Addon: KdlVariant;
 
     async fn resolve(
         &self,

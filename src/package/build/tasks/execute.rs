@@ -1,9 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use kdl::KdlNode;
 use miette::{bail, IntoDiagnostic, Result};
 
-use crate::core::kdl::{Errors, Reader};
+use crate::core::kdl::{KdlRead, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct ExecuteTask {
@@ -12,9 +11,8 @@ pub struct ExecuteTask {
     pub directory: Option<PathBuf>,
 }
 
-impl ExecuteTask {
-    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
+impl KdlRead for ExecuteTask {
+    fn read(reader: &mut Reader) -> Self {
         let command = reader.required_argument("command");
         let directory = reader.path_property("cd");
 
@@ -34,15 +32,15 @@ impl ExecuteTask {
             reader.reject("`execute` needs a command to run".to_owned());
         }
 
-        reader.reject_unread();
-
         Self {
             program,
             arguments,
             directory,
         }
     }
+}
 
+impl ExecuteTask {
     pub async fn run(&self, working_dir: &Path) -> Result<()> {
         let current_dir = working_dir.join(self.directory.clone().unwrap_or_default());
 

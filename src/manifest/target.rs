@@ -4,7 +4,7 @@ use kdl::KdlNode;
 use miette::{miette, Result};
 
 use crate::{
-    core::kdl::{Errors, Reader, Spanned},
+    core::kdl::{KdlRead, KdlWrite, Reader},
     modpack::Side,
 };
 
@@ -15,16 +15,13 @@ pub struct Target {
     pub kind: TargetType,
 }
 
-impl Target {
-    pub(super) fn read(node: &KdlNode, errors: &mut Errors) -> Spanned<Self> {
-        let mut reader = Reader::new(node, errors);
-        let span = reader.span();
-        let name = reader.required_argument("target name");
-        let path = reader.path_property("path");
-        let kind = TargetType::read(&mut reader);
-        reader.reject_unread();
-
-        Spanned::new(Self { name, path, kind }, span)
+impl KdlRead for Target {
+    fn read(reader: &mut Reader) -> Self {
+        Self {
+            name: reader.required_argument("target name"),
+            path: reader.path_property("path"),
+            kind: KdlRead::read(reader),
+        }
     }
 }
 
@@ -60,7 +57,17 @@ impl TargetType {
         }
     }
 
-    pub fn read(reader: &mut Reader) -> Self {
+    pub fn side(&self) -> Option<Side> {
+        match self {
+            Self::Server => Some(Side::Server),
+            Self::Client => Some(Side::Client),
+            _ => None,
+        }
+    }
+}
+
+impl KdlRead for TargetType {
+    fn read(reader: &mut Reader) -> Self {
         let Some(text) = reader.property("type") else {
             return Self::None;
         };
@@ -73,12 +80,12 @@ impl TargetType {
             }
         }
     }
+}
 
-    pub fn side(&self) -> Option<Side> {
-        match self {
-            Self::Server => Some(Side::Server),
-            Self::Client => Some(Side::Client),
-            _ => None,
+impl KdlWrite for TargetType {
+    fn write(&self, node: &mut KdlNode) {
+        if *self != Self::None {
+            node.push(("type", self.name()));
         }
     }
 }

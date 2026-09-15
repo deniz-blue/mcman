@@ -1,6 +1,6 @@
 use kdl::KdlNode;
 
-use crate::{addons::AddonType, core::kdl::Reader};
+use crate::core::kdl::{KdlRead, KdlVariant, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GitHubAddon {
@@ -9,9 +9,11 @@ pub struct GitHubAddon {
     pub asset: Option<String>,
 }
 
-impl AddonType for GitHubAddon {
+impl KdlVariant for GitHubAddon {
     const TYPE_NAME: &'static str = "github";
+}
 
+impl KdlRead for GitHubAddon {
     fn read(reader: &mut Reader) -> Self {
         Self {
             repository: reader.required_argument_or_property("repository"),
@@ -19,7 +21,9 @@ impl AddonType for GitHubAddon {
             asset: reader.property("asset"),
         }
     }
+}
 
+impl KdlWrite for GitHubAddon {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.repository.as_str());
         if let Some(tag) = &self.tag {

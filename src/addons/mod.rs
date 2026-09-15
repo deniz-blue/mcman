@@ -8,7 +8,9 @@ use crate::{
         github::GitHubAddon, hangar::HangarAddon, maven::MavenAddon, modrinth::ModrinthAddon,
         papermc::PaperMcAddon,
     },
-    core::kdl::{write_entries, Declaration, Errors, Reader, Spanned},
+    core::kdl::{
+        write_entries, Declaration, Errors, KdlRead, KdlVariant, KdlWrite, Reader, Spanned,
+    },
 };
 
 pub mod curseforge;
@@ -21,7 +23,7 @@ pub mod modrinth;
 pub mod papermc;
 pub mod platform;
 
-pub use platform::{Platform, PlatformType};
+pub use platform::Platform;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -34,14 +36,6 @@ pub enum Addon {
     GitHub(GitHubAddon),
     Maven(MavenAddon),
     Download(DownloadAddon),
-}
-
-pub trait AddonType: Sized {
-    const TYPE_NAME: &'static str;
-
-    fn read(reader: &mut Reader) -> Self;
-
-    fn write(&self, node: &mut KdlNode);
 }
 
 fn type_names() -> String {
@@ -76,14 +70,14 @@ impl Addon {
         let type_name = reader.required_argument("addon type");
 
         Some(match type_name.as_str() {
-            ModrinthAddon::TYPE_NAME => Self::Modrinth(AddonType::read(reader)),
-            PaperMcAddon::TYPE_NAME => Self::PaperMc(AddonType::read(reader)),
-            FabricLoaderAddon::TYPE_NAME => Self::FabricLoader(AddonType::read(reader)),
-            HangarAddon::TYPE_NAME => Self::Hangar(AddonType::read(reader)),
-            CurseForgeAddon::TYPE_NAME => Self::CurseForge(AddonType::read(reader)),
-            GitHubAddon::TYPE_NAME => Self::GitHub(AddonType::read(reader)),
-            MavenAddon::TYPE_NAME => Self::Maven(AddonType::read(reader)),
-            DownloadAddon::TYPE_NAME => Self::Download(AddonType::read(reader)),
+            ModrinthAddon::TYPE_NAME => Self::Modrinth(KdlRead::read(reader)),
+            PaperMcAddon::TYPE_NAME => Self::PaperMc(KdlRead::read(reader)),
+            FabricLoaderAddon::TYPE_NAME => Self::FabricLoader(KdlRead::read(reader)),
+            HangarAddon::TYPE_NAME => Self::Hangar(KdlRead::read(reader)),
+            CurseForgeAddon::TYPE_NAME => Self::CurseForge(KdlRead::read(reader)),
+            GitHubAddon::TYPE_NAME => Self::GitHub(KdlRead::read(reader)),
+            MavenAddon::TYPE_NAME => Self::Maven(KdlRead::read(reader)),
+            DownloadAddon::TYPE_NAME => Self::Download(KdlRead::read(reader)),
             _ => {
                 reader.reject(format!(
                     "unknown addon type `{type_name}`, expected one of: {}",

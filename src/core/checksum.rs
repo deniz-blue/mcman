@@ -1,11 +1,12 @@
 use std::collections::BTreeMap;
 
 use digest::DynDigest;
+use kdl::KdlNode;
 use miette::Diagnostic;
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::core::kdl::Reader;
+use crate::core::kdl::{KdlRead, KdlWrite, Reader};
 
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
@@ -54,8 +55,8 @@ impl ChecksumAlgorithm {
 #[serde(transparent)]
 pub struct Checksums(BTreeMap<ChecksumAlgorithm, String>);
 
-impl Checksums {
-    pub fn read(reader: &mut Reader) -> Self {
+impl KdlRead for Checksums {
+    fn read(reader: &mut Reader) -> Self {
         let mut checksums = Self::default();
 
         for algorithm in ChecksumAlgorithm::ALL {
@@ -78,7 +79,17 @@ impl Checksums {
 
         checksums
     }
+}
 
+impl KdlWrite for Checksums {
+    fn write(&self, node: &mut KdlNode) {
+        for (algorithm, digest) in self.iter() {
+            node.push((algorithm.name(), digest));
+        }
+    }
+}
+
+impl Checksums {
     pub fn verify(&self, bytes: &[u8]) -> Result<(), ChecksumMismatch> {
         let Some((algorithm, expected)) = self.strongest() else {
             return Ok(());

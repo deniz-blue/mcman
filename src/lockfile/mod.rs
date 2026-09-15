@@ -5,9 +5,11 @@ use miette::Result;
 
 use crate::{
     addons::{Addon, Platform},
-    core::kdl::{child_nodes, reject_node, Declaration, Errors, Reader},
+    core::kdl::{
+        child_nodes, read_node, reject_node, Declaration, Errors, KdlRead, KdlWrite, Reader,
+    },
     manifest::{Include, TargetType},
-    package::{source::download::Download, Package},
+    package::Package,
 };
 
 pub mod diff;
@@ -33,7 +35,7 @@ impl Lockfile {
 
         for node in document.nodes() {
             match node.name().value() {
-                "meta" => lockfile.meta = LockfileMeta::read(node, &mut errors),
+                "meta" => lockfile.meta = read_node(node, &mut errors),
                 "target" => lockfile.targets.push(LockedTarget::read(node, &mut errors)),
                 _ => reject_node(node, &mut errors, LOCKFILE_NODES),
             }
@@ -49,8 +51,7 @@ impl Lockfile {
         let mut document = KdlDocument::new();
 
         let mut meta = KdlNode::new("meta");
-        meta.push(("version", i128::from(self.meta.version)));
-        meta.push(("generated", self.meta.generated.as_str()));
+        self.meta.write(&mut meta);
         document.nodes_mut().push(meta);
 
         for target in &self.targets {
@@ -58,9 +59,7 @@ impl Lockfile {
             node.push(target.name.as_str());
             node.push(("path", display(&target.path)));
 
-            if target.kind != TargetType::None {
-                node.push(("type", target.kind.name()));
-            }
+            target.kind.write(&mut node);
 
             for platform in &target.platforms {
                 node.ensure_children().nodes_mut().push(platform.to_kdl());
@@ -101,9 +100,7 @@ impl Lockfile {
 fn push_artifacts(node: &mut KdlNode, artifacts: &[Artifact]) {
     for artifact in artifacts {
         let mut child = KdlNode::new("artifact");
-        child.push(display(&artifact.path));
-        child.push(("hash", artifact.hash.as_str()));
-        child.push(("size", i128::from(artifact.size)));
+        artifact.write(&mut child);
         node.ensure_children().nodes_mut().push(child);
     }
 }
@@ -118,14 +115,19 @@ pub struct LockfileMeta {
     pub generated: String,
 }
 
-impl LockfileMeta {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let version = reader.unsigned_property("version").unwrap_or_default();
-        let generated = reader.required_property("generated");
-        reader.reject_unread();
+impl KdlRead for LockfileMeta {
+    fn read(reader: &mut Reader) -> Self {
+        Self {
+            version: reader.unsigned_property("version").unwrap_or_default(),
+            generated: reader.required_property("generated"),
+        }
+    }
+}
 
-        Self { version, generated }
+impl KdlWrite for LockfileMeta {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(("version", i128::from(self.version)));
+        node.push(("generated", self.generated.as_str()));
     }
 }
 
@@ -244,8 +246,8 @@ impl<D: Declaration> Locked<D> {
                     }
                     resolved = D::read(child, errors).map(|declaration| declaration.value);
                 }
-                "download" => downloads.push(Download::read(child, errors)),
-                "artifact" => artifacts.push(Artifact::read(child, errors)),
+                "download" => downloads.push(read_node(child, errors)),
+                "artifact" => artifacts.push(read_node(child, errors)),
                 _ => reject_node(child, errors, LOCKED_NODES),
             }
         }
@@ -306,15 +308,21 @@ pub struct Artifact {
     pub size: u64,
 }
 
-impl Artifact {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let path = reader.required_path_argument("artifact path");
-        let hash = reader.required_property("hash");
-        let size = reader.unsigned_property("size").unwrap_or_default();
-        reader.reject_unread();
+impl KdlRead for Artifact {
+    fn read(reader: &mut Reader) -> Self {
+        Self {
+            path: reader.required_path_argument("artifact path"),
+            hash: reader.required_property("hash"),
+            size: reader.unsigned_property("size").unwrap_or_default(),
+        }
+    }
+}
 
-        Self { path, hash, size }
+impl KdlWrite for Artifact {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(display(&self.path));
+        node.push(("hash", self.hash.as_str()));
+        node.push(("size", i128::from(self.size)));
     }
 }
 
@@ -323,7 +331,7 @@ fn read_artifacts(node: &KdlNode, errors: &mut Errors) -> Vec<Artifact> {
 
     for child in child_nodes(node) {
         match child.name().value() {
-            "artifact" => artifacts.push(Artifact::read(child, errors)),
+            "artifact" => artifacts.push(read_node(child, errors)),
             _ => reject_node(child, errors, PACKAGE_NODES),
         }
     }

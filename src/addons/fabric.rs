@@ -1,6 +1,6 @@
 use kdl::KdlNode;
 
-use crate::{addons::AddonType, core::kdl::Reader};
+use crate::core::kdl::{KdlRead, KdlVariant, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FabricLoaderAddon {
@@ -8,16 +8,20 @@ pub struct FabricLoaderAddon {
     pub installer: Option<String>,
 }
 
-impl AddonType for FabricLoaderAddon {
+impl KdlVariant for FabricLoaderAddon {
     const TYPE_NAME: &'static str = "fabric";
+}
 
+impl KdlRead for FabricLoaderAddon {
     fn read(reader: &mut Reader) -> Self {
         Self {
             loader: reader.property("loader"),
             installer: reader.property("installer"),
         }
     }
+}
 
+impl KdlWrite for FabricLoaderAddon {
     fn write(&self, node: &mut KdlNode) {
         if let Some(loader) = &self.loader {
             node.push(("loader", loader.as_str()));

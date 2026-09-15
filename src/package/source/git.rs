@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use kdl::KdlNode;
 
-use crate::core::kdl::{Errors, Reader};
+use crate::core::kdl::{KdlRead, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Git {
@@ -10,13 +10,20 @@ pub struct Git {
     pub path: Option<PathBuf>,
 }
 
-impl Git {
-    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let url = reader.required_argument("repository url");
-        let path = reader.path_property("path");
-        reader.reject_unread();
+impl KdlRead for Git {
+    fn read(reader: &mut Reader) -> Self {
+        Self {
+            url: reader.required_argument("repository url"),
+            path: reader.path_property("path"),
+        }
+    }
+}
 
-        Self { url, path }
+impl KdlWrite for Git {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.url.as_str());
+        if let Some(path) = &self.path {
+            node.push(("path", path.display().to_string()));
+        }
     }
 }

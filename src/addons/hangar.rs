@@ -1,6 +1,6 @@
 use kdl::KdlNode;
 
-use crate::{addons::AddonType, core::kdl::Reader};
+use crate::core::kdl::{KdlRead, KdlVariant, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HangarAddon {
@@ -8,16 +8,20 @@ pub struct HangarAddon {
     pub version: Option<String>,
 }
 
-impl AddonType for HangarAddon {
+impl KdlVariant for HangarAddon {
     const TYPE_NAME: &'static str = "hangar";
+}
 
+impl KdlRead for HangarAddon {
     fn read(reader: &mut Reader) -> Self {
         Self {
             project: reader.required_argument_or_property("project"),
             version: reader.property("version"),
         }
     }
+}
 
+impl KdlWrite for HangarAddon {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.project.as_str());
         if let Some(version) = &self.version {

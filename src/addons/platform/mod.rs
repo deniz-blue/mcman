@@ -7,7 +7,7 @@ use crate::{
         fabric::FabricPlatform, minecraft::MinecraftPlatform, paper::PaperPlatform,
         velocity::VelocityPlatform,
     },
-    core::kdl::{write_entries, Errors, Reader, Spanned},
+    core::kdl::{write_entries, Errors, KdlRead, KdlVariant, KdlWrite, Reader, Spanned},
 };
 
 pub mod fabric;
@@ -24,13 +24,8 @@ pub enum Platform {
     Fabric(FabricPlatform),
 }
 
-pub trait PlatformType: Sized {
-    const TYPE_NAME: &'static str;
-    const REQUIRES: &'static [&'static str] = &[];
-
-    fn read(reader: &mut Reader) -> Self;
-
-    fn write(&self, node: &mut KdlNode);
+pub trait PlatformDependencies {
+    const REQUIRES: &'static [&'static str];
 }
 
 fn type_names() -> String {
@@ -55,9 +50,9 @@ impl Platform {
 
     pub fn requires(&self) -> &'static [&'static str] {
         match self {
-            Self::Minecraft(_) => MinecraftPlatform::REQUIRES,
+            Self::Minecraft(_) => &[],
             Self::Paper(_) => PaperPlatform::REQUIRES,
-            Self::Velocity(_) => VelocityPlatform::REQUIRES,
+            Self::Velocity(_) => &[],
             Self::Fabric(_) => FabricPlatform::REQUIRES,
         }
     }
@@ -79,10 +74,10 @@ impl Platform {
         let type_name = reader.required_argument("platform type");
 
         let platform = match type_name.as_str() {
-            MinecraftPlatform::TYPE_NAME => Self::Minecraft(PlatformType::read(&mut reader)),
-            PaperPlatform::TYPE_NAME => Self::Paper(PlatformType::read(&mut reader)),
-            VelocityPlatform::TYPE_NAME => Self::Velocity(PlatformType::read(&mut reader)),
-            FabricPlatform::TYPE_NAME => Self::Fabric(PlatformType::read(&mut reader)),
+            MinecraftPlatform::TYPE_NAME => Self::Minecraft(KdlRead::read(&mut reader)),
+            PaperPlatform::TYPE_NAME => Self::Paper(KdlRead::read(&mut reader)),
+            VelocityPlatform::TYPE_NAME => Self::Velocity(KdlRead::read(&mut reader)),
+            FabricPlatform::TYPE_NAME => Self::Fabric(KdlRead::read(&mut reader)),
             _ => {
                 errors.push(
                     span,

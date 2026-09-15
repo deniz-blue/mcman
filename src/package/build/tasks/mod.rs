@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use kdl::KdlNode;
 
-use crate::{core::kdl::Errors, package::build::tasks::execute::ExecuteTask};
+use crate::{
+    core::kdl::{read_node, Errors},
+    package::build::tasks::execute::ExecuteTask,
+};
 
 pub mod execute;
 
@@ -13,7 +16,7 @@ pub enum BuildTask {
 
 impl BuildTask {
     pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        Self::Execute(ExecuteTask::read(node, errors))
+        Self::Execute(read_node(node, errors))
     }
 }
 

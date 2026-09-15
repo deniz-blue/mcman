@@ -1,6 +1,6 @@
 use kdl::KdlNode;
 
-use crate::{addons::AddonType, core::kdl::Reader};
+use crate::core::kdl::{KdlRead, KdlVariant, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MavenAddon {
@@ -12,9 +12,11 @@ pub struct MavenAddon {
     pub extension: Option<String>,
 }
 
-impl AddonType for MavenAddon {
+impl KdlVariant for MavenAddon {
     const TYPE_NAME: &'static str = "maven";
+}
 
+impl KdlRead for MavenAddon {
     fn read(reader: &mut Reader) -> Self {
         Self {
             group: reader.required_argument_or_property("group"),
@@ -25,7 +27,9 @@ impl AddonType for MavenAddon {
             extension: reader.property("extension"),
         }
     }
+}
 
+impl KdlWrite for MavenAddon {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.group.as_str());
         node.push(self.artifact.as_str());

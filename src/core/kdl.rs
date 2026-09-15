@@ -305,6 +305,35 @@ impl<'a> Reader<'a> {
     }
 }
 
+pub trait KdlRead: Sized {
+    fn read(reader: &mut Reader) -> Self;
+}
+
+pub trait KdlWrite {
+    fn write(&self, node: &mut KdlNode);
+}
+
+pub trait KdlVariant: KdlRead + KdlWrite {
+    const TYPE_NAME: &'static str;
+}
+
+pub fn read_node<T: KdlRead>(node: &KdlNode, errors: &mut Errors) -> T {
+    let mut reader = Reader::new(node, errors);
+    let value = T::read(&mut reader);
+    reader.reject_unread();
+
+    value
+}
+
+pub fn read_spanned<T: KdlRead>(node: &KdlNode, errors: &mut Errors) -> Spanned<T> {
+    let mut reader = Reader::new(node, errors);
+    let span = reader.span();
+    let value = T::read(&mut reader);
+    reader.reject_unread();
+
+    Spanned::new(value, span)
+}
+
 pub trait Declaration: Sized {
     fn read(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>>;
 

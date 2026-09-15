@@ -8,7 +8,7 @@ use tokio_stream::StreamExt;
 use crate::{
     core::{
         checksum::Checksums,
-        kdl::{Errors, Reader},
+        kdl::{KdlRead, KdlWrite, Reader},
         AppContext,
     },
     store::ObjectKey,
@@ -37,18 +37,11 @@ pub struct Download {
     pub size: Option<u64>,
 }
 
-impl Download {
-    pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Self {
-        let mut reader = Reader::new(node, errors);
-        let download = Self::read_from(&mut reader);
-        reader.reject_unread();
-        download
-    }
-
-    pub(crate) fn read_from(reader: &mut Reader) -> Self {
+impl KdlRead for Download {
+    fn read(reader: &mut Reader) -> Self {
         let url = reader.required_argument("url");
         let path = reader.path_property("path");
-        let checksums = Checksums::read(reader);
+        let checksums = KdlRead::read(reader);
         let size = reader.unsigned_property("size");
 
         if path.is_none() && file_name_in_url(&url).is_none() {
@@ -62,20 +55,22 @@ impl Download {
             size,
         }
     }
+}
 
-    pub fn write(&self, node: &mut KdlNode) {
+impl KdlWrite for Download {
+    fn write(&self, node: &mut KdlNode) {
         node.push(self.url.as_str());
         if let Some(path) = &self.path {
             node.push(("path", path.display().to_string()));
         }
-        for (algorithm, digest) in self.checksums.iter() {
-            node.push((algorithm.name(), digest));
-        }
+        self.checksums.write(node);
         if let Some(size) = self.size {
             node.push(("size", i128::from(size)));
         }
     }
+}
 
+impl Download {
     pub fn destination(&self) -> &Path {
         match &self.path {
             Some(path) => path,

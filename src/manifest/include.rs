@@ -4,7 +4,7 @@ use kdl::KdlNode;
 
 use crate::core::{
     checksum::Checksums,
-    kdl::{write_entries, Declaration, Errors, Reader, Spanned},
+    kdl::{write_entries, Declaration, Errors, KdlRead, KdlVariant, KdlWrite, Reader, Spanned},
     location::Location,
 };
 
@@ -13,14 +13,6 @@ use crate::core::{
 pub enum Include {
     Mrpack(MrpackInclude),
     Packwiz(PackwizInclude),
-}
-
-pub trait IncludeType: Sized {
-    const TYPE_NAME: &'static str;
-
-    fn read(reader: &mut Reader) -> Self;
-
-    fn write(&self, node: &mut KdlNode);
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -34,33 +26,39 @@ pub struct PackwizInclude {
     pub location: Location,
 }
 
-impl IncludeType for MrpackInclude {
+impl KdlVariant for MrpackInclude {
     const TYPE_NAME: &'static str = "mrpack";
+}
 
+impl KdlRead for MrpackInclude {
     fn read(reader: &mut Reader) -> Self {
         Self {
             location: Location::from(reader.required_argument("pack location")),
-            checksums: Checksums::read(reader),
-        }
-    }
-
-    fn write(&self, node: &mut KdlNode) {
-        node.push(self.location.to_string());
-        for (algorithm, digest) in self.checksums.iter() {
-            node.push((algorithm.name(), digest));
+            checksums: KdlRead::read(reader),
         }
     }
 }
 
-impl IncludeType for PackwizInclude {
-    const TYPE_NAME: &'static str = "packwiz";
+impl KdlWrite for MrpackInclude {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.location.to_string());
+        self.checksums.write(node);
+    }
+}
 
+impl KdlVariant for PackwizInclude {
+    const TYPE_NAME: &'static str = "packwiz";
+}
+
+impl KdlRead for PackwizInclude {
     fn read(reader: &mut Reader) -> Self {
         Self {
             location: Location::from(reader.required_argument("pack location")),
         }
     }
+}
 
+impl KdlWrite for PackwizInclude {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.location.to_string());
     }
@@ -93,8 +91,8 @@ impl Declaration for Include {
         let type_name = reader.required_argument("pack format");
 
         let include = match type_name.as_str() {
-            MrpackInclude::TYPE_NAME => Self::Mrpack(IncludeType::read(&mut reader)),
-            PackwizInclude::TYPE_NAME => Self::Packwiz(IncludeType::read(&mut reader)),
+            MrpackInclude::TYPE_NAME => Self::Mrpack(KdlRead::read(&mut reader)),
+            PackwizInclude::TYPE_NAME => Self::Packwiz(KdlRead::read(&mut reader)),
             _ => {
                 errors.push(
                     span,
