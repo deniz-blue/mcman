@@ -274,7 +274,7 @@ impl Lockfile {
                 .directories
                 .iter()
                 .flat_map(|directory| &directory.packages)
-                .filter_map(|package| package.label.clone())
+                .map(|package| package.label.clone())
                 .collect();
             let held: Vec<String> = locked
                 .packages

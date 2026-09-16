@@ -14,9 +14,7 @@ Manifest {
                 addons: [],
                 packages: [
                     Package {
-                        label: Some(
-                            "webmap",
-                        ),
+                        label: "webmap",
                         sources: [
                             Download(
                                 Download {
@@ -42,9 +40,7 @@ Manifest {
                         ],
                     },
                     Package {
-                        label: Some(
-                            "custom-mod",
-                        ),
+                        label: "custom-mod",
                         sources: [
                             Git(
                                 Git {

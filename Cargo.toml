@@ -42,7 +42,6 @@ md-5 = "0.10"
 notify-debouncer-full = { version = "0.3" }
 opener = "0.8"
 pathdiff = { git = "https://github.com/Manishearth/pathdiff.git" }
-rpackwiz = { git = "https://github.com/vgskye/rpackwiz.git" }
 regex = "1.10"
 reqwest = { version = "0.12", features = [
 	"json",

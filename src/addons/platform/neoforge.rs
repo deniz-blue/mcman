@@ -6,20 +6,20 @@ use crate::{
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct FabricPlatform {
+pub struct NeoForgePlatform {
     pub loader: Option<String>,
 }
 
-impl KdlVariant for FabricPlatform {
-    const TYPE_NAME: &'static str = "fabric";
+impl KdlVariant for NeoForgePlatform {
+    const TYPE_NAME: &'static str = "neoforge";
 }
 
-impl PlatformDependencies for FabricPlatform {
+impl PlatformDependencies for NeoForgePlatform {
     const REQUIRES: &'static [&'static str] = &[MinecraftPlatform::TYPE_NAME];
-    const ACCEPTS: &'static [&'static str] = &["fabric"];
+    const ACCEPTS: &'static [&'static str] = &["neoforge"];
 }
 
-impl KdlRead for FabricPlatform {
+impl KdlRead for NeoForgePlatform {
     fn read(reader: &mut Reader) -> Self {
         Self {
             loader: reader.property("loader"),
@@ -27,7 +27,7 @@ impl KdlRead for FabricPlatform {
     }
 }
 
-impl KdlWrite for FabricPlatform {
+impl KdlWrite for NeoForgePlatform {
     fn write(&self, node: &mut KdlNode) {
         if let Some(loader) = &self.loader {
             node.push(("loader", loader.as_str()));

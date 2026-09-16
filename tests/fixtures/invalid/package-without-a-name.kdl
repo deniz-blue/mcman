@@ -1,0 +1,7 @@
+// A package must be named, since the lockfile and diffs identify it by that name
+target "smp"
+
+package {
+    download "https://example.com/plugin.jar"
+    artifact "plugin.jar"
+}

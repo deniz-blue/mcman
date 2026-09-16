@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use crate::core::kdl::{KdlRead, Reader};
+use kdl::KdlNode;
+
+use crate::core::kdl::{KdlRead, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct PackageArtifact {
@@ -13,6 +15,16 @@ impl KdlRead for PackageArtifact {
         Self {
             from: reader.required_path_argument("source path"),
             to: reader.path_argument(),
+        }
+    }
+}
+
+impl KdlWrite for PackageArtifact {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.from.display().to_string());
+
+        if let Some(to) = &self.to {
+            node.push(to.display().to_string());
         }
     }
 }

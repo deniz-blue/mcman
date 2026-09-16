@@ -6,20 +6,20 @@ use crate::{
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PaperPlatform {
+pub struct SpigotPlatform {
     pub build: Option<String>,
 }
 
-impl KdlVariant for PaperPlatform {
-    const TYPE_NAME: &'static str = "paper";
+impl KdlVariant for SpigotPlatform {
+    const TYPE_NAME: &'static str = "spigot";
 }
 
-impl PlatformDependencies for PaperPlatform {
+impl PlatformDependencies for SpigotPlatform {
     const REQUIRES: &'static [&'static str] = &[MinecraftPlatform::TYPE_NAME];
-    const ACCEPTS: &'static [&'static str] = &["paper", "spigot", "bukkit"];
+    const ACCEPTS: &'static [&'static str] = &["spigot", "bukkit"];
 }
 
-impl KdlRead for PaperPlatform {
+impl KdlRead for SpigotPlatform {
     fn read(reader: &mut Reader) -> Self {
         Self {
             build: reader.property("build"),
@@ -27,7 +27,7 @@ impl KdlRead for PaperPlatform {
     }
 }
 
-impl KdlWrite for PaperPlatform {
+impl KdlWrite for SpigotPlatform {
     fn write(&self, node: &mut KdlNode) {
         if let Some(build) = &self.build {
             node.push(("build", build.as_str()));

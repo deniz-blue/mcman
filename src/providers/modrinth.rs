@@ -277,14 +277,7 @@ pub fn loaders_for(platforms: &[Platform]) -> Vec<String> {
     let mut loaders: Vec<String> = Vec::new();
 
     for platform in platforms {
-        let names: &[&str] = match platform {
-            Platform::Minecraft(_) => &[],
-            Platform::Paper(_) => &["paper", "spigot", "bukkit"],
-            Platform::Velocity(_) => &["velocity"],
-            Platform::Fabric(_) => &["fabric"],
-        };
-
-        for name in names {
+        for name in platform.accepts() {
             if !loaders.iter().any(|loader| loader == name) {
                 loaders.push((*name).to_owned());
             }

@@ -3,6 +3,7 @@ use std::path::Path;
 use miette::{Context, IntoDiagnostic, Result};
 
 use crate::{
+    actions::all_in_store,
     core::AppContext,
     lockfile::{Artifact, Locked, LockedTarget},
     store::ObjectKey,
@@ -53,18 +54,6 @@ async fn fetch<D>(ctx: &AppContext, entry: &Locked<D>) -> Result<Vec<Artifact>> 
     }
 
     Ok(artifacts)
-}
-
-async fn all_in_store(ctx: &AppContext, artifacts: &[Artifact]) -> Result<bool> {
-    for artifact in artifacts {
-        let key = ObjectKey::from_hex(&artifact.hash)?;
-
-        if !ctx.store.object_exists(&key).await? {
-            return Ok(false);
-        }
-    }
-
-    Ok(true)
 }
 
 async fn place_artifact(ctx: &AppContext, root: &Path, artifact: &Artifact) -> Result<()> {

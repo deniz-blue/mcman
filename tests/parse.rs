@@ -115,11 +115,12 @@ parses! {
 rejects! {
     unknown_node: "unknown-node" => "unexpected node `plugins`",
     duplicate_build: "duplicate-build" => "a package may only have one `build`",
+    package_without_a_name: "package-without-a-name" => "`package name` is required",
     group_without_children: "group-without-children" => "group must have children",
     surplus_package_entries: "surplus-package-entries" => "unexpected argument",
     artifact_without_file_name: "artifact-without-file-name" => "`artifact` needs a destination when its source has no file name",
     platform_property_is_not_a_string: "platform-property-is-not-a-string" => "expected a string, found 1.21",
-    unknown_platform: "unknown-platform" => "unknown platform type `papr`, expected one of: minecraft, paper, velocity, fabric",
+    unknown_platform: "unknown-platform" => "unknown platform type `papr`, expected one of:",
     platform_with_unknown_property: "platform-with-unknown-property" => "unexpected property `versoin`",
     include_unknown_format: "include-unknown-format" => "unknown pack format `zip`, expected one of: mrpack, packwiz",
     addon_unknown_type: "addon-unknown-type" => "unknown addon type `modrnth`, expected one of: modrinth, papermc, fabric, hangar, curseforge, github, maven",

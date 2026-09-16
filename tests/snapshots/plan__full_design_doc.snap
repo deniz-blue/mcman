@@ -130,9 +130,7 @@ Plan {
                     ],
                     packages: [
                         Package {
-                            label: Some(
-                                "customplugin",
-                            ),
+                            label: "customplugin",
                             sources: [
                                 Git(
                                     Git {

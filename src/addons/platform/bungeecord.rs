@@ -6,21 +6,21 @@ use crate::{
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct VelocityPlatform {
+pub struct BungeeCordPlatform {
     pub version: Option<String>,
     pub build: Option<String>,
 }
 
-impl KdlVariant for VelocityPlatform {
-    const TYPE_NAME: &'static str = "velocity";
+impl KdlVariant for BungeeCordPlatform {
+    const TYPE_NAME: &'static str = "bungeecord";
 }
 
-impl PlatformDependencies for VelocityPlatform {
+impl PlatformDependencies for BungeeCordPlatform {
     const REQUIRES: &'static [&'static str] = &[];
-    const ACCEPTS: &'static [&'static str] = &["velocity"];
+    const ACCEPTS: &'static [&'static str] = &["bungeecord"];
 }
 
-impl KdlRead for VelocityPlatform {
+impl KdlRead for BungeeCordPlatform {
     fn read(reader: &mut Reader) -> Self {
         Self {
             version: reader.property("version"),
@@ -29,7 +29,7 @@ impl KdlRead for VelocityPlatform {
     }
 }
 
-impl KdlWrite for VelocityPlatform {
+impl KdlWrite for BungeeCordPlatform {
     fn write(&self, node: &mut KdlNode) {
         if let Some(version) = &self.version {
             node.push(("version", version.as_str()));

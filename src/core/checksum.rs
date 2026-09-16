@@ -3,13 +3,13 @@ use std::collections::BTreeMap;
 use digest::DynDigest;
 use kdl::KdlNode;
 use miette::Diagnostic;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::core::kdl::{KdlRead, KdlWrite, Reader};
 
 #[non_exhaustive]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ChecksumAlgorithm {
     Sha1,

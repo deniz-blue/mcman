@@ -379,3 +379,72 @@ pub fn reject_node(node: &KdlNode, errors: &mut Errors, allowed: &str) {
         format!("unexpected node `{name}`, expected one of: {allowed}"),
     );
 }
+
+macro_rules! kdl_variants {
+    (
+        $enum:ident reads $label:literal writes $node_name:literal {
+            $($variant:ident => $module:ident::$type:ident),* $(,)?
+        }
+    ) => {
+        #[non_exhaustive]
+        #[derive(Clone, Debug, PartialEq, Eq)]
+        pub enum $enum {
+            $($variant($module::$type),)*
+        }
+
+        const TYPE_NAMES: &[&str] = &[$($module::$type::TYPE_NAME,)*];
+
+        impl $enum {
+            pub fn type_name(&self) -> &'static str {
+                match self {
+                    $(Self::$variant(_) => $module::$type::TYPE_NAME,)*
+                }
+            }
+
+        }
+
+        $(
+            impl From<$module::$type> for $enum {
+                fn from(value: $module::$type) -> Self {
+                    Self::$variant(value)
+                }
+            }
+        )*
+
+        impl KdlWrite for $enum {
+            fn write(&self, node: &mut KdlNode) {
+                node.push(self.type_name());
+
+                match self {
+                    $(Self::$variant(value) => value.write(node),)*
+                }
+            }
+        }
+
+        impl KdlMaybeRead for $enum {
+            fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
+                let mut reader = Reader::new(node, errors);
+                let type_name = reader.required_argument($label);
+
+                let value = match type_name.as_str() {
+                    $($module::$type::TYPE_NAME => Self::$variant(KdlRead::read(&mut reader)),)*
+                    _ => {
+                        reader.unknown_type($label, &type_name, TYPE_NAMES);
+                        return None;
+                    }
+                };
+
+                reader.reject_unread();
+                Some(value)
+            }
+        }
+
+        impl Display for $enum {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write_entries(&self.to_kdl($node_name), f)
+            }
+        }
+    };
+}
+
+pub(crate) use kdl_variants;

@@ -1,7 +1,7 @@
 use kdl::KdlNode;
 
 use crate::{
-    addons::platform::Platform,
+    addons::platform::{Platform, PlatformDependencies},
     core::kdl::{KdlRead, KdlVariant, KdlWrite, Reader},
 };
 
@@ -21,6 +21,11 @@ impl MinecraftPlatform {
 
 impl KdlVariant for MinecraftPlatform {
     const TYPE_NAME: &'static str = "minecraft";
+}
+
+impl PlatformDependencies for MinecraftPlatform {
+    const REQUIRES: &'static [&'static str] = &[];
+    const ACCEPTS: &'static [&'static str] = &[];
 }
 
 impl KdlRead for MinecraftPlatform {

@@ -14,9 +14,7 @@ Manifest {
                 addons: [],
                 packages: [
                     Package {
-                        label: Some(
-                            "big-plugin",
-                        ),
+                        label: "big-plugin",
                         sources: [
                             Download(
                                 Download {

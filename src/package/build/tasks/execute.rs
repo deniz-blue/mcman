@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use miette::{bail, IntoDiagnostic, Result};
 
-use crate::core::kdl::{KdlRead, Reader};
+use kdl::KdlNode;
+
+use crate::core::kdl::{KdlRead, KdlWrite, Reader};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct ExecuteTask {
@@ -36,6 +38,17 @@ impl KdlRead for ExecuteTask {
             program,
             arguments,
             directory,
+        }
+    }
+}
+
+impl KdlWrite for ExecuteTask {
+    fn write(&self, node: &mut KdlNode) {
+        let command = shell_words::join(std::iter::once(&self.program).chain(&self.arguments));
+        node.push(command);
+
+        if let Some(directory) = &self.directory {
+            node.push(("cd", directory.display().to_string()));
         }
     }
 }

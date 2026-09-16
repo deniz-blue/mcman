@@ -1,7 +1,7 @@
 use kdl::KdlNode;
 
 use crate::{
-    core::kdl::{child_nodes, reject_node, Errors, Reader},
+    core::kdl::{child_nodes, reject_node, Errors, KdlWrite, Reader},
     package::build::tasks::{BuildTask, BuildTaskRunner},
 };
 
@@ -28,6 +28,16 @@ impl PackageBuild {
         }
 
         build
+    }
+}
+
+impl KdlWrite for PackageBuild {
+    fn write(&self, node: &mut KdlNode) {
+        for task in &self.tasks {
+            node.ensure_children()
+                .nodes_mut()
+                .push(task.to_kdl(task.node_name()));
+        }
     }
 }
 

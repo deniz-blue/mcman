@@ -193,10 +193,18 @@ impl BuildArgs {
 
         let manifest_dir = loaded.path.parent().unwrap_or(Path::new("."));
 
-        for target in &mut lockfile.targets {
-            if !self.targets.is_empty() && !self.targets.contains(&target.name) {
+        for planned in &loaded.plan.targets {
+            let name = &planned.target.name;
+
+            if !self.targets.is_empty() && !self.targets.contains(name) {
                 continue;
             }
+
+            let Some(target) = lockfile.targets.iter_mut().find(|held| &held.name == name) else {
+                bail!("`{name}` is missing from the lockfile");
+            };
+
+            actions::build::build_packages(&ctx, planned, target).await?;
 
             let root = manifest_dir.join(&target.path);
             actions::materialize::materialize(&ctx, &root, target).await?;
@@ -278,10 +286,7 @@ impl ExplainArgs {
                 }
 
                 for package in &directory.packages {
-                    match &package.label {
-                        Some(label) => println!("    package {label}"),
-                        None => println!("    package"),
-                    }
+                    println!("    package {}", package.label);
                 }
             }
         }

@@ -14,9 +14,7 @@ Manifest {
                 addons: [],
                 packages: [
                     Package {
-                        label: Some(
-                            "viaversion",
-                        ),
+                        label: "viaversion",
                         sources: [
                             Download(
                                 Download {

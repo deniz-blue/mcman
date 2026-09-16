@@ -119,14 +119,9 @@ impl Scope {
             merged.addons.extend(directory.addons.iter().cloned());
 
             for package in &directory.packages {
-                let Some(existing) = package.label.as_ref() else {
-                    merged.packages.push(package.clone());
-                    continue;
-                };
-
                 if !insert_unique(&mut merged.packages, package, |a, b| a.label == b.label) {
                     return Err(PlanError::RedeclaredPackage {
-                        label: existing.clone(),
+                        label: package.label.clone(),
                         group: label(),
                         at: package.span,
                     });

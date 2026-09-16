@@ -1,5 +1,4 @@
-use kdl::KdlNode;
-use miette::Result;
+use kdl::{KdlDocument, KdlNode};
 
 use crate::{
     core::kdl::{child_nodes, reject_node, Errors, KdlRead, KdlWrite, Reader, Spanned},
@@ -18,7 +17,7 @@ const PACKAGE_NODES: &str = "git, download, build, artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Package {
-    pub label: Option<String>,
+    pub label: String,
     pub sources: Vec<PackageSource>,
     pub build: Option<PackageBuild>,
     pub artifacts: Vec<PackageArtifact>,
@@ -35,7 +34,7 @@ impl Package {
             .collect();
 
         Self {
-            label: None,
+            label: String::new(),
             sources: downloads.into_iter().map(PackageSource::Download).collect(),
             build: None,
             artifacts,
@@ -56,10 +55,18 @@ impl Package {
         }
     }
 
+    pub fn to_kdl_string(&self) -> String {
+        let mut document = KdlDocument::new();
+        document.nodes_mut().push(self.to_kdl("package"));
+        document.autoformat();
+
+        document.to_string()
+    }
+
     pub(crate) fn read(node: &KdlNode, errors: &mut Errors) -> Spanned<Self> {
         let mut reader = Reader::new(node, errors);
         let span = reader.span();
-        let label = reader.argument();
+        let label = reader.required_argument("package name");
         reader.required_children("package must have children");
         reader.reject_unread();
 
@@ -95,8 +102,24 @@ impl Package {
 
         Spanned::new(package, span)
     }
+}
 
-    pub async fn build(&self) -> Result<()> {
-        Ok(())
+impl KdlWrite for Package {
+    fn write(&self, node: &mut KdlNode) {
+        node.push(self.label.as_str());
+
+        self.write_sources(node);
+
+        if let Some(build) = &self.build {
+            node.ensure_children()
+                .nodes_mut()
+                .push(build.to_kdl("build"));
+        }
+
+        for artifact in &self.artifacts {
+            node.ensure_children()
+                .nodes_mut()
+                .push(artifact.to_kdl("artifact"));
+        }
     }
 }
