@@ -50,11 +50,12 @@ async fn add_entry<D>(
 
     for download in entry.package.downloads() {
         let destination = entry.directory.join(download.destination());
-        linked.push(destination);
 
         writer
-            .write_metafile(&entry.directory, &metafile(ctx, download).await?)
+            .write_metafile(&destination, &metafile(ctx, download).await?)
             .await?;
+
+        linked.push(destination);
     }
 
     for artifact in &entry.artifacts {

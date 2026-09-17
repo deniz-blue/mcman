@@ -69,11 +69,10 @@ impl<'a> PackwizPackWriter<'a> {
 
     pub async fn write_metafile(
         &mut self,
-        directory: &Path,
+        destination: &Path,
         metafile: &PackwizMetafile,
     ) -> Result<()> {
-        let mut path = directory.join(&metafile.filename);
-        path.set_extension("pw.toml");
+        let path = destination.with_extension("pw.toml");
 
         let digest = self.write_toml(&path, metafile).await?;
         self.push(&path, digest, true);

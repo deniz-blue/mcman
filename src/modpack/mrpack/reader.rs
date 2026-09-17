@@ -1,13 +1,14 @@
 use std::{
     collections::BTreeMap,
     io::{Read, Seek},
-    path::{Component, Path, PathBuf},
+    path::PathBuf,
 };
 
 use zip::{result::ZipError, ZipArchive};
 
 use crate::{
     modpack::{
+        is_enclosed,
         mrpack::{
             error::MrpackError,
             index::{MrpackFile, MrpackIndex, FORMAT_VERSION, GAME, INDEX_NAME},
@@ -120,9 +121,4 @@ impl<R: Read + Seek> MrpackReader<R> {
             Ok(MrpackOverride { path, bytes })
         }))
     }
-}
-
-fn is_enclosed(path: &Path) -> bool {
-    path.components()
-        .all(|component| matches!(component, Component::Normal(_) | Component::CurDir))
 }

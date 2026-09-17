@@ -8,7 +8,8 @@ use crate::{
     modpack::Side,
     plan::TargetPlan,
     providers::{
-        download::Downloads, modrinth::Modrinth, mrpack, AddonResolver, ProviderError, Resolved,
+        download::Downloads, modrinth::Modrinth, mrpack, packwiz, AddonResolver, ProviderError,
+        Resolved,
     },
 };
 
@@ -48,9 +49,9 @@ pub async fn resolve_include(
         Include::Mrpack(inner) => mrpack::resolve(ctx, manifest, inner, side)
             .await
             .map(|resolved| resolved.map(Include::Mrpack)),
-        other => Err(ProviderError::Unsupported {
-            type_name: other.type_name(),
-        }),
+        Include::Packwiz(inner) => packwiz::resolve(ctx, manifest, inner)
+            .await
+            .map(|resolved| resolved.map(Include::Packwiz)),
     };
 
     result.map_err(|source| ResolveError::of(&include.value, include.span, source))

@@ -24,6 +24,7 @@ pub struct MrpackInclude {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PackwizInclude {
     pub location: Location,
+    pub checksums: Checksums,
 }
 
 impl KdlVariant for MrpackInclude {
@@ -54,6 +55,7 @@ impl KdlRead for PackwizInclude {
     fn read(reader: &mut Reader) -> Self {
         Self {
             location: Location::from(reader.required_argument("pack location")),
+            checksums: KdlRead::read(reader),
         }
     }
 }
@@ -61,6 +63,7 @@ impl KdlRead for PackwizInclude {
 impl KdlWrite for PackwizInclude {
     fn write(&self, node: &mut KdlNode) {
         node.push(self.location.to_string());
+        self.checksums.write(node);
     }
 }
 

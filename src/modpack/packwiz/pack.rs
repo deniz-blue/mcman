@@ -7,7 +7,6 @@ use crate::core::checksum::ChecksumAlgorithm;
 pub const PACK_TOML: &str = "pack.toml";
 pub const INDEX_TOML: &str = "index.toml";
 
-// packwiz stamps every pack with the format version it was written for.
 pub const PACK_FORMAT: &str = "packwiz:1.1.0";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

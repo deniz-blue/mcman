@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::{
     core::{checksum::ChecksumMismatch, location::LocationError},
-    modpack::mrpack::MrpackError,
+    modpack::{mrpack::MrpackError, packwiz::PackwizError},
     store::StoreError,
 };
 
@@ -42,6 +42,10 @@ pub enum ProviderError {
 
     #[error(transparent)]
     #[diagnostic(transparent)]
+    Packwiz(#[from] Box<PackwizError>),
+
+    #[error(transparent)]
+    #[diagnostic(transparent)]
     Checksum(#[from] ChecksumMismatch),
 
     #[error(transparent)]
@@ -58,5 +62,11 @@ impl From<LocationError> for ProviderError {
 impl From<MrpackError> for ProviderError {
     fn from(error: MrpackError) -> Self {
         Self::Mrpack(Box::new(error))
+    }
+}
+
+impl From<PackwizError> for ProviderError {
+    fn from(error: PackwizError) -> Self {
+        Self::Packwiz(Box::new(error))
     }
 }

@@ -4,6 +4,7 @@ pub mod download;
 mod error;
 pub mod modrinth;
 pub mod mrpack;
+pub mod packwiz;
 
 pub use error::ProviderError;
 

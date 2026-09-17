@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Component, Path};
 
 pub mod mrpack;
 pub mod packwiz;
@@ -14,4 +14,9 @@ pub fn slashed(path: &Path) -> String {
         .map(|component| component.as_os_str().to_string_lossy())
         .collect::<Vec<_>>()
         .join("/")
+}
+
+pub fn is_enclosed(path: &Path) -> bool {
+    path.components()
+        .all(|component| matches!(component, Component::Normal(_) | Component::CurDir))
 }

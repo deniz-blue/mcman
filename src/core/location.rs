@@ -106,10 +106,16 @@ impl Location {
         ctx: &AppContext,
     ) -> Result<T, LocationError> {
         let bytes = self.read_bytes(ctx).await?;
-        let text = std::str::from_utf8(&bytes).map_err(|source| LocationError::Utf8 {
+
+        self.parse_toml(&bytes)
+    }
+
+    pub fn parse_toml<T: DeserializeOwned>(&self, bytes: &[u8]) -> Result<T, LocationError> {
+        let text = std::str::from_utf8(bytes).map_err(|source| LocationError::Utf8 {
             location: self.clone(),
             source,
         })?;
+
         toml::from_str(text).map_err(|source| LocationError::Toml {
             location: self.clone(),
             source: Box::new(source),

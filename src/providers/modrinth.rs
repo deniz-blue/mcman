@@ -13,7 +13,6 @@ use crate::{
 
 pub const MODRINTH_API: &str = "https://api.modrinth.com";
 
-/// Modrinth accepts a slug wherever it accepts an id, so `modrinth:luckperms` needs no lookup.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ModrinthProjectId(pub String);
 
