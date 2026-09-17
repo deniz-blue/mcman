@@ -2,7 +2,7 @@
 source: tests/lockfile.rs
 expression: "lockfile(\"lock-full\").to_kdl()"
 ---
-meta version=1 generated="2024-06-01T12:00:00Z"
+lock version=1 generated="2024-06-01T12:00:00Z"
 target proxy path="./run/proxy" {
     platform velocity {
         resolved velocity version="3.4.0" build="463"

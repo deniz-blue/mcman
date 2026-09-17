@@ -54,6 +54,7 @@ Plan {
                     symlinks: [],
                 },
             ],
+            meta: {},
         },
         TargetPlan {
             target: Target {
@@ -96,6 +97,7 @@ Plan {
                     symlinks: [],
                 },
             ],
+            meta: {},
         },
     ],
     warnings: [

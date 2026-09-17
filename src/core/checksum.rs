@@ -51,7 +51,7 @@ impl ChecksumAlgorithm {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct Checksums(BTreeMap<ChecksumAlgorithm, String>);
 

@@ -55,5 +55,6 @@ Manifest {
             },
         ],
         subgroups: [],
+        meta: {},
     },
 }

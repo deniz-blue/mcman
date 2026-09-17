@@ -133,6 +133,7 @@ pub async fn resolve_target(
         addons,
         includes,
         packages,
+        meta: target.meta.clone(),
     })
 }
 

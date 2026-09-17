@@ -27,6 +27,7 @@ Manifest {
                 directories: [],
                 targets: [],
                 subgroups: [],
+                meta: {},
             },
             Group {
                 label: Some(
@@ -48,7 +49,9 @@ Manifest {
                 ],
                 targets: [],
                 subgroups: [],
+                meta: {},
             },
         ],
+        meta: {},
     },
 }

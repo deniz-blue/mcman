@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, path::Path};
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -12,52 +12,34 @@ pub const PACK_FORMAT: &str = "packwiz:1.1.0";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct Pack {
+pub struct PackwizPack {
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub author: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub pack_format: String,
-    pub index: PackFile,
+    pub index: PackwizFile,
     pub versions: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct PackIndex {
+pub struct PackwizIndex {
     pub hash_format: ChecksumAlgorithm,
     #[serde(default)]
-    pub files: Vec<PackFile>,
+    pub files: Vec<PackwizFile>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct PackFile {
+pub struct PackwizFile {
     pub file: String,
     pub hash: String,
     #[serde(default, skip_serializing_if = "is_false")]
     pub metafile: bool,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct Metafile {
-    pub name: String,
-    pub filename: String,
-    pub download: MetafileDownload,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct MetafileDownload {
-    pub url: String,
-    pub hash: String,
-    pub hash_format: ChecksumAlgorithm,
-}
-
-// packwiz index paths are slash-separated whatever the host writes them on.
-pub fn slashed(path: &Path) -> String {
-    path.components()
-        .map(|component| component.as_os_str().to_string_lossy())
-        .collect::<Vec<_>>()
-        .join("/")
 }
 
 fn is_false(flag: &bool) -> bool {

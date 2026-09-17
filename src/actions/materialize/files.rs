@@ -4,7 +4,7 @@ use miette::{Context, IntoDiagnostic, Result};
 
 use crate::{
     actions::all_in_store,
-    core::AppContext,
+    core::{fs::link_or_copy, AppContext},
     lockfile::{Artifact, Locked, LockedTarget},
     store::ObjectKey,
 };
@@ -58,33 +58,8 @@ async fn fetch<D>(ctx: &AppContext, entry: &Locked<D>) -> Result<Vec<Artifact>> 
 
 async fn place_artifact(ctx: &AppContext, root: &Path, artifact: &Artifact) -> Result<()> {
     let key = ObjectKey::from_hex(&artifact.hash)?;
-    let source = ctx.store.object_path(&key);
-    let destination = root.join(&artifact.path);
 
-    if let Some(parent) = destination.parent() {
-        tokio::fs::create_dir_all(parent)
-            .await
-            .into_diagnostic()
-            .wrap_err_with(|| format!("could not create `{}`", parent.display()))?;
-    }
-
-    if tokio::fs::symlink_metadata(&destination).await.is_ok() {
-        tokio::fs::remove_file(&destination)
-            .await
-            .into_diagnostic()
-            .wrap_err_with(|| format!("could not replace `{}`", destination.display()))?;
-    }
-
-    if tokio::fs::hard_link(&source, &destination).await.is_ok() {
-        return Ok(());
-    }
-
-    tokio::fs::copy(&source, &destination)
-        .await
-        .into_diagnostic()
-        .wrap_err_with(|| format!("could not write `{}`", destination.display()))?;
-
-    Ok(())
+    link_or_copy(&ctx.store.object_path(&key), &root.join(&artifact.path)).await
 }
 
 async fn size_of(path: &Path) -> Result<u64> {

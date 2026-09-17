@@ -12,7 +12,7 @@ use crate::{
     cli::ManifestArgs,
     config::Config,
     core::{location::Location, AppContext},
-    lockfile::{Lockfile, LockfileMeta},
+    lockfile::{Lockfile, LockfileHeader},
     manifest::Manifest,
     plan::{self, Plan},
     resolve,
@@ -133,7 +133,7 @@ async fn resolve_all(
     }
 
     Ok(Lockfile {
-        meta: LockfileMeta {
+        header: LockfileHeader {
             version: LOCKFILE_VERSION,
             generated: jiff::Timestamp::now().to_string(),
         },

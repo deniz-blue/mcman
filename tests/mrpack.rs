@@ -2,18 +2,16 @@ use std::{io::Cursor, path::Path};
 
 use mcman::{
     core::checksum::ChecksumAlgorithm,
-    modpack::{mrpack::Mrpack, Side},
-    store::Store,
+    modpack::{mrpack::MrpackReader, Side},
 };
-use tempfile::TempDir;
 use zip::ZipArchive;
 
 mod common;
 
-fn pack(entries: &[(&str, &[u8])]) -> Mrpack<Cursor<Vec<u8>>> {
+fn pack(entries: &[(&str, &[u8])]) -> MrpackReader<Cursor<Vec<u8>>> {
     let archive =
         ZipArchive::new(Cursor::new(common::mrpack(entries))).expect("the zip reads back");
-    Mrpack::open(archive).expect("the pack opens")
+    MrpackReader::open(archive).expect("the pack opens")
 }
 
 #[test]
@@ -54,11 +52,8 @@ fn a_file_becomes_a_download_with_its_hashes_and_size() {
     assert!(sodium.checksums.get(ChecksumAlgorithm::Sha512).is_some());
 }
 
-#[tokio::test]
-async fn side_overrides_win_over_shared_ones() {
-    let root = TempDir::new().expect("a temp dir");
-    let store = Store::open(root.path()).await.expect("the store opens");
-
+#[test]
+fn side_overrides_win_over_shared_ones() {
     let mut pack = pack(&[
         ("overrides/config/shared.toml", b"shared"),
         ("overrides/config/both.toml", b"generic"),
@@ -66,12 +61,13 @@ async fn side_overrides_win_over_shared_ones() {
         ("client-overrides/config/client.toml", b"for clients"),
     ]);
 
-    let artifacts = pack
-        .store_overrides(Some(Side::Server), &store)
-        .await
-        .expect("the overrides land in the store");
+    let overrides: Vec<_> = pack
+        .overrides(Some(Side::Server))
+        .expect("the overrides resolve")
+        .map(|entry| entry.expect("the entry reads"))
+        .collect();
 
-    let paths: Vec<_> = artifacts.iter().map(|artifact| &artifact.path).collect();
+    let paths: Vec<_> = overrides.iter().map(|entry| &entry.path).collect();
     assert_eq!(
         paths,
         [
@@ -80,7 +76,5 @@ async fn side_overrides_win_over_shared_ones() {
         ]
     );
 
-    let both = &artifacts[0];
-    assert_eq!(both.hash, blake3::hash(b"for servers").to_hex().as_str());
-    assert_eq!(both.size, 11);
+    assert_eq!(overrides[0].bytes, b"for servers");
 }

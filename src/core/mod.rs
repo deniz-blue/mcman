@@ -8,6 +8,7 @@ use crate::{
 use std::sync::Arc;
 
 pub mod checksum;
+pub mod fs;
 pub mod http;
 pub mod kdl;
 pub mod location;

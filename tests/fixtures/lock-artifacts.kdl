@@ -1,4 +1,4 @@
-meta version=1 generated="2024-06-01T12:00:00Z"
+lock version=1 generated="2024-06-01T12:00:00Z"
 
 target "proxy" path="./run/proxy" {
     runtime github "adoptium/temurin21-binaries" asset="OpenJDK21U-jdk_x64_linux_hotspot_*.tar.gz" {

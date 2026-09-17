@@ -44,6 +44,7 @@ Manifest {
                     },
                 ],
                 subgroups: [],
+                meta: {},
             },
             Group {
                 label: Some(
@@ -96,9 +97,12 @@ Manifest {
                             },
                         ],
                         subgroups: [],
+                        meta: {},
                     },
                 ],
+                meta: {},
             },
         ],
+        meta: {},
     },
 }

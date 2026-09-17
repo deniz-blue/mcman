@@ -4,6 +4,7 @@ use thiserror::Error;
 use crate::{
     core::{checksum::ChecksumMismatch, location::LocationError},
     modpack::mrpack::MrpackError,
+    store::StoreError,
 };
 
 #[derive(Debug, Error, Diagnostic)]
@@ -42,6 +43,10 @@ pub enum ProviderError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     Checksum(#[from] ChecksumMismatch),
+
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    Store(#[from] StoreError),
 }
 
 impl From<LocationError> for ProviderError {

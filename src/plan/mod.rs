@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{BTreeMap, HashSet},
     path::{Path, PathBuf},
 };
 
@@ -30,6 +30,7 @@ pub struct TargetPlan {
     pub runtimes: Vec<Spanned<Addon>>,
     pub includes: Vec<Spanned<Include>>,
     pub directories: Vec<Directory>,
+    pub meta: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -73,6 +74,7 @@ struct Scope {
     runtimes: Vec<Spanned<Addon>>,
     includes: Vec<Spanned<Include>>,
     directories: Vec<Directory>,
+    meta: BTreeMap<String, String>,
     written_paths: HashSet<PathBuf>,
 }
 
@@ -100,6 +102,7 @@ impl Scope {
 
         self.runtimes.extend(group.runtimes.iter().cloned());
         self.includes.extend(group.includes.iter().cloned());
+        self.meta.extend(group.meta.clone());
 
         for directory in &group.directories {
             let path = canonical_directory_path(directory.path.as_deref());
@@ -210,6 +213,7 @@ fn walk(group: &Group, inherited: &Scope, plan: &mut Plan) -> Result<(), PlanErr
             runtimes: scope.runtimes.clone(),
             includes: scope.includes.clone(),
             directories: scope.directories.clone(),
+            meta: scope.meta.clone(),
         });
     }
 

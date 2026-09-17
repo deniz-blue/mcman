@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::BTreeMap, path::PathBuf};
 
 use kdl::{KdlDocument, KdlNode};
 use miette::Result;
@@ -37,7 +37,7 @@ impl Manifest {
 }
 
 const GROUP_NODES: &str =
-    "group, dir, target, use, package, runtime, platform, include, fs:copy, fs:symlink";
+    "group, dir, target, use, package, runtime, platform, include, meta, fs:copy, fs:symlink";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Group {
@@ -48,6 +48,7 @@ pub struct Group {
     pub directories: Vec<Directory>,
     pub targets: Vec<Spanned<Target>>,
     pub subgroups: Vec<Group>,
+    pub meta: BTreeMap<String, String>,
 }
 
 impl Group {
@@ -82,6 +83,7 @@ impl Group {
                 "runtime" => group.runtimes.extend(Addon::read_spanned(node, errors)),
                 "platform" => group.platforms.extend(Platform::read_spanned(node, errors)),
                 "include" => group.includes.extend(Include::read_spanned(node, errors)),
+                "meta" => group.meta.extend(read_meta(node, errors)),
                 "use" => target_root.addons.extend(Addon::read_spanned(node, errors)),
                 "package" => target_root.packages.push(Package::read(node, errors)),
                 "fs:copy" => target_root
@@ -100,6 +102,14 @@ impl Group {
 
         group
     }
+}
+
+fn read_meta(node: &KdlNode, errors: &mut Errors) -> BTreeMap<String, String> {
+    let mut reader = Reader::new(node, errors);
+    let meta = reader.properties();
+    reader.reject_unread();
+
+    meta
 }
 
 const DIR_NODES: &str = "use, package, fs:copy, fs:symlink";

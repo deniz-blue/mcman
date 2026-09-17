@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use kdl::{KdlDocument, KdlNode};
 use miette::Result;
@@ -12,15 +15,15 @@ use crate::{
 
 pub mod diff;
 
-const LOCKFILE_NODES: &str = "meta, target";
-const TARGET_NODES: &str = "platform, runtime, use, include, package";
+const LOCKFILE_NODES: &str = "lock, target";
+const TARGET_NODES: &str = "meta, platform, runtime, use, include, package";
 const PLATFORM_NODES: &str = "resolved";
 const LOCKED_NODES: &str = "resolved, dir, download, artifact";
 const PACKAGE_NODES: &str = "artifact";
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Lockfile {
-    pub meta: LockfileMeta,
+    pub header: LockfileHeader,
     pub targets: Vec<LockedTarget>,
 }
 
@@ -33,7 +36,7 @@ impl Lockfile {
 
         for node in document.nodes() {
             match node.name().value() {
-                "meta" => lockfile.meta = LockfileMeta::read_node(node, &mut errors),
+                "lock" => lockfile.header = LockfileHeader::read_node(node, &mut errors),
                 "target" => lockfile.targets.push(LockedTarget::read(node, &mut errors)),
                 _ => reject_node(node, &mut errors, LOCKFILE_NODES),
             }
@@ -48,7 +51,7 @@ impl Lockfile {
     pub fn to_kdl(&self) -> String {
         let mut document = KdlDocument::new();
 
-        document.nodes_mut().push(self.meta.to_kdl("meta"));
+        document.nodes_mut().push(self.header.to_kdl("lock"));
 
         for target in &self.targets {
             document.nodes_mut().push(target.to_kdl("target"));
@@ -57,6 +60,14 @@ impl Lockfile {
         document.autoformat();
         document.to_string()
     }
+}
+
+fn read_meta(node: &KdlNode, errors: &mut Errors) -> BTreeMap<String, String> {
+    let mut reader = Reader::new(node, errors);
+    let meta = reader.properties();
+    reader.reject_unread();
+
+    meta
 }
 
 fn push_child(node: &mut KdlNode, child: KdlNode) {
@@ -74,12 +85,12 @@ fn display(path: &Path) -> String {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct LockfileMeta {
+pub struct LockfileHeader {
     pub version: u64,
     pub generated: String,
 }
 
-impl KdlRead for LockfileMeta {
+impl KdlRead for LockfileHeader {
     fn read(reader: &mut Reader) -> Self {
         Self {
             version: reader.unsigned_property("version").unwrap_or_default(),
@@ -88,7 +99,7 @@ impl KdlRead for LockfileMeta {
     }
 }
 
-impl KdlWrite for LockfileMeta {
+impl KdlWrite for LockfileHeader {
     fn write(&self, node: &mut KdlNode) {
         node.push(("version", i128::from(self.version)));
         node.push(("generated", self.generated.as_str()));
@@ -105,6 +116,7 @@ pub struct LockedTarget {
     pub addons: Vec<LockedAddon>,
     pub includes: Vec<LockedInclude>,
     pub packages: Vec<LockedPackage>,
+    pub meta: BTreeMap<String, String>,
 }
 
 impl LockedTarget {
@@ -129,6 +141,7 @@ impl LockedTarget {
                 "use" => target.addons.extend(LockedAddon::read(child, errors)),
                 "include" => target.includes.extend(LockedInclude::read(child, errors)),
                 "package" => target.packages.push(LockedPackage::read(child, errors)),
+                "meta" => target.meta.extend(read_meta(child, errors)),
                 _ => reject_node(child, errors, TARGET_NODES),
             }
         }
@@ -142,6 +155,14 @@ impl KdlWrite for LockedTarget {
         node.push(self.name.as_str());
         node.push(("path", display(&self.path)));
         self.kind.write(node);
+
+        if !self.meta.is_empty() {
+            let mut meta = KdlNode::new("meta");
+            for (key, value) in &self.meta {
+                meta.push((key.as_str(), value.as_str()));
+            }
+            push_child(node, meta);
+        }
 
         for platform in &self.platforms {
             push_child(node, platform.to_kdl("platform"));

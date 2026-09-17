@@ -8,9 +8,10 @@ use crate::{
         location::Location,
         AppContext,
     },
+    lockfile::Artifact,
     manifest::MrpackInclude,
     modpack::{
-        mrpack::{Mrpack, MrpackError},
+        mrpack::{MrpackError, MrpackOverride, MrpackReader},
         Side,
     },
     package::Package,
@@ -34,9 +35,13 @@ pub async fn resolve(
     );
 
     let archive = ZipArchive::new(Cursor::new(bytes.as_slice())).map_err(MrpackError::Zip)?;
-    let mut pack = Mrpack::open(archive)?;
+    let mut pack = MrpackReader::open(archive)?;
     let downloads = pack.downloads(side).collect();
-    let artifacts = pack.store_overrides(side, &ctx.store).await?;
+
+    let mut artifacts = Vec::new();
+    for entry in pack.overrides(side)? {
+        artifacts.push(store(ctx, entry?).await?);
+    }
 
     Ok(Resolved {
         resolved: MrpackInclude {
@@ -45,5 +50,16 @@ pub async fn resolve(
         },
         package: Package::from_downloads(downloads),
         artifacts,
+    })
+}
+
+async fn store(ctx: &AppContext, entry: MrpackOverride) -> Result<Artifact, ProviderError> {
+    let mut object = ctx.store.write_object().await?;
+    object.write(&entry.bytes).await?;
+
+    Ok(Artifact {
+        path: entry.path,
+        hash: object.finish().await?.to_hex(),
+        size: entry.bytes.len() as u64,
     })
 }
