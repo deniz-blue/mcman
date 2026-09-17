@@ -8,7 +8,7 @@ use miette::Result;
 
 use crate::{
     addons::{Addon, Platform},
-    core::kdl::{child_nodes, reject_node, Errors, KdlMaybeRead, KdlRead, KdlWrite, Reader},
+    core::kdl::{reject_node, Errors, KdlMaybeRead, KdlRead, KdlWrite, Reader},
     manifest::{Include, TargetType},
     package::{source::download::Download, Package},
 };
@@ -125,6 +125,7 @@ impl LockedTarget {
         let name = reader.required_argument("target name");
         let path = PathBuf::from(reader.required_property("path"));
         let kind = TargetType::read(&mut reader);
+        let children = reader.children();
         reader.reject_unread();
 
         let mut target = Self {
@@ -134,7 +135,7 @@ impl LockedTarget {
             ..Self::default()
         };
 
-        for child in child_nodes(node) {
+        for child in children {
             match child.name().value() {
                 "platform" => target.platforms.extend(LockedPlatform::read(child, errors)),
                 "runtime" => target.runtimes.extend(LockedAddon::read(child, errors)),
@@ -193,11 +194,14 @@ pub struct LockedPlatform {
 }
 
 impl KdlMaybeRead for LockedPlatform {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
-        let requested = Platform::read(node, errors)?;
+    fn read_with(reader: &mut Reader) -> Option<Self> {
+        let requested = Platform::read_with(reader)?;
+        let children = reader.children();
+        let span = reader.span();
+        let errors = reader.errors();
         let mut resolved = None;
 
-        for child in child_nodes(node) {
+        for child in children {
             match child.name().value() {
                 "resolved" => {
                     if resolved.is_some() {
@@ -210,7 +214,7 @@ impl KdlMaybeRead for LockedPlatform {
         }
 
         let Some(resolved) = resolved else {
-            errors.push(node.span(), "a locked `platform` needs a `resolved` child");
+            errors.push(span, "a locked `platform` needs a `resolved` child");
             return None;
         };
 
@@ -242,15 +246,18 @@ pub type LockedAddon = Locked<Addon>;
 pub type LockedInclude = Locked<Include>;
 
 impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
-        let requested = D::read(node, errors)?;
+    fn read_with(reader: &mut Reader) -> Option<Self> {
+        let requested = D::read_with(reader)?;
+        let children = reader.children();
+        let span = reader.span();
+        let errors = reader.errors();
 
         let mut resolved = None;
         let mut directory = PathBuf::new();
         let mut downloads = Vec::new();
         let mut artifacts = Vec::new();
 
-        for child in child_nodes(node) {
+        for child in children {
             match child.name().value() {
                 "resolved" => {
                     if resolved.is_some() {
@@ -270,7 +277,7 @@ impl<D: KdlMaybeRead + KdlWrite> KdlMaybeRead for Locked<D> {
         }
 
         let Some(resolved) = resolved else {
-            errors.push(node.span(), "a locked entry needs a `resolved` child");
+            errors.push(span, "a locked entry needs a `resolved` child");
             return None;
         };
 
@@ -311,12 +318,13 @@ impl LockedPackage {
         let mut reader = Reader::new(node, errors);
         let name = reader.required_argument("package name");
         let identity = reader.required_property("identity");
+        let children = reader.children();
         reader.reject_unread();
 
         Self {
             name,
             identity,
-            artifacts: read_artifacts(node, errors),
+            artifacts: read_artifacts(children, errors),
         }
     }
 }
@@ -354,10 +362,10 @@ impl KdlWrite for Artifact {
     }
 }
 
-fn read_artifacts(node: &KdlNode, errors: &mut Errors) -> Vec<Artifact> {
+fn read_artifacts(nodes: &[KdlNode], errors: &mut Errors) -> Vec<Artifact> {
     let mut artifacts = Vec::new();
 
-    for child in child_nodes(node) {
+    for child in nodes {
         match child.name().value() {
             "artifact" => artifacts.push(Artifact::read_node(child, errors)),
             _ => reject_node(child, errors, PACKAGE_NODES),

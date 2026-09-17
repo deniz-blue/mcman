@@ -78,21 +78,27 @@ impl Errors {
     }
 }
 
-pub struct Reader<'a> {
+pub struct Reader<'a, 'e> {
     node: &'a KdlNode,
-    errors: &'a mut Errors,
+    errors: &'e mut Errors,
     arguments_read: usize,
     properties_read: Vec<&'a str>,
+    children_read: bool,
 }
 
-impl<'a> Reader<'a> {
-    pub fn new(node: &'a KdlNode, errors: &'a mut Errors) -> Self {
+impl<'a, 'e> Reader<'a, 'e> {
+    pub fn new(node: &'a KdlNode, errors: &'e mut Errors) -> Self {
         Self {
             node,
             errors,
             arguments_read: 0,
             properties_read: Vec::new(),
+            children_read: false,
         }
+    }
+
+    pub fn errors(&mut self) -> &mut Errors {
+        self.errors
     }
 
     pub fn span(&self) -> SourceSpan {
@@ -257,7 +263,14 @@ impl<'a> Reader<'a> {
         }
     }
 
+    pub fn children(&mut self) -> &'a [KdlNode] {
+        self.children_read = true;
+        child_nodes(self.node)
+    }
+
     pub fn required_children(&mut self, message: &str) -> bool {
+        self.children_read = true;
+
         if self.node.children().is_some() {
             return true;
         }
@@ -273,8 +286,18 @@ impl<'a> Reader<'a> {
             errors,
             arguments_read,
             properties_read,
+            children_read,
         } = self;
         let mut arguments_seen = 0;
+
+        if !children_read {
+            if let Some(children) = node.children() {
+                errors.push(
+                    children.span(),
+                    format!("`{}` takes no children", node.name().value()),
+                );
+            }
+        }
 
         for entry in node.entries() {
             match entry.name() {
@@ -350,7 +373,15 @@ pub trait KdlVariant: KdlRead + KdlWrite {
 }
 
 pub trait KdlMaybeRead: Sized {
-    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self>;
+    fn read_with(reader: &mut Reader) -> Option<Self>;
+
+    fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
+        let mut reader = Reader::new(node, errors);
+        let value = Self::read_with(&mut reader)?;
+        reader.reject_unread();
+
+        Some(value)
+    }
 
     fn read_spanned(node: &KdlNode, errors: &mut Errors) -> Option<Spanned<Self>> {
         Some(Spanned::new(Self::read(node, errors)?, node.span()))
@@ -368,7 +399,7 @@ pub fn write_entries(node: &KdlNode, f: &mut fmt::Formatter<'_>) -> fmt::Result 
     Ok(())
 }
 
-pub fn child_nodes(node: &KdlNode) -> &[KdlNode] {
+fn child_nodes(node: &KdlNode) -> &[KdlNode] {
     node.children().map(KdlDocument::nodes).unwrap_or_default()
 }
 
@@ -422,20 +453,16 @@ macro_rules! kdl_variants {
         }
 
         impl KdlMaybeRead for $enum {
-            fn read(node: &KdlNode, errors: &mut Errors) -> Option<Self> {
-                let mut reader = Reader::new(node, errors);
+            fn read_with(reader: &mut Reader) -> Option<Self> {
                 let type_name = reader.required_argument($label);
 
-                let value = match type_name.as_str() {
-                    $($module::$type::TYPE_NAME => Self::$variant(KdlRead::read(&mut reader)),)*
+                match type_name.as_str() {
+                    $($module::$type::TYPE_NAME => Some(Self::$variant(KdlRead::read(reader))),)*
                     _ => {
                         reader.unknown_type($label, &type_name, TYPE_NAMES);
-                        return None;
+                        None
                     }
-                };
-
-                reader.reject_unread();
-                Some(value)
+                }
             }
         }
 

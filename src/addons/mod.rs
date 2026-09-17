@@ -3,7 +3,7 @@ use std::fmt::Display;
 use kdl::KdlNode;
 
 use crate::core::kdl::{
-    kdl_variants, write_entries, Errors, KdlMaybeRead, KdlRead, KdlVariant, KdlWrite, Reader,
+    kdl_variants, write_entries, KdlMaybeRead, KdlRead, KdlVariant, KdlWrite, Reader,
 };
 
 pub mod curseforge;

@@ -1,7 +1,7 @@
 use kdl::{KdlDocument, KdlNode};
 
 use crate::{
-    core::kdl::{child_nodes, reject_node, Errors, KdlRead, KdlWrite, Reader, Spanned},
+    core::kdl::{reject_node, Errors, KdlRead, KdlWrite, Reader, Spanned},
     package::{
         artifact::PackageArtifact,
         build::PackageBuild,
@@ -68,6 +68,7 @@ impl Package {
         let span = reader.span();
         let label = reader.required_argument("package name");
         reader.required_children("package must have children");
+        let children = reader.children();
         reader.reject_unread();
 
         let mut package = Self {
@@ -77,7 +78,7 @@ impl Package {
             artifacts: Vec::new(),
         };
 
-        for child in child_nodes(node) {
+        for child in children {
             match child.name().value() {
                 "git" | "download" => package.sources.push(PackageSource::read(child, errors)),
                 "artifact" => {

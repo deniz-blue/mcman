@@ -5,7 +5,7 @@ use miette::Result;
 
 use crate::{
     addons::{Addon, Platform},
-    core::kdl::{child_nodes, reject_node, Errors, KdlMaybeRead, KdlRead, Reader, Spanned},
+    core::kdl::{reject_node, Errors, KdlMaybeRead, KdlRead, Reader, Spanned},
     package::Package,
 };
 
@@ -56,6 +56,7 @@ impl Group {
         let mut reader = Reader::new(node, errors);
         let label = reader.argument();
         let has_children = reader.required_children("group must have children");
+        let children = reader.children();
         reader.reject_unread();
 
         if !has_children {
@@ -65,7 +66,6 @@ impl Group {
             };
         }
 
-        let children = child_nodes(node);
         let mut group = Self::read(children, errors);
         group.label = label;
         group
@@ -134,6 +134,7 @@ impl Directory {
     fn read(node: &KdlNode, errors: &mut Errors) -> Self {
         let mut reader = Reader::new(node, errors);
         let path = reader.path_argument();
+        let children = reader.children();
         reader.reject_unread();
 
         let mut directory = Self {
@@ -141,7 +142,7 @@ impl Directory {
             ..Self::default()
         };
 
-        for child in child_nodes(node) {
+        for child in children {
             match child.name().value() {
                 "use" => directory.addons.extend(Addon::read_spanned(child, errors)),
                 "package" => directory.packages.push(Package::read(child, errors)),
