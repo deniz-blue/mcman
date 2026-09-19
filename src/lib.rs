@@ -8,6 +8,7 @@ pub mod core;
 pub mod lockfile;
 pub mod manifest;
 pub mod modpack;
+pub mod output;
 pub mod package;
 pub mod plan;
 pub mod providers;

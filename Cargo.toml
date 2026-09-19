@@ -29,7 +29,6 @@ cached = "0.47"
 clap = { version = "4.4", features = ["derive", "env"] }
 clap_complete = { version = "4.5", optional = true }
 confique = { version = "0.2", default-features = false, features = ["toml"] }
-console = "0.16"
 dialoguer = "0.11"
 digest = "0.10"
 dirs = "5.0"
@@ -37,7 +36,6 @@ jiff = "0.2"
 glob = "0.3"
 hex = "0.4"
 indexmap = { version = "2.1", features = ["serde"] }
-indicatif = "0.18"
 md-5 = "0.10"
 notify-debouncer-full = { version = "0.3" }
 opener = "0.8"
@@ -68,6 +66,7 @@ tokio = { version = "1.35", features = [
 tokio-stream = "0.1"
 tokio-util = { version = "0.7", features = ["io"] }
 toml = "0.9"
+unicode-width = "0.2"
 walkdir = "2.4"
 url = "2"
 zip = "0.6"
@@ -78,6 +77,11 @@ kdl = "6.3.4"
 miette = { version = "7.6.0", features = ["fancy"] }
 shell-words = "1.1"
 http-cache-reqwest = "0.16.0"
+ratatui = { version = "0.30.2", default-features = false, features = [
+	"crossterm",
+	"layout-cache",
+	"underline-color",
+] }
 
 [dev-dependencies]
 assert_cmd = "2"
